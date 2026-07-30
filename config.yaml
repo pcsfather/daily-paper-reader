@@ -26,187 +26,45 @@ subscriptions:
     diff_threshold_pct: 15
   keyword_recall_mode: or
   intent_profiles:
-  - tag: traffic-flow
-    description: 交通流理论、道路拥堵分析与交通控制
-    enabled: true
-    paper_sources:
-    - arxiv
-    keywords:
-    - keyword: traffic flow theory
-      keyword_cn: 交通流理论
-      query: modeling traffic flow dynamics, congestion formation, and network performance
-    - keyword: traffic signal control
-      keyword_cn: 交通信号控制
-      query: optimizing urban traffic signals for delay, queues, and network throughput
-    - keyword: traffic congestion
-      keyword_cn: 交通拥堵
-      query: detecting, explaining, predicting, and mitigating road traffic congestion
-    - keyword: traffic assignment
-      keyword_cn: 交通分配
-      query: static or dynamic traffic assignment and transportation network equilibrium
-    intent_queries:
-    - query: traffic flow modeling and control methods that reduce congestion, delay, and queues in urban road networks
-      query_cn: 降低城市道路拥堵、延误和排队的交通流建模与控制方法
+    - tag: wo
+      description: 基于产品需求相关性的仓库优化策略研究
       enabled: true
-      source: manual
-      note: ''
-    - query: transportation network equilibrium, traffic assignment, and road network performance analysis
-      query_cn: 交通网络均衡、交通分配与道路网络运行绩效分析
-      enabled: true
-      source: manual
-      note: ''
-  - tag: its-control
-    description: 智能交通系统、车路协同与自动驾驶交通控制
-    enabled: true
-    paper_sources:
-    - arxiv
-    keywords:
-    - keyword: intelligent transportation systems
-      keyword_cn: 智能交通系统
-      query: intelligent transportation systems for monitoring, prediction, control, and traveler services
-    - keyword: connected automated vehicles
-      keyword_cn: 网联自动驾驶车辆
-      query: connected and automated vehicles interacting with mixed traffic and road infrastructure
-    - keyword: cooperative driving
-      keyword_cn: 协同驾驶
-      query: vehicle-infrastructure and vehicle-vehicle cooperative driving and control
-    - keyword: traffic state estimation
-      keyword_cn: 交通状态估计
-      query: estimating and predicting traffic states from multi-source transportation data
-    intent_queries:
-    - query: intelligent transportation control using connected vehicles, roadside infrastructure, and real-time traffic data
-      query_cn: 利用网联车辆、路侧基础设施和实时交通数据进行智能交通控制
-      enabled: true
-      source: manual
-      note: ''
-    - query: safe and efficient operation of automated vehicles in mixed human-driven traffic
-      query_cn: 自动驾驶车辆在人机混合交通环境中的安全高效运行
-      enabled: true
-      source: manual
-      note: ''
-  - tag: trans-plan
-    description: 综合交通规划、出行需求预测与交通政策评估
-    enabled: true
-    paper_sources:
-    - arxiv
-    keywords:
-    - keyword: travel demand modeling
-      keyword_cn: 出行需求建模
-      query: modeling trip generation, destination choice, mode choice, and travel demand
-    - keyword: transportation planning
-      keyword_cn: 交通规划
-      query: multimodal transportation planning, network design, accessibility, and land use
-    - keyword: mode choice
-      keyword_cn: 交通方式选择
-      query: explaining and forecasting traveler mode choice and behavioral responses
-    - keyword: transport policy evaluation
-      keyword_cn: 交通政策评估
-      query: causal and empirical evaluation of transportation policies and interventions
-    intent_queries:
-    - query: multimodal transportation planning and travel demand forecasting for urban and regional mobility
-      query_cn: 面向城市和区域出行的多方式交通规划与需求预测
-      enabled: true
-      source: manual
-      note: ''
-    - query: behavioral and causal evaluation of congestion pricing, public transport, parking, and low-carbon mobility policies
-      query_cn: 拥堵收费、公共交通、停车和低碳出行政策的行为与因果评估
-      enabled: true
-      source: manual
-      note: ''
-  - tag: transit-rail
-    description: 城市公共交通、轨道交通与铁路运输组织优化
-    enabled: true
-    paper_sources:
-    - arxiv
-    keywords:
-    - keyword: public transit operations
-      keyword_cn: 公共交通运营
-      query: planning and operating bus, metro, and multimodal public transport services
-    - keyword: railway scheduling
-      keyword_cn: 铁路调度
-      query: railway timetabling, train rescheduling, dispatching, and capacity allocation
-    - keyword: metro operations
-      keyword_cn: 地铁运营
-      query: metro passenger flow, timetable design, train control, and disruption management
-    - keyword: transit network design
-      keyword_cn: 公交网络设计
-      query: public transit route, frequency, timetable, and network design optimization
-    intent_queries:
-    - query: public transport network design and service scheduling that improve reliability, accessibility, and passenger experience
-      query_cn: 提升可靠性、可达性和乘客体验的公共交通网络设计与服务调度
-      enabled: true
-      source: manual
-      note: ''
-    - query: railway and metro timetable optimization, capacity management, and disruption recovery
-      query_cn: 铁路与地铁运行图优化、能力管理和扰动恢复
-      enabled: true
-      source: manual
-      note: ''
-  - tag: freight-log
-    description: 货物运输、城市物流、车辆路径与仓储库存协同优化
-    enabled: true
-    paper_sources:
-    - arxiv
-    keywords:
-    - keyword: freight transportation
-      keyword_cn: 货物运输
-      query: freight transportation planning, modal choice, terminal operations, and network design
-    - keyword: vehicle routing
-      keyword_cn: 车辆路径
-      query: vehicle routing and scheduling with operational, environmental, and service constraints
-    - keyword: urban logistics
-      keyword_cn: 城市物流
-      query: city logistics, last-mile delivery, consolidation, and low-emission freight operations
-    - keyword: inventory routing
-      keyword_cn: 库存路径
-      query: integrated inventory, replenishment, warehousing, and transportation optimization
-    intent_queries:
-    - query: integrated optimization of freight transport, vehicle routing, warehouse inventory, and demand uncertainty
-      query_cn: 货物运输、车辆路径、仓储库存与需求不确定性的一体化优化
-      enabled: true
-      source: manual
-      note: ''
-    - query: sustainable urban logistics and last-mile delivery balancing cost, emissions, and service quality
-      query_cn: 兼顾成本、排放与服务质量的可持续城市物流和末端配送
-      enabled: true
-      source: manual
-      note: ''
-  - tag: safe-infra
-    description: 交通安全、运输基础设施韧性与低碳可持续交通
-    enabled: true
-    paper_sources:
-    - arxiv
-    keywords:
-    - keyword: traffic safety
-      keyword_cn: 交通安全
-      query: crash risk, road user behavior, conflict analysis, and traffic safety interventions
-    - keyword: transportation resilience
-      keyword_cn: 交通韧性
-      query: resilient transportation networks under disruptions, disasters, and extreme weather
-    - keyword: road infrastructure
-      keyword_cn: 道路基础设施
-      query: road infrastructure condition, maintenance, capacity, and life-cycle management
-    - keyword: sustainable transportation
-      keyword_cn: 可持续交通
-      query: low-carbon transportation systems, emissions reduction, energy use, and equity
-    intent_queries:
-    - query: transportation safety analysis and interventions for vehicles, pedestrians, cyclists, and vulnerable road users
-      query_cn: 面向车辆、行人、骑行者和弱势道路使用者的交通安全分析与干预
-      enabled: true
-      source: manual
-      note: ''
-    - query: resilient and sustainable transportation infrastructure under disruptions, climate risks, and decarbonization goals
-      query_cn: 面向扰动、气候风险和脱碳目标的韧性可持续交通基础设施
-      enabled: true
-      source: manual
-      note: ''
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: warehouse optimization
+          keyword_cn: 仓库优化
+          query: optimizing warehouse layout and operations
+        - keyword: demand correlation
+          keyword_cn: 需求相关性
+          query: correlation between product demands for storage
+        - keyword: inventory management
+          keyword_cn: 库存管理
+          query: inventory management strategies based on demand
+        - keyword: storage assignment
+          keyword_cn: 存储分配
+          query: assigning storage locations considering product relationships
+        - keyword: order picking
+          keyword_cn: 订单拣选
+          query: order picking efficiency in warehouse
+        - keyword: item affinity
+          keyword_cn: 物品关联性
+          query: item affinity analysis for warehouse optimization
+      intent_queries:
+        - query: warehouse optimization based on product demand correlation
+          query_cn: 基于产品需求相关性的仓库优化
+          enabled: true
+          source: manual
+          note: ''
+        - query: improving warehouse efficiency through demand affinity analysis
+          query_cn: 通过需求关联分析提高仓库效率
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-30T11:56:26.833Z'
 source_backends:
   arxiv:
-    kind: supabase
-    enabled: true
-    url: https://lyucdwgefyfbmaiopjbk.supabase.co
-    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
-    schema: public
     papers_table: arxiv_papers
     use_vector_rpc: true
     vector_rpc: match_arxiv_papers_exact
@@ -215,3 +73,20 @@ source_backends:
     bm25_rpc: match_arxiv_papers_bm25
     sync_table: arxiv_sync_status
     sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
+  biorxiv:
+    papers_table: biorxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_biorxiv_papers_exact
+    vector_rpc_exact: match_biorxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_biorxiv_papers_bm25
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
