@@ -1,0 +1,169 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-30T10:29:20.504777+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 4,
+    "deep_cap": 6,
+    "deep_selected": 4,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2607.19835v1",
+      "source": "arxiv",
+      "title": "Beyond recency and magnitude: Learning-aware uncertainty estimation for safety stock under evolving forecast-error distributions",
+      "abstract": "We develop a non-parametric approach to refine forecast-error histories for safety stock estimation without relying on error magnitude or recency alone. Using forecast-error data from a fast-moving consumer goods environment, we show that one year of errors is insufficient to characterize service-level risk, while pooling several years is problematic because error distributions change over time. Non-parametric annual comparisons indicate a progressive reduction in bias and dispersion, consistent with learning in the forecasting process. We propose LOWDII (Leave-One-Out Wasserstein Distributional Influence Index), a diagnostic that evaluates the distributional influence of each historical forecast error on the empirical uncertainty distribution used for safety stock calibration. LOWDII identifies observations whose influence is disproportionate to their representativeness, separating transient distortions from persistent tail behaviour without imposing parametric assumptions. We evaluate the method in a discrete-event simulation using subsequent-year demand realizations as validation. The results show that LOWDII achieves the target service level while reducing average stock by 5.1% to 22.6% relative to benchmark methods. From a managerial perspective, LOWDII helps firms translate improvements in the forecasting process into safety stock decisions, avoiding the projection of obsolete historical errors into the future and capturing the economic benefit of lower uncertainty requirements earlier.",
+      "authors": [
+        "Luis Fernández-Palacios",
+        "Manuel Ceballos",
+        "Yolanda Muñoz-Ocaña"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC"
+      ],
+      "published": "2026-07-22T07:16:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.19835v1",
+      "tags": [
+        "keyword:demand-inv",
+        "query:demand-inv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "safety stock estimation refines inventory levels using demand forecast errors",
+      "llm_evidence_cn": "利用需求预测误差精细化安全库存估计以优化库存水平",
+      "llm_evidence": "利用需求预测误差精细化安全库存估计以优化库存水平",
+      "canonical_evidence": "利用需求预测误差精细化安全库存估计以优化库存水平",
+      "llm_tldr_en": "Develops a non-parametric method to refine forecast-error histories for safety stock estimation under evolving distributions, improving inventory decisions.",
+      "llm_tldr_cn": "针对快速消费品环境中预测误差分布随时间变化的问题，提出一种非参数方法（LOWDII）来评估历史预测误差对安全库存估计的分布影响。该方法不依赖误差的时效性或幅度，而是通过Wasserstein距离度量每个历史数据点的影响，从而精炼误差历史。实验表明，该方法能有效改善安全库存估计，避免因错误分布假设导致的服务水平风险。为数据驱动的库存优化提供了新的不确定性估计工具。",
+      "llm_tldr": "针对快速消费品环境中预测误差分布随时间变化的问题，提出一种非参数方法（LOWDII）来评估历史预测误差对安全库存估计的分布影响。该方法不依赖误差的时效性或幅度，而是通过Wasserstein距离度量每个历史数据点的影响，从而精炼误差历史。实验表明，该方法能有效改善安全库存估计，避免因错误分布假设导致的服务水平风险。为数据驱动的库存优化提供了新的不确定性估计工具。",
+      "llm_tags": [
+        "query:demand-inv"
+      ],
+      "matched_query_tag": "query:demand-inv",
+      "matched_query_text": "optimizing inventory levels using demand data and warehouse constraints",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.21354v1",
+      "source": "arxiv",
+      "title": "SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning",
+      "abstract": "For years, supply chain planning at e-commerce firms has operated as a collection of isolated projects. Each planning task from static network planning to dynamic warehouse assortment planning requires analysts to spend weeks building models from scratch, calibrating and persuading executives to act on outputs they cannot verify. Three barriers drive this: bespoke models proliferate because standardization is difficult (operational fragmentation); once unified, the combinatorial scale of millions of SKUs, thousands of nodes, and intricate routing logic exceeds what solvers can handle within a tight window (computational intractability); and a mathematically optimal solution still fails to be implemented if the executives do not trust it (implementation hurdle). To bridge this gap, we propose and implement the Simulation-Propose-then-OR-Dispose method, deployed as JD.com's NetSim platform. The central insight is decoupling: simulation proposes by generating and evaluating the full set of operationally valid candidate paths-absorbing all idiosyncratic business logic, while an integer program disposes by selecting the globally optimal subset. Computationally, matrix-vectorized CPU/GPU accelerated simulation achieves a 10-100 times speedup over serial methods, and a list scheduling algorithm reduces coupled-order processing from hours to minutes. Operationally, we establish a closed loop via an intelligent diagnosis engine. Since 2025, NetSim has optimized end to-end services for over 20,000 suppliers, the cross-regional fulfillment rate dropped from 6.1% to 4.9%, and the average monthly carbon reduction is approximately 5,745 tCO2e. SPORD moves simulation from monitoring to active planning. The transparent outputs turn skeptical executives into engaged collaborators, and the modular architecture ensures that the next planning requires just configuration, not reconstruction.",
+      "authors": [
+        "Jiayin He",
+        "Yutong Pan",
+        "Sen Yang",
+        "Ningxuan Kang",
+        "Yongzhi Qi",
+        "Jianshen Zhang",
+        "Wei Qi",
+        "Zuo-Jun Max Shen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-23T14:18:01+00:00",
+      "link": "https://arxiv.org/pdf/2607.21354v1",
+      "tags": [
+        "keyword:demand-inv",
+        "query:demand-inv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "supply chain planning for dynamic warehouse assortment and inventory optimization",
+      "llm_evidence_cn": "面向动态仓库品类规划与库存优化的供应链规划方法",
+      "llm_evidence": "面向动态仓库品类规划与库存优化的供应链规划方法",
+      "canonical_evidence": "面向动态仓库品类规划与库存优化的供应链规划方法",
+      "llm_tldr_en": "Proposes SPORD, integrating simulation, heuristics, and optimization to solve large-scale supply chain planning tasks like dynamic warehouse assortment, addressing fragmentation and trust issues.",
+      "llm_tldr_cn": "针对电子商务供应链规划中模型碎片化、组合规模过大和决策信任不足三大障碍，提出SPORD方法。该方法通过仿真生成场景，利用启发式提出候选方案，再运用运筹优化求解，最终对不可行方案进行处置，实现百万SKU级别的动态仓库品类规划与库存优化。实验表明，SPORD能在有限时间内给出可解释且运营团队信任的规划方案，为数据驱动的仓储库存管理提供了实用框架。",
+      "llm_tldr": "针对电子商务供应链规划中模型碎片化、组合规模过大和决策信任不足三大障碍，提出SPORD方法。该方法通过仿真生成场景，利用启发式提出候选方案，再运用运筹优化求解，最终对不可行方案进行处置，实现百万SKU级别的动态仓库品类规划与库存优化。实验表明，SPORD能在有限时间内给出可解释且运营团队信任的规划方案，为数据驱动的仓储库存管理提供了实用框架。",
+      "llm_tags": [
+        "query:demand-inv"
+      ],
+      "matched_query_tag": "query:demand-inv",
+      "matched_query_text": "warehouse management strategies for demand-driven inventory",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25664v1",
+      "source": "arxiv",
+      "title": "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail",
+      "abstract": "Machine learning demand forecasts optimize statistical accuracy yet leave excess operational volatility that inflates safety stock and amplifies the Bullwhip effect. We introduce \\textbf{Contextual Deconvolution} (CD), a two-stage estimator that reframes demand sensing as a convex decomposition: a kernel-modulated banded operator separates transient promotion-driven shocks from a smooth structural baseline, and hierarchical partial pooling enables catalog-scale deployment without per-SKU training. The operator is data-derived, not imposed---it reduces to the identity wherever the promotional response is impulsive (most of M5, all of Favorita) and contributes only where genuine multi-day carryover exists, so the gains rest on the structural decomposition itself. Evaluating strictly out-of-sample on 30,490 M5 SKUs and 2,845 Favorita items, with calendar-aware baselines given CD's identical future calendar, we anchor the contribution on a full inventory-cost accounting: CD lowers safety stock, holding cost, and order variance but under-provisions event spikes, reducing total cost only when holding costs exceed $\\sim$20\\% of stockout costs (95\\% CI $[17\\%,25\\%]$); otherwise it is an operational-stability and inventory-capital layer, not an expected-cost minimizer. Its accuracy contribution is reliability rather than central tendency: across eleven baselines, CD attains the lowest cross-sectional dispersion of per-SKU error and mis-forecasts by more than 200\\% on 0.8\\% of SKUs versus 9.9--20.6\\% for every baseline, ranking first on both in all four M5 draws. Because the Variance Ratio and std-based safety stock are minimized by any sufficiently smooth forecast, we treat them as diagnostics, not objectives. A supporting analysis shows the learned demand operators are non-normal, yet CD's compact parametric kernel matches their operational performance interpretably.",
+      "authors": [
+        "Mohammad Forouhesh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC",
+        "stat.ML"
+      ],
+      "published": "2026-07-28T12:49:59+00:00",
+      "link": "https://arxiv.org/pdf/2607.25664v1",
+      "tags": [
+        "keyword:demand-inv",
+        "query:demand-inv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "demand sensing for inventory management, directly reduces safety stock and bullwhip effect",
+      "llm_evidence_cn": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
+      "llm_evidence": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
+      "canonical_evidence": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
+      "llm_tldr_en": "Proposes Contextual Deconvolution to separate promotion-driven demand shocks from baseline, reducing forecast volatility and thus safety stock and bullwhip effect in promotional retail.",
+      "llm_tldr_cn": "针对促销零售中需求预测波动性过高导致安全库存膨胀和牛鞭效应的问题，提出上下文解卷积方法，通过核调制算子分离促销冲击与结构基线，利用层级部分池化实现大规模部署；实验表明该方法在M5等数据集上有效降低预测波动，从而显著优化库存水平。",
+      "llm_tldr": "针对促销零售中需求预测波动性过高导致安全库存膨胀和牛鞭效应的问题，提出上下文解卷积方法，通过核调制算子分离促销冲击与结构基线，利用层级部分池化实现大规模部署；实验表明该方法在M5等数据集上有效降低预测波动，从而显著优化库存水平。",
+      "llm_tags": [
+        "query:demand-inv"
+      ],
+      "matched_query_tag": "query:demand-inv",
+      "matched_query_text": "optimizing inventory levels using demand data and warehouse constraints",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25956v1",
+      "source": "arxiv",
+      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
+      "abstract": "Multi-warehouse inventory allocation is typically formulated as a mixed-integer programming (MIP) problem, yet no single formulation consistently matches heterogeneous instance-level regimes induced by demand concentration, inventory imbalance, replenishment scale, service constraints, and forecast volatility. We study this issue as instance-wise operations research (OR) formulation selection, where each allocation instance is assigned to a solver-executable formulation from a candidate OR expert library. We propose a solver-guided large language model (LLM) framework for OR formulation selection, in which each OR expert corresponds to a MIP formulation encoding a distinct allocation priority. To train the selector, the framework first constructs balanced expert-conditioned supervised fine-tuning (SFT) records for schema learning, and then uses MIP solver evaluation on historical instances to convert solver-evaluated allocation-quality gaps into margin-weighted identity preference optimization (IPO) preferences and per-instance expert-score metadata for reward lookup during group relative policy optimization (GRPO) to assign rewards to sampled responses. Experiments on multi-warehouse inventory allocation instances from JD$\\mathord{.}$com, one of China's largest e-retailers, demonstrate that GRPO substantially improves expert-selection accuracy relative to the SFT+IPO selector and, more importantly, produces higher realized allocation quality than both the preference-trained selector and the best fixed formulation. With GRPO, Hit Ratio@1 and Hit Ratio@2 increase from 21.45% to 50.42% and from 70.47% to 82.31%. The resulting selector achieves an allocation accuracy gain of 12.57 percentage points over the incumbent baseline, outperforming both the SFT+IPO selector and the best fixed OR expert, and reduces the gap to the ex-post oracle to 4.85 percentage points.",
+      "authors": [
+        "Jintao Xu",
+        "Yingzheng Ma",
+        "Jiong Dong",
+        "Yongzhi Qi",
+        "Jianshen Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "math.OC"
+      ],
+      "published": "2026-07-28T16:41:54+00:00",
+      "link": "https://arxiv.org/pdf/2607.25956v1",
+      "tags": [
+        "keyword:demand-inv",
+        "query:demand-inv"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-warehouse inventory allocation with demand concentration, inventory imbalance, service constraints, and forecast volatility",
+      "llm_evidence_cn": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
+      "llm_evidence": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
+      "canonical_evidence": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
+      "llm_tldr_en": "Proposes a solver-guided LLM framework to select the best MIP formulation for multi-warehouse inventory allocation instances, considering demand concentration, inventory imbalance, and service constraints. Demonstrates improved formulation selection.",
+      "llm_tldr_cn": "在多仓库库存分配中，不同运营场景下需求集中度、库存失衡、补货规模及服务约束差异显著，导致单一混合整数规划公式难以普适。本文提出一种求解器引导的大语言模型框架，将各OR专家编码为体现不同分配优先级的MIP公式，并训练选择器进行实例级公式推荐。实验表明该方法可根据需求特征动态匹配最佳公式，提升分配效率与求解质量，为需求驱动的仓储库存优化提供了自适应方案。",
+      "llm_tldr": "在多仓库库存分配中，不同运营场景下需求集中度、库存失衡、补货规模及服务约束差异显著，导致单一混合整数规划公式难以普适。本文提出一种求解器引导的大语言模型框架，将各OR专家编码为体现不同分配优先级的MIP公式，并训练选择器进行实例级公式推荐。实验表明该方法可根据需求特征动态匹配最佳公式，提升分配效率与求解质量，为需求驱动的仓储库存优化提供了自适应方案。",
+      "llm_tags": [
+        "query:demand-inv"
+      ],
+      "matched_query_tag": "query:demand-inv",
+      "matched_query_text": "optimizing inventory levels using demand data and warehouse constraints",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

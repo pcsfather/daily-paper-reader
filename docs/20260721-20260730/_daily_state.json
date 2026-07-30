@@ -1,0 +1,73 @@
+{
+  "date": "20260721-20260730",
+  "date_label": "2026-07-21 ~ 2026-07-30",
+  "generated_at": "2026-07-30 10:34:33 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2607.19835v1",
+      "route": "20260721-20260730/2607.19835v1-beyond-recency-and-magnitude-learning-aware-uncertainty-estimation-for-safety-stock-under-evolving-forecast-error-distributions",
+      "title": "Beyond recency and magnitude: Learning-aware uncertainty estimation for safety stock under evolving forecast-error distributions",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "利用需求预测误差精细化安全库存估计以优化库存水平",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 10:34:33 UTC"
+    },
+    {
+      "paper_id": "2607.21354v1",
+      "route": "20260721-20260730/2607.21354v1-spord-a-simulation-propose-then-or-dispose-approach-for-supply-chain-planning",
+      "title": "SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向动态仓库品类规划与库存优化的供应链规划方法",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 10:34:33 UTC"
+    },
+    {
+      "paper_id": "2607.25664v1",
+      "route": "20260721-20260730/2607.25664v1-contextual-deconvolution-for-variance-stable-demand-sensing-kernel-modulated-operators-in-promotional-retail",
+      "title": "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 10:34:33 UTC"
+    },
+    {
+      "paper_id": "2607.25956v1",
+      "route": "20260721-20260730/2607.25956v1-large-language-model-for-operations-research-formulation-selection-in-multi-warehouse-inventory-allocation",
+      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 10:34:33 UTC"
+    }
+  ]
+}
