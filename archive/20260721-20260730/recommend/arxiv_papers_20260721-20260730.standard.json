@@ -1,51 +1,54 @@
 {
   "mode": "standard",
-  "generated_at": "2026-07-30T10:29:20.504777+00:00",
+  "generated_at": "2026-07-30T12:02:03.762103+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 4,
+    "deep_divecandidates": 2,
     "deep_cap": 6,
-    "deep_selected": 4,
-    "quick_candidates": 0,
+    "deep_selected": 2,
+    "quick_candidates": 4,
     "quick_skim_target": 11,
-    "quick_selected": 0
+    "quick_selected": 4
   },
   "deep_dive": [
     {
-      "id": "2607.19835v1",
+      "id": "2607.25956v1",
       "source": "arxiv",
-      "title": "Beyond recency and magnitude: Learning-aware uncertainty estimation for safety stock under evolving forecast-error distributions",
-      "abstract": "We develop a non-parametric approach to refine forecast-error histories for safety stock estimation without relying on error magnitude or recency alone. Using forecast-error data from a fast-moving consumer goods environment, we show that one year of errors is insufficient to characterize service-level risk, while pooling several years is problematic because error distributions change over time. Non-parametric annual comparisons indicate a progressive reduction in bias and dispersion, consistent with learning in the forecasting process. We propose LOWDII (Leave-One-Out Wasserstein Distributional Influence Index), a diagnostic that evaluates the distributional influence of each historical forecast error on the empirical uncertainty distribution used for safety stock calibration. LOWDII identifies observations whose influence is disproportionate to their representativeness, separating transient distortions from persistent tail behaviour without imposing parametric assumptions. We evaluate the method in a discrete-event simulation using subsequent-year demand realizations as validation. The results show that LOWDII achieves the target service level while reducing average stock by 5.1% to 22.6% relative to benchmark methods. From a managerial perspective, LOWDII helps firms translate improvements in the forecasting process into safety stock decisions, avoiding the projection of obsolete historical errors into the future and capturing the economic benefit of lower uncertainty requirements earlier.",
+      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
+      "abstract": "Multi-warehouse inventory allocation is typically formulated as a mixed-integer programming (MIP) problem, yet no single formulation consistently matches heterogeneous instance-level regimes induced by demand concentration, inventory imbalance, replenishment scale, service constraints, and forecast volatility. We study this issue as instance-wise operations research (OR) formulation selection, where each allocation instance is assigned to a solver-executable formulation from a candidate OR expert library. We propose a solver-guided large language model (LLM) framework for OR formulation selection, in which each OR expert corresponds to a MIP formulation encoding a distinct allocation priority. To train the selector, the framework first constructs balanced expert-conditioned supervised fine-tuning (SFT) records for schema learning, and then uses MIP solver evaluation on historical instances to convert solver-evaluated allocation-quality gaps into margin-weighted identity preference optimization (IPO) preferences and per-instance expert-score metadata for reward lookup during group relative policy optimization (GRPO) to assign rewards to sampled responses. Experiments on multi-warehouse inventory allocation instances from JD$\\mathord{.}$com, one of China's largest e-retailers, demonstrate that GRPO substantially improves expert-selection accuracy relative to the SFT+IPO selector and, more importantly, produces higher realized allocation quality than both the preference-trained selector and the best fixed formulation. With GRPO, Hit Ratio@1 and Hit Ratio@2 increase from 21.45% to 50.42% and from 70.47% to 82.31%. The resulting selector achieves an allocation accuracy gain of 12.57 percentage points over the incumbent baseline, outperforming both the SFT+IPO selector and the best fixed OR expert, and reduces the gap to the ex-post oracle to 4.85 percentage points.",
       "authors": [
-        "Luis Fernández-Palacios",
-        "Manuel Ceballos",
-        "Yolanda Muñoz-Ocaña"
+        "Jintao Xu",
+        "Yingzheng Ma",
+        "Jiong Dong",
+        "Yongzhi Qi",
+        "Jianshen Zhang"
       ],
-      "primary_category": "math.OC",
+      "primary_category": "cs.AI",
       "categories": [
+        "cs.AI",
         "math.OC"
       ],
-      "published": "2026-07-22T07:16:15+00:00",
-      "link": "https://arxiv.org/pdf/2607.19835v1",
+      "published": "2026-07-28T16:41:54+00:00",
+      "link": "https://arxiv.org/pdf/2607.25956v1",
       "tags": [
-        "keyword:demand-inv",
-        "query:demand-inv"
+        "keyword:wo",
+        "query:wo"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "safety stock estimation refines inventory levels using demand forecast errors",
-      "llm_evidence_cn": "利用需求预测误差精细化安全库存估计以优化库存水平",
-      "llm_evidence": "利用需求预测误差精细化安全库存估计以优化库存水平",
-      "canonical_evidence": "利用需求预测误差精细化安全库存估计以优化库存水平",
-      "llm_tldr_en": "Develops a non-parametric method to refine forecast-error histories for safety stock estimation under evolving distributions, improving inventory decisions.",
-      "llm_tldr_cn": "针对快速消费品环境中预测误差分布随时间变化的问题，提出一种非参数方法（LOWDII）来评估历史预测误差对安全库存估计的分布影响。该方法不依赖误差的时效性或幅度，而是通过Wasserstein距离度量每个历史数据点的影响，从而精炼误差历史。实验表明，该方法能有效改善安全库存估计，避免因错误分布假设导致的服务水平风险。为数据驱动的库存优化提供了新的不确定性估计工具。",
-      "llm_tldr": "针对快速消费品环境中预测误差分布随时间变化的问题，提出一种非参数方法（LOWDII）来评估历史预测误差对安全库存估计的分布影响。该方法不依赖误差的时效性或幅度，而是通过Wasserstein距离度量每个历史数据点的影响，从而精炼误差历史。实验表明，该方法能有效改善安全库存估计，避免因错误分布假设导致的服务水平风险。为数据驱动的库存优化提供了新的不确定性估计工具。",
+      "llm_score": 10.0,
+      "llm_evidence_en": "LLM-guided OR formulation selection for multi-warehouse inventory allocation under demand variability",
+      "llm_evidence_cn": "LLM引导的运筹学公式选择用于需求波动的多仓库库存分配",
+      "llm_evidence": "LLM引导的运筹学公式选择用于需求波动的多仓库库存分配",
+      "canonical_evidence": "LLM引导的运筹学公式选择用于需求波动的多仓库库存分配",
+      "llm_tldr_en": "Proposes LLM-based formulation selection for multi-warehouse inventory allocation to handle heterogeneous demand patterns, directly addressing demand-based inventory management.",
+      "llm_tldr_cn": "该文针对多仓库库存分配中需求集中度、库存不平衡等异质性导致的单一MIP公式失效问题，提出求解器引导的大语言模型框架，从OR专家库中为每个分配实例选择最佳公式。实验证明该方法能跨需求场景稳定提升解质量，为需求驱动的库存管理提供了自动化工具体系。",
+      "llm_tldr": "该文针对多仓库库存分配中需求集中度、库存不平衡等异质性导致的单一MIP公式失效问题，提出求解器引导的大语言模型框架，从OR专家库中为每个分配实例选择最佳公式。实验证明该方法能跨需求场景稳定提升解质量，为需求驱动的库存管理提供了自动化工具体系。",
       "llm_tags": [
-        "query:demand-inv"
+        "query:wo"
       ],
-      "matched_query_tag": "query:demand-inv",
-      "matched_query_text": "optimizing inventory levels using demand data and warehouse constraints",
-      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
       "selection_source": "fresh_fetch"
     },
     {
@@ -70,25 +73,27 @@
       "published": "2026-07-23T14:18:01+00:00",
       "link": "https://arxiv.org/pdf/2607.21354v1",
       "tags": [
-        "keyword:demand-inv",
-        "query:demand-inv"
+        "keyword:wo",
+        "query:wo"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "supply chain planning for dynamic warehouse assortment and inventory optimization",
-      "llm_evidence_cn": "面向动态仓库品类规划与库存优化的供应链规划方法",
-      "llm_evidence": "面向动态仓库品类规划与库存优化的供应链规划方法",
-      "canonical_evidence": "面向动态仓库品类规划与库存优化的供应链规划方法",
-      "llm_tldr_en": "Proposes SPORD, integrating simulation, heuristics, and optimization to solve large-scale supply chain planning tasks like dynamic warehouse assortment, addressing fragmentation and trust issues.",
-      "llm_tldr_cn": "针对电子商务供应链规划中模型碎片化、组合规模过大和决策信任不足三大障碍，提出SPORD方法。该方法通过仿真生成场景，利用启发式提出候选方案，再运用运筹优化求解，最终对不可行方案进行处置，实现百万SKU级别的动态仓库品类规划与库存优化。实验表明，SPORD能在有限时间内给出可解释且运营团队信任的规划方案，为数据驱动的仓储库存管理提供了实用框架。",
-      "llm_tldr": "针对电子商务供应链规划中模型碎片化、组合规模过大和决策信任不足三大障碍，提出SPORD方法。该方法通过仿真生成场景，利用启发式提出候选方案，再运用运筹优化求解，最终对不可行方案进行处置，实现百万SKU级别的动态仓库品类规划与库存优化。实验表明，SPORD能在有限时间内给出可解释且运营团队信任的规划方案，为数据驱动的仓储库存管理提供了实用框架。",
+      "llm_evidence_en": "dynamic warehouse assortment planning",
+      "llm_evidence_cn": "动态仓库品类规划",
+      "llm_evidence": "动态仓库品类规划",
+      "canonical_evidence": "动态仓库品类规划",
+      "llm_tldr_en": "Addresses fragmented supply chain planning with a unified simulation-propose-or-dispose approach for warehouse assortment and other plans, overcoming computational and trust barriers.",
+      "llm_tldr_cn": "针对电商供应链规划中模型碎片化、计算复杂性和决策信任三大障碍，提出SPORD方法，通过仿真生成候选方案，再利用运筹决策框架进行优化，实现静态网络到动态仓库品类等规划的联合求解，帮助分析师快速构建可信方案并推动实施。",
+      "llm_tldr": "针对电商供应链规划中模型碎片化、计算复杂性和决策信任三大障碍，提出SPORD方法，通过仿真生成候选方案，再利用运筹决策框架进行优化，实现静态网络到动态仓库品类等规划的联合求解，帮助分析师快速构建可信方案并推动实施。",
       "llm_tags": [
-        "query:demand-inv"
+        "query:wo"
       ],
-      "matched_query_tag": "query:demand-inv",
-      "matched_query_text": "warehouse management strategies for demand-driven inventory",
-      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "optimizing warehouse layout and operations",
+      "matched_requirement_id": "req-1",
       "selection_source": "fresh_fetch"
-    },
+    }
+  ],
+  "quick_skim": [
     {
       "id": "2607.25664v1",
       "source": "arxiv",
@@ -106,64 +111,137 @@
       "published": "2026-07-28T12:49:59+00:00",
       "link": "https://arxiv.org/pdf/2607.25664v1",
       "tags": [
-        "keyword:demand-inv",
-        "query:demand-inv"
+        "keyword:wo",
+        "query:wo"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "demand sensing for inventory management, directly reduces safety stock and bullwhip effect",
-      "llm_evidence_cn": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
-      "llm_evidence": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
-      "canonical_evidence": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
-      "llm_tldr_en": "Proposes Contextual Deconvolution to separate promotion-driven demand shocks from baseline, reducing forecast volatility and thus safety stock and bullwhip effect in promotional retail.",
-      "llm_tldr_cn": "针对促销零售中需求预测波动性过高导致安全库存膨胀和牛鞭效应的问题，提出上下文解卷积方法，通过核调制算子分离促销冲击与结构基线，利用层级部分池化实现大规模部署；实验表明该方法在M5等数据集上有效降低预测波动，从而显著优化库存水平。",
-      "llm_tldr": "针对促销零售中需求预测波动性过高导致安全库存膨胀和牛鞭效应的问题，提出上下文解卷积方法，通过核调制算子分离促销冲击与结构基线，利用层级部分池化实现大规模部署；实验表明该方法在M5等数据集上有效降低预测波动，从而显著优化库存水平。",
+      "llm_score": 7.0,
+      "llm_evidence_en": "Demand sensing method for promotional retail to reduce safety stock and bullwhip, directly relevant to demand-based inventory management.",
+      "llm_evidence_cn": "面向促销零售的需求感知方法，旨在降低安全库存和牛鞭效应，与基于需求的库存管理直接相关。",
+      "llm_evidence": "面向促销零售的需求感知方法，旨在降低安全库存和牛鞭效应，与基于需求的库存管理直接相关。",
+      "canonical_evidence": "面向促销零售的需求感知方法，旨在降低安全库存和牛鞭效应，与基于需求的库存管理直接相关。",
+      "llm_tldr_en": "Proposes Contextual Deconvolution, a two-stage estimator that separates promotion-driven shocks from baseline demand, enabling stable demand sensing for better inventory management.",
+      "llm_tldr_cn": "在零售促销场景中，传统需求预测模型虽追求统计精度，却因忽略促销冲击与基线需求的差异而导致预测方差过大，推高安全库存并放大牛鞭效应。本文提出上下文反卷积（CD）方法，通过核调制有界算子明确分离促销驱动的短期冲击与平滑的结构基线，利用层次部分池化实现跨SKU的目录级部署。在M5和Favorita等数据集上的实验表明，CD能有效降低需求预测的方差，提升库存稳定性。该方法为零售需求感知提供了一种方差稳健的新范式，对改善供应链库存管理具有重要意义。",
+      "llm_tldr": "在零售促销场景中，传统需求预测模型虽追求统计精度，却因忽略促销冲击与基线需求的差异而导致预测方差过大，推高安全库存并放大牛鞭效应。本文提出上下文反卷积（CD）方法，通过核调制有界算子明确分离促销驱动的短期冲击与平滑的结构基线，利用层次部分池化实现跨SKU的目录级部署。在M5和Favorita等数据集上的实验表明，CD能有效降低需求预测的方差，提升库存稳定性。该方法为零售需求感知提供了一种方差稳健的新范式，对改善供应链库存管理具有重要意义。",
       "llm_tags": [
-        "query:demand-inv"
+        "query:wo"
       ],
-      "matched_query_tag": "query:demand-inv",
-      "matched_query_text": "optimizing inventory levels using demand data and warehouse constraints",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
     },
     {
-      "id": "2607.25956v1",
+      "id": "2607.19761v1",
       "source": "arxiv",
-      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
-      "abstract": "Multi-warehouse inventory allocation is typically formulated as a mixed-integer programming (MIP) problem, yet no single formulation consistently matches heterogeneous instance-level regimes induced by demand concentration, inventory imbalance, replenishment scale, service constraints, and forecast volatility. We study this issue as instance-wise operations research (OR) formulation selection, where each allocation instance is assigned to a solver-executable formulation from a candidate OR expert library. We propose a solver-guided large language model (LLM) framework for OR formulation selection, in which each OR expert corresponds to a MIP formulation encoding a distinct allocation priority. To train the selector, the framework first constructs balanced expert-conditioned supervised fine-tuning (SFT) records for schema learning, and then uses MIP solver evaluation on historical instances to convert solver-evaluated allocation-quality gaps into margin-weighted identity preference optimization (IPO) preferences and per-instance expert-score metadata for reward lookup during group relative policy optimization (GRPO) to assign rewards to sampled responses. Experiments on multi-warehouse inventory allocation instances from JD$\\mathord{.}$com, one of China's largest e-retailers, demonstrate that GRPO substantially improves expert-selection accuracy relative to the SFT+IPO selector and, more importantly, produces higher realized allocation quality than both the preference-trained selector and the best fixed formulation. With GRPO, Hit Ratio@1 and Hit Ratio@2 increase from 21.45% to 50.42% and from 70.47% to 82.31%. The resulting selector achieves an allocation accuracy gain of 12.57 percentage points over the incumbent baseline, outperforming both the SFT+IPO selector and the best fixed OR expert, and reduces the gap to the ex-post oracle to 4.85 percentage points.",
+      "title": "Harnessing Heterogeneous Data for Conditional Optimization via Optimal Transport",
+      "abstract": "Conditional optimization tailors decisions to contextual or event information, but its practical use is often limited by the difficulty of learning the relevant conditional distribution from finite samples of a target joint distribution. This challenge is especially acute when target joint data are scarce or unavailable, or when few observations fall in the conditioning region of interest. Related joint data may be available from multiple sources, such as different stores, markets, populations, or operating environments, but these sources may be biased relative to the target distribution and cannot be pooled naively. We develop a distributionally robust framework based on optimal transport (OT) for harnessing such heterogeneous data in conditional optimization. The framework constructs ambiguity sets over joint distributions using OT distances to empirical source distributions and optimizes worst-case conditional performance over plausible target laws. We propose three OT ambiguity sets that capture different ways of using heterogeneous sources: enforcing simultaneous source consistency, aggregating source discrepancies through weights, and centering the ambiguity set at an OT barycenter. We derive tractable reformulations, establish feasibility conditions, discuss parameter choices, and characterize the relationships among the formulations, revealing trade-offs between robustness, information aggregation, and computational complexity. We demonstrate the value of the framework through a conditional assortment problem using demand and product-feature data from multiple stores.",
       "authors": [
-        "Jintao Xu",
-        "Yingzheng Ma",
-        "Jiong Dong",
-        "Yongzhi Qi",
-        "Jianshen Zhang"
+        "Jonathan Yu-Meng Li",
+        "Qinyu Wu"
       ],
-      "primary_category": "cs.AI",
+      "primary_category": "math.OC",
       "categories": [
-        "cs.AI",
         "math.OC"
       ],
-      "published": "2026-07-28T16:41:54+00:00",
-      "link": "https://arxiv.org/pdf/2607.25956v1",
+      "published": "2026-07-22T05:11:26+00:00",
+      "link": "https://arxiv.org/pdf/2607.19761v1",
       "tags": [
-        "keyword:demand-inv",
-        "query:demand-inv"
+        "keyword:wo",
+        "query:wo"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Multi-warehouse inventory allocation with demand concentration, inventory imbalance, service constraints, and forecast volatility",
-      "llm_evidence_cn": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
-      "llm_evidence": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
-      "canonical_evidence": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
-      "llm_tldr_en": "Proposes a solver-guided LLM framework to select the best MIP formulation for multi-warehouse inventory allocation instances, considering demand concentration, inventory imbalance, and service constraints. Demonstrates improved formulation selection.",
-      "llm_tldr_cn": "在多仓库库存分配中，不同运营场景下需求集中度、库存失衡、补货规模及服务约束差异显著，导致单一混合整数规划公式难以普适。本文提出一种求解器引导的大语言模型框架，将各OR专家编码为体现不同分配优先级的MIP公式，并训练选择器进行实例级公式推荐。实验表明该方法可根据需求特征动态匹配最佳公式，提升分配效率与求解质量，为需求驱动的仓储库存优化提供了自适应方案。",
-      "llm_tldr": "在多仓库库存分配中，不同运营场景下需求集中度、库存失衡、补货规模及服务约束差异显著，导致单一混合整数规划公式难以普适。本文提出一种求解器引导的大语言模型框架，将各OR专家编码为体现不同分配优先级的MIP公式，并训练选择器进行实例级公式推荐。实验表明该方法可根据需求特征动态匹配最佳公式，提升分配效率与求解质量，为需求驱动的仓储库存优化提供了自适应方案。",
+      "llm_score": 6.0,
+      "llm_evidence_en": "harnesses heterogeneous data for conditional optimization via OT, useful for modeling product demand correlations",
+      "llm_evidence_cn": "利用异构数据进行条件优化，可建模产品需求相关性",
+      "llm_evidence": "利用异构数据进行条件优化，可建模产品需求相关性",
+      "canonical_evidence": "利用异构数据进行条件优化，可建模产品需求相关性",
+      "llm_tldr_en": "Proposes a distributionally robust OT framework to learn conditional distributions from biased multi-source data, useful for capturing product demand correlations in inventory contexts.",
+      "llm_tldr_cn": "本文针对条件优化中目标数据稀缺或有限的问题，提出了一种基于最优传输的分布鲁棒框架，以有效利用来自多个商店、市场等异构且可能有偏的数据源。该框架能够学习与上下文相关的条件分布，从而间接捕捉产品间的需求关联。实验表明，该方法在数据融合条件下显著提升了决策质量，为基于需求相关性的仓库库存优化提供了新的数据驱动工具。",
+      "llm_tldr": "本文针对条件优化中目标数据稀缺或有限的问题，提出了一种基于最优传输的分布鲁棒框架，以有效利用来自多个商店、市场等异构且可能有偏的数据源。该框架能够学习与上下文相关的条件分布，从而间接捕捉产品间的需求关联。实验表明，该方法在数据融合条件下显著提升了决策质量，为基于需求相关性的仓库库存优化提供了新的数据驱动工具。",
       "llm_tags": [
-        "query:demand-inv"
+        "query:wo"
       ],
-      "matched_query_tag": "query:demand-inv",
-      "matched_query_text": "optimizing inventory levels using demand data and warehouse constraints",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "correlation between product demands for storage",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "biorxiv-10-64898-2025-12-12-693799-v2",
+      "source": "biorxiv",
+      "title": "SEEK-VEC: Augmenting topic modeling with spectral ensemble learning",
+      "abstract": "Count data are ubiquitous across many applications in which understanding latent patterns is of interest. Topic modeling is a powerful tool for detecting latent structure in count data. However, standard topic modeling methods are often constrained by their restrictive assumptions, susceptible to noise, and sensitive to misspecification of the number of topics. Here, we introduce SEEK-VEC (Spectral Ensembling of topic models with Eigenscore for K-agnostic Vocabulary Embedding and Classification), an ensemble topic modeling framework that integrates insights from multiple candidate topic models through a spectral ensembling procedure. SEEK-VEC produces a meta-structure matrix containing prioritization scores and grouping scores that enable variable classification, interactive pattern discovery, and model diagnostics. Through simulations, we demonstrate that SEEK-VEC augments the performance of standard topic models for identifying important vocabulary words and understanding the relationships among them, particularly when signal strength is weak. We apply SEEK-VEC to the MADStat dataset of statistical abstracts and demonstrate its utility for evaluating the proposed interpretation of a topic model.",
+      "authors": [
+        "Danning, R.",
+        "Ke, Z. T.",
+        "Ma, R.",
+        "Lin, X."
+      ],
+      "primary_category": "bioinformatics",
+      "categories": [
+        "bioinformatics"
+      ],
+      "published": "2026-07-21T00:00:00+00:00",
+      "link": "https://www.biorxiv.org/content/10.64898/2025.12.12.693799v2.full.pdf",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "ensemble topic modeling discovers latent product groupings from count data",
+      "llm_evidence_cn": "集成主题建模从计数数据中发现潜在产品分组",
+      "llm_evidence": "集成主题建模从计数数据中发现潜在产品分组",
+      "canonical_evidence": "集成主题建模从计数数据中发现潜在产品分组",
+      "llm_tldr_en": "Introduces SEEK-VEC, an ensemble topic modeling framework that can extract product affinity from demand count data.",
+      "llm_tldr_cn": "该文提出SEEK-VEC集成主题建模框架，通过谱集成学习融合多个候选模型，生成包含优先级与分组得分的元结构矩阵。该方法能从计数数据中有效发现潜在结构，适用于产品需求数据的关联分析，为仓库中的物品聚类与货位分配提供依据。",
+      "llm_tldr": "该文提出SEEK-VEC集成主题建模框架，通过谱集成学习融合多个候选模型，生成包含优先级与分组得分的元结构矩阵。该方法能从计数数据中有效发现潜在结构，适用于产品需求数据的关联分析，为仓库中的物品聚类与货位分配提供依据。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "item affinity analysis for warehouse optimization",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.21858v1",
+      "source": "arxiv",
+      "title": "Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs",
+      "abstract": "This paper develops an approximation algorithm for the submodular joint replenishment problem (SJRP) under a broad family of decomposable submodular ordering cost functions. In the SJRP, a central planner coordinates orders to satisfy deterministic demand for multiple items over a finite discrete planning horizon while minimizing total holding and ordering costs, with the latter modeled as a submodular function of the subset of items ordered in each period. The ordering cost functions considered in this paper are defined based on a decomposition of the items into $k$ categories, where the cost is a function of weighted aggregate quantities within each category and allows for arbitrary interactions across categories through a joint cost function. The proposed algorithm rounds the solution to a linear programming relaxation by partitioning the fractional solution into nested regions according to marginal costs using a novel water-filling procedure, and then selecting one order from each region to obtain a feasible integral schedule. The resulting algorithm achieves an $O(k)$-approximation. When the number of categories $k$ is fixed, this yields the first constant-factor guarantee for this broad class of submodular ordering costs, significantly expanding the class of cost functions for which such guarantees are known.",
+      "authors": [
+        "Retsef Levi",
+        "Georgia Perakis",
+        "Emily Zhang"
+      ],
+      "primary_category": "cs.DS",
+      "categories": [
+        "cs.DS",
+        "cs.DM"
+      ],
+      "published": "2026-07-23T22:58:31+00:00",
+      "link": "https://arxiv.org/pdf/2607.21858v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "addresses joint replenishment problem for multi-item inventory",
+      "llm_evidence_cn": "针对多物品库存的联合补货问题",
+      "llm_evidence": "针对多物品库存的联合补货问题",
+      "canonical_evidence": "针对多物品库存的联合补货问题",
+      "llm_tldr_en": "Develops approximation algorithm for submodular joint replenishment to minimize holding and ordering costs, applicable to inventory management strategies based on demand.",
+      "llm_tldr_cn": "该文针对多物品库存管理中具有次模订货成本的联合补货问题，提出了一种基于物品类别分解的近似算法。通过求解该算法，中央决策者可在有限规划期内协调订单，在满足确定性需求的同时最小化总持有与订货成本。研究表明，该算法为这类复杂库存问题提供了理论保证，对需求驱动的库存管理策略具有指导意义。",
+      "llm_tldr": "该文针对多物品库存管理中具有次模订货成本的联合补货问题，提出了一种基于物品类别分解的近似算法。通过求解该算法，中央决策者可在有限规划期内协调订单，在满足确定性需求的同时最小化总持有与订货成本。研究表明，该算法为这类复杂库存问题提供了理论保证，对需求驱动的库存管理策略具有指导意义。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
     }
-  ],
-  "quick_skim": []
+  ]
 }

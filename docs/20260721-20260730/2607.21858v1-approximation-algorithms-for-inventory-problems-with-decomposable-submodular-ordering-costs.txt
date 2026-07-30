@@ -1,0 +1,1880 @@
+Title: Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs
+
+URL Source: https://arxiv.org/pdf/2607.21858v1
+
+Published Time: Mon, 27 Jul 2026 00:14:52 GMT
+
+Number of Pages: 37
+
+Markdown Content:
+# Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs 
+
+## Retsef Levi ∗ Georgia Perakis † Emily Zhang ‡
+
+Abstract 
+
+This paper develops an approximation algorithm for the submodular joint replenishment problem (SJRP) under a broad family of decomposable submodular ordering cost functions. In the SJRP, a central planner coordinates orders to satisfy deterministic demand for multiple items over a finite discrete planning horizon while minimizing total holding and ordering costs, with the latter modeled as a submodular function of the subset of items ordered in each period. The ordering cost functions considered in this paper are defined based on a decomposition of the items into 𝑘 categories, where the cost is a function of weighted aggregate quantities within each category and allows for arbitrary interactions across categories through a joint cost function. The proposed algorithm rounds the solution to a linear programming relaxation by partitioning the fractional solution into nested regions according to marginal costs using a novel water-filling procedure, and then selecting one order from each region to obtain a feasible integral schedule. The resulting algorithm achieves an 𝑂 (𝑘 )-approximation. When the number of categories 𝑘 is fixed, this yields the first constant-factor guarantee for this broad class of submodular ordering costs, significantly expanding the class of cost functions for which such guarantees are known. 
+
+Keywords: Inventory management; submodular optimization; approximation algorithms; combina-torial optimization. 
+
+# 1 Introduction 
+
+The deterministic inventory problem studied in this paper captures several well-known models in the supply chain literature, including the economic lot size model (Wagner and Whitin 1958), the inventory routing problem (IRP) (Bell et al. 1983), and the submodular joint replenishment problem (SJRP) (Cheung et al. 2016). In all of these models, the decision maker must choose when and how much to order to satisfy known period-dependent demands over a finite discrete planning horizon with the goal of minimizing total ordering and holding costs. The IRP and SJRP are known to be NP-hard, but their approximability remains poorly understood due to the complexity of their combinatorial cost structures. 
+
+> ∗
+
+Sloan School of Management, Massachusetts Institute of Technology. Email: retsef@mit.edu. 
+
+> †
+
+Sloan School of Management, Massachusetts Institute of Technology. Email: georgiap@mit.edu. 
+
+> ‡
+
+Operations Research Center, Massachusetts Institute of Technology. Email: eyzhang@mit.edu. 
+
+1arXiv:2607.21858v1 [cs.DS] 23 Jul 2026 The economic lot size model considers a single item with deterministic, time-varying demand over 𝑇 periods. In each period, the decision maker selects an order quantity to satisfy current and future demand, where demand due in period 𝑑 can be fulfilled by any order placed no later than its deadline 𝑑 . The goal is to determine a replenishment schedule that minimizes the total cost over all periods, which includes fixed ordering costs incurred whenever an order is placed, and holding costs proportional to the inventory carried between periods. The model captures a fundamental trade-off between frequent small orders (reducing holding costs) and infrequent large orders (reducing ordering costs), and has long served as a foundational framework in inventory theory. It admits efficient algorithms for computing an optimal cost-minimizing sequence of orders, beginning with the dynamic programming algorithm of Wagner and Whitin (1958). The joint replenishment problem (JRP) generalizes the economic lot size model to a multi-item setting with 𝑁 items, where orders can be coordinated across items to reduce costs. The ordering cost function is defined through an item-specific cost and a fixed ordering (or setup) cost. Accordingly, the cost of each order is the sum of the fixed ordering cost (regardless of the items included) and the sum of the item-specific costs of all items included in the order, a cost structure which is called 
+
+additive . The JRP captures economies of scale from joint ordering but introduces combinatorial complexity in determining which subsets of items to order in each period under shared ordering costs. The JRP is NP-hard (Arkin et al. 1989), and a substantial body of work has focused on developing approximation algorithms for the problem (Levi et al. 2004, 2008, Bienkowski et al. 2014). The JRP has been used in many applications including inventory management, maintenance scheduling, logistics, and transportation problems (Cheung et al. 2016). The submodular joint replenishment problem (SJRP), studied by Cheung et al. (2016), generalizes the JRP by allowing the ordering cost in each period to be a monotone submodular function of the set of items ordered. This assumption includes the JRP as a special case, but offers significantly greater modeling flexibility. The submodular ordering cost can represent shared resources such as trucks, machines, or labor, and more richly captures economies of scale in joint ordering. A closely related problem is the inventory routing problem (IRP), in which a central depot serves multiple geographically distributed customers. The delivery cost for each order corresponds to the length of the shortest tour that starts and ends at the depot while visiting the subset of customers served in the respective period. The objective is to minimize the total routing and holding costs over the planning horizon. Both the SJRP and IRP are known to be computationally challenging and little is known about their approximability (Nagarajan and Shi 2016). Beyond the JRP, constant-factor approximation algorithms have been developed only for special cases of the SJRP, including the cases when the ordering cost function is defined based on a tree, laminar, or cardinality structure (Bienkowski et al. 2014, Cheung et al. 2016). In the tree case, items are leaves in a rooted tree and the ordering cost of a subset is the sum of costs along paths from the root to the selected leaves. In the laminar case, the ordering cost is defined as the minimum total cost of a collection of nested groups that cover the item set. In the cardinality case, the cost is a concave function of the number of items ordered. However, the approximation algorithms rely on the cost function exhibiting very specific structure, and whether a constant-factor approximation exists for the SJRP with more general submodular ordering cost functions or for the IRP on general metrics remains a long-standing open question. A series of works has progressively improved worst-case approximation guarantees for the general SJRP and IRP (Nagarajan and Shi 2016, Bosman and Olver 2020), with the current 2best 𝑂 (log log min (𝑁, 𝑇 )) -approximation ( 𝑁 being the number of items and 𝑇 the planning horizon length) achieved by Bosman and Olver (2020). 
+
+## 1.1 Main contribution 
+
+This paper develops an approximation algorithm for the SJRP under a broad family of submodular ordering cost functions that are based on a decomposition of the items into categories. These functions depend on a weighted aggregate quantity within each category and allow arbitrary interactions across categories through a joint cost function. Specifically, the class of submodular functions, formally defined in Definition 1, is constructed from a continuous DR-submodular function, item-specific weights, and a partition of the items into 
+
+𝑘 disjoint categories . The partition and the item-specific weights are used to associate a vector with each subset of items 𝑆 , consisting of the sum of the weights of the items included in the intersection of 𝑆 with each of the item categories. The cost of ordering 𝑆 is obtained by applying a continuous DR-submodular function to this vector. This class of functions enables flexible and realistic modeling of cross-category interactions, as the continuous function is not required to be separable, allowing it to capture complex dependencies between categories. Within each category, the use of weighted sums reflects the natural assumption that the costs depend on weighted aggregate quantities—such as total weight, volume, or value— with the item-specific weights reflecting heterogeneous resource consumption across items. This formulation is particularly well-suited to supply chain and logistics applications, where cross-category cost interactions commonly arise due to shared storage, transportation, or operational constraints. It is worth noting that the newly proposed class of submodular functions captures many well-studied special cases of submodular cost functions. For example, when the decomposition consists of a single part ( 𝑘 = 1), it recovers both the JRP (where the additive ordering cost is the sum of item-specific weights plus a fixed base cost) and cardinality-based costs (where the ordering cost depends only on the number of items in the order, regardless of their identities). The main result of the paper shows that the SJRP with the class of submodular ordering cost functions described above admits an efficient approximation algorithm, with a worst-case approximation guarantee that scales with the number of item categories 𝑘 . Specifically, we construct an algorithm that runs in polynomial time and achieves an (8𝑘 + 1)-approximation guarantee. This yields a constant-factor approximation when 𝑘 is a constant—a guarantee that was previously unknown even in the special case of 𝑘 = 1. This result significantly expands the class of cost functions for which constant-factor guarantees are known. Even for small 𝑘 , the cost functions considered are highly expressive, as the decomposition permits arbitrary cross-category interactions. Additionally, the structural insights obtained as part of the analysis in this paper may inform future progress for the SJRP and the IRP. 
+
+1.1.1 Algorithm Overview 
+
+The approximate solution to the SJRP is obtained by first constructing a corresponding instance of the Disjoint Interval Covering Problem (DICP). In the DICP, there is a collection of disjoint 
+
+demand intervals over the horizon for each item, and the objective is to place orders so that each demand interval includes at least one order with the respective item. This formulation removes the 3need to consider holding costs, focusing the objective solely on minimizing ordering costs. Unlike prior approaches that eliminate holding costs without additional structural constraints, the DICP enforces disjoint demand intervals for each item (that is, they do not overlap along the time horizon), simplifying the structure of the problem and facilitating algorithmic design. The approximation algorithm for the SJRP is obtained by leveraging a novel approximation algorithm for the DICP as a subroutine. It is shown that by doing so, there is only a constant factor loss in the approximation to the SJRP. The DICP approximation algorithm is the primary technical contribution of this work. The algorithm begins by solving the linear programming relaxation of the DICP and then applies a rounding procedure. The approach exploits structural properties of the LP solution and the specific class of submodular ordering cost functions considered. The algorithm’s design and analysis further rely on a notion of level for subsets of items relative to a given category, which intuitively captures the marginal cost of adding one more item from that category to the subset. These levels induce a total order over the subsets ordered by the optimal LP solution. A water-filling procedure then partitions the LP solution into regions that group subsets with similar levels. The first region contains the lowest-level subsets, and subsequent regions are formed by progressively incorporating subsets with higher levels. An integral schedule is obtained by solving a computationally tractable dynamic program to select one subset to order from each constructed region, minimizing the total cost. Leveraging the LP’s optimality conditions, it is shown that ordering at least one subset from each region suffices to satisfy all demands. A key structural insight is that, for each demand point, there exists a level ℓ such that every subset ordered by the LP in its demand interval has level less than or equal to ℓ if and only if it contains the corresponding item. This observation, formalized in Lemma 3, is central to the correctness of the rounding scheme. These structural properties may also be useful in the design of future algorithms for the SJRP and related problems with submodular costs. 
+
+## 1.2 Literature Review 
+
+The JRP was shown to be NP-hard by Arkin et al. (1989) and APX-hard by Nonner and Souza (2009), which means that it does not admit a polynomial-time approximation scheme (PTAS)—that is, a polynomial-time algorithm with approximation ratio (1 + 𝜖 ). A sequence of increasingly tighter approximation algorithms has been developed for this setting. The current best approximation ratios are 2 due to Levi et al. (2004), 1.80 due to Levi et al. (2008), and 1.791 due to Bienkowski et al. (2014). In contrast, this paper studies the submodular JRP, which features a more general and expressive cost structure, and for which constant-factor approximations are not yet known. A closely related problem is the IRP, introduced by Bell et al. (1983), which modifies the JRP by defining setup costs as the minimum routing cost to serve a set of customers in a metric space. The IRP has been extensively studied in operations research and logistics (Burns et al. 1985, Federgruen and Zipkin 1984); see Coelho et al. (2014) for a comprehensive review of the literature. Fukunaga et al. (2014) provided a constant-factor approximation under the restriction that orders are scheduled periodically, but the approximability of general ordering policies is not known. The IRP shares the same integer programming formulation as the JRP (Bosman and Olver 2020), differing only in the form of the joint setup cost. The SJRP was studied by Cheung et al. (2016). In contrast with the JRP, it remains open 4whether the SJRP admits a constant-factor approximation in general. Cheung et al. (2016) provide constant-factor approximation algorithms for special cases of submodular cost functions, including tree, laminar, and cardinality costs. For general submodular cost functions, Nagarajan and Shi (2016) established the first sub-logarithmic approximation guarantee, assuming that all holding costs are fixed-degree polynomial functions of the holding time. Their algorithm achieves an 𝑂 (log 𝑇 /log log 𝑇 )-approximation for both the SJRP and the IRP. This was later improved exponentially by Bosman and Olver (2020), who obtained an 𝑂 (log log min (𝑁, 𝑇 )) -approximation. In contrast, this paper develops an approximation algorithm for a broad family of submodular functions, with an approximation guarantee that depends only on the number of item categories. The submodular function decomposition studied in this paper generalizes the decomposable submodular functions introduced by Stobbe and Krause (2010). In their formulation, the cost of a given set of items is expressed as a sum of concave functions, each applied to a weighted sum of item indicators, with one concave function and weight vector per category of items. When the weight vectors have disjoint supports—that is, each item belongs to only one category—their model becomes a special case of the decomposition considered in this paper. The class of functions considered in this paper is significantly more general, as it allows for arbitrary interactions across categories through a joint cost function, whereas their model assumes an additive structure with separable components. Stobbe and Krause (2010) demonstrate that such functions arise naturally in a range of applications, including classification tasks and multiclass queuing systems. They further develop efficient algorithms that exploit the decomposable structure, significantly improving scalability compared to generic submodular minimization methods. The decomposable framework thus strikes a useful balance between modeling power and tractability. 
+
+## 1.3 Paper Organization 
+
+The remainder of the paper is organized as follows. Section 2 presents a mathematical formulation for the SJRP. Section 3 presents the approximation algorithm for the simpler DICP, and Section 4 proves its correctness. Section 5 then describes how this algorithm is used as a subroutine to approximate the original SJRP. Finally, we conclude in Section 6. 
+
+# 2 Model 
+
+This section formally defines the submodular joint replenishment problem (SJRP) and presents a mathematical formulation, following the frameworks of Bosman and Olver (2020), Cheung et al. (2016), and Nagarajan and Shi (2016). Throughout the paper, [𝑘 ] denotes the set {1, . . . , 𝑘 } for any integer 𝑘 , and [𝑘, 𝑘 ′] for any integers 𝑘 ≤ 𝑘 ′ denotes {𝑘, 𝑘 + 1, . . . , 𝑘 ′}. For any subset 𝑆 ⊆ [ 𝑁 ],let e𝑆 ∈ R𝑁 denote its indicator vector, where the 𝑖 th coordinate is 1 if 𝑖 ∈ 𝑆 and 0 otherwise. Consider a finite planning horizon of 𝑇 discrete time periods, indexed by 𝑡 ∈ [ 𝑇 ], and a set of 𝑁 items, indexed by 𝑖 ∈ [ 𝑁 ]. For each item 𝑖 ∈ [ 𝑁 ] and time period 𝑑 ∈ [ 𝑇 ], 𝑞 𝑖𝑑 ≥ 0 denotes the demand quantity of item 𝑖 that must be ordered by the deadline 𝑑 . Let D denote the set of demand points (𝑖, 𝑑 ) with 𝑞 𝑖𝑑 > 0. Each such demand point (𝑖, 𝑑 ) ∈ D must be fulfilled by an order including item 𝑖 placed no later than its deadline 𝑑 .5Let ℎ𝑖 𝑠𝑑 ≥ 0 denote the cost of holding one unit of item 𝑖 from period 𝑠 to 𝑑 . Serving demand point (𝑖, 𝑑 ) using an order placed at time period 𝑠 incurs a holding cost of 𝑞 𝑖𝑑 ℎ𝑖 𝑠𝑑 . Note that per unit production costs for ordering a unit of an item 𝑖 in a period 𝑠 can be captured by this framework through the holding cost ℎ𝑖 𝑠𝑑 . The assumption is that ℎ𝑖 𝑠𝑑 is nonnegative and non-increasing in 𝑠 for fixed 𝑖 and 𝑑 , following the typical setting where holding items in inventory for longer incurs higher costs. This implies that in an optimal policy, each demand point (𝑖, 𝑑 ) is served by the latest order including item 𝑖 placed at or before the deadline period 𝑑 .The decision maker has to determine which items to order in each time period, with the goal of minimizing the total cost, which consists of the joint ordering and the holding costs for carrying inventory until the demand deadline. Notably, the demand magnitude influences only the holding cost, as the ordering cost depends solely on the set of distinct items ordered, not on the quantity ordered. Let the function 𝐾 (𝑆 ) denote the cost of ordering a subset of items 𝑆 ⊆ [ 𝑁 ], and assume that 𝐾 : 2 [𝑁 ] → R+ is nonnegative and monotone increasing. 𝐾 (𝑆 ) is further assumed to be a submodular set function. That is, for any item 𝑖 ∈ [ 𝑁 ], the marginal cost of adding item 𝑖 to a smaller subset is at least as large as the cost of adding it to a larger one, i.e., for all 𝑆 1 ⊆ 𝑆 2 ⊆ [ 𝑁 ]
+
+and 𝑖 ∉ 𝑆 2, we have 𝐾 (𝑆 1 ∪ { 𝑖 }) − 𝐾 (𝑆 1) ≥ 𝐾 (𝑆 2 ∪ { 𝑖 }) − 𝐾 (𝑆 2). This paper focuses on cost functions 𝐾 that admit a structured decomposition, formally defined as follows: 
+
+Definition 1 (Submodular function decomposition) . Let 𝑃 1, 𝑃 2, . . . , 𝑃 𝑘 be a partition of the items 
+
+[𝑁 ] into 𝑘 disjoint subsets. Let w ∈ R𝑁 >0 denote a vector of item-specific weights, and define 
+
+w𝑗 := w ◦ e𝑃 𝑗 for 𝑗 ∈ [ 𝑘 ], where ◦ denotes the Hadamard (elementwise) product. We consider ordering cost functions 𝐾 : 2 [𝑁 ] → R+ of the form: 
+
+𝐾 (𝑆 ) = 𝑓  w⊤ 
+
+> 1
+
+e𝑆 , w⊤ 
+
+> 2
+
+e𝑆 , . . . , w⊤ 
+
+> 𝑘
+
+e𝑆 
+
+ , (1) where 𝑓 : R𝑘  
+
+> +
+
+→ R+ is monotone nondecreasing, twice continuously differentiable, and DR-submodular, i.e., 
+
+𝜕 2 𝑓 𝜕𝑥 𝑖 𝜕𝑥 𝑗 
+
+(x) ≤ 0 for all 𝑖, 𝑗 ∈ [ 𝑘 ] and x ∈ R𝑘 
+
+> +
+
+.
+
+The assumption on 𝑓 in Definition 1 ensures that the resulting ordering cost function 𝐾 is submodular (see Lemma 10). For notational convenience, given a submodular cost function 𝐾 of the form defined in (1) , define the vector u(𝑆 ) :=
+
+
+
+w⊤ 
+
+> 𝑗
+
+e𝑆 
+
+  
+
+> 𝑗 ∈[ 𝑘 ]
+
+∈ R𝑘 for any subset of items 𝑆 ⊆ [ 𝑁 ].That is, u(𝑆 ) is the vector of weighted sums over each category, and the cost function satisfies 
+
+𝐾 (𝑆 ) = 𝑓 (u(𝑆 )) .The submodular function decomposition introduced in Definition 1 captures a broad class of well-studied submodular cost functions. To illustrate, consider an additive cost structure in which placing an order incurs a fixed cost 𝐾 0, and ordering item 𝑖 ∈ [ 𝑁 ] incurs an additional additive cost 𝐾 𝑖 . Let 𝐾 min := min 𝑖 ∈[ 𝑁 ] 𝐾 𝑖 . This cost can be represented within our framework by setting 
+
+𝑘 = 1, letting w1 = (𝐾 𝑖 )𝑖 ∈[ 𝑁 ] , and choosing a concave function 𝑓 : R → R that passes through the points (0, 0) and (𝐾 min , 𝐾 0 + 𝐾 min ), and is linear with slope 1 beyond 𝐾 min . As another example, cardinality-based cost functions are recovered by setting all weights equal to one and choosing 𝑓 to be any concave function. A natural integer programming formulation for the SJRP is described in (IP) below. The binary variable 𝑦 𝑆 𝑠 is equal to 1 if the subset 𝑆 ⊆ [ 𝑁 ] is ordered in period 𝑠 , and 0 otherwise. The binary 6variable 𝑥 𝑖 𝑠𝑑 is equal to 1 if demand (𝑖, 𝑑 ) is fulfilled using an order placed in period 𝑠 , and 0 otherwise. minimize ∑︁ 
+
+> 𝑆 ⊆[ 𝑁 ]
+> 𝑇
+
+∑︁ 
+
+> 𝑠 =1
+
+𝐾 (𝑆 )𝑦 𝑆 𝑠 +∑︁ 
+
+> (𝑖,𝑑 )∈D
+> 𝑑
+
+∑︁ 
+
+> 𝑠 =1
+
+𝑞 𝑖𝑑 ℎ𝑖 𝑠𝑑 𝑥 𝑖 𝑠𝑑 (IP) subject to 
+
+> 𝑑
+
+∑︁ 
+
+> 𝑠 =1
+
+𝑥 𝑖 𝑠𝑑 = 1, (𝑖, 𝑑 ) ∈ D (Constraint 1) 
+
+𝑥 𝑖 𝑠𝑑 ≤∑︁ 
+
+> 𝑆 :𝑖 ∈𝑆 ⊆[ 𝑁 ]
+
+𝑦 𝑆 𝑠 , (𝑖, 𝑑 ) ∈ D , 𝑠 ∈ [ 𝑑 ] (Constraint 2) 
+
+𝑥 𝑖 𝑠𝑑 , 𝑦 𝑆 𝑠 ∈ { 0, 1} , (𝑖, 𝑑 ) ∈ D , 𝑠 ∈ [ 𝑑 ], 𝑆 ⊆ [ 𝑁 ]
+
+In the formulation described in (IP) , Constraint 1 ensures that each demand (𝑖, 𝑑 ) ∈ D is served by an order placed at some period 𝑠 ≤ 𝑑 . Constraint 2 ensures that if a demand (𝑖, 𝑑 ) is served by an order placed at some period 𝑠 , then there must be a subset ordered at period 𝑠 that includes item 𝑖 .Let (LP) denote the linear programming relaxation of (IP), obtained by replacing the integrality constraints with nonnegativity constraints. Although (LP) contains an exponential number of variables, its dual can be solved in polynomial time using the ellipsoid method, since a separation oracle for identifying violated dual constraints can be implemented using submodular function minimization (Cheung et al. 2016). A corresponding primal solution can then be recovered from the dual solution in polynomial time (Schrijver 1998). 
+
+## 2.1 Special Cases of the SJRP 
+
+This section discusses several special cases of the SJRP. Some of these special cases have been studied in prior literature that is focused on models with simpler cost functions. These variants are described below, and it is subsequently explained in Section 5 how approximation algorithms developed for the simpler models can be leveraged to approximate solutions for the general SJRP. 
+
+SJRP with Deadlines. The SJRP with deadlines is a special case of the SJRP in which holding costs are eliminated, and each demand must be fulfilled within a specified time interval, referred to as the demand interval. Following Bienkowski et al. (2015) and Nonner and Souza (2009), each demand for an item 𝑖 ∈ [ 𝑁 ] is represented by a triple (𝑖, 𝑐, 𝑑 ) with 𝑐 ≤ 𝑑 ∈ [ 𝑇 ], where 𝑐 is when the demand interval commences and 𝑑 is its deadline. That is, item 𝑖 must be ordered during the interval [𝑐, 𝑑 ]. The input consists of a set D of such demands, and the goal is to place orders that satisfy each within its designated interval, while minimizing ordering costs. This formulation can be viewed as a special case of the SJRP in which the holding cost ℎ𝑖 𝑠𝑑 is zero when 𝑠 is within the associated demand interval and infinite otherwise. Prior work has shown that the SJRP can be reduced to the deadline variant with only a constant-factor loss in the approximation guarantee (Cheung et al. 2016, Nagarajan and Shi 2016). 
+
+Disjoint Interval Covering Problem (DICP). The disjoint interval covering problem (DICP) is a variant of the SJRP with deadlines in which the demand intervals for each item are mutually 7disjoint —that is, they do not overlap along the time horizon. Formally, each item 𝑖 ∈ [ 𝑁 ] is associated with a collection of pairwise disjoint time intervals {[ 𝑐, 𝑑 ] : (𝑖, 𝑐, 𝑑 ) ∈ D} . The objective remains the same as in the SJRP with deadlines: to minimize the total joint ordering cost while ensuring that each item is ordered at least once within each of its associated demand intervals. The DICP can be formulated as an integer program, where binary decision variables 𝑦 𝑆 𝑠 indicate whether a subset of items 𝑆 is ordered at time 𝑠 . Below is a linear programming relaxation of the DICP, in which the binary constraints are replaced with nonnegativity constraints. minimize 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑠 =1
+
+∑︁ 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 )𝑦 𝑆 𝑠 (DICP) subject to ∑︁ 
+
+> 𝑠 ∈[ 𝑐,𝑑 ]
+
+∑︁ 𝑆 :𝑖 ∈𝑆 
+
+𝑦 𝑆 𝑠 ≥ 1, (𝑖, 𝑐, 𝑑 ) ∈ D 
+
+𝑦 𝑆 𝑠 ≥ 0 𝑠 ∈ [ 𝑇 ], 𝑆 ⊆ [ 𝑁 ].
+
+# 3 DICP Approximation algorithm 
+
+This section presents an approximation algorithm for the simpler DICP. Section 5 then describes how this algorithm is used as a subroutine to approximate the original SJRP. The algorithm takes as input the LP solution (𝑦 𝑆 𝑡 )𝑡 ∈[ 𝑇 ],𝑆 ⊆[ 𝑁 ] to the DICP relaxation (DICP) and uses it as the basis for a rounding algorithm that yields a 4𝑘 -approximation to the optimal integral DICP solution, where 𝑘 is the number of item categories or parts in the partition as in Definition 1. The output of the rounding algorithm is a feasible integral solution—specifically, a sequence of orders 𝑂 𝑡 ⊆ [ 𝑁 ] placed at each time period 𝑡 ∈ [ 𝑇 ] such that each item 𝑖 ∈ [ 𝑁 ] is ordered in each of its associated demand intervals. At a high level, the algorithm uses a water-filling partitioning procedure to group fractionally ordered sets in the LP solution into regions based on appropriately defined marginal costs, and then applies a dynamic program to select orders within these regions to satisfy all demand while minimizing cost. The algorithm is shown to be feasible (Section 4.1) and achieves a total ordering cost at most 4 𝑘 times the LP optimum (Section 4.2). The approximation algorithm will leverage two structural properties of the optimal solution of (DICP) . Property 1 below follows from Cheung et al. (2016) and shows that the fractional orders in each period can be assumed, without loss of generality, to form a collection of nested sets. 
+
+Property 1 (Nested structure property) . For any time period 𝑡 ∈ [ 𝑇 ] and subsets 𝑅, 𝑆 ⊆ [ 𝑁 ], if 
+
+𝑦 𝑅 𝑡 > 0 and 𝑦 𝑆 𝑡 > 0, then either 𝑅 ⊆ 𝑆 or 𝑆 ⊆ 𝑅 .Accordingly, for a given time period 𝑡 ∈ [ 𝑇 ], the support of the fractional orders placed by the optimal solution of (DICP), 𝑆 ⊆ [ 𝑁 ] : 𝑦 𝑆 𝑡 > 0 , can be indexed as 
+
+𝑆 1 (𝑡 ) ⊋ 𝑆 2 (𝑡 ) ⊋ . . . ⊋ 𝑆 𝑛 (𝑡 ) (𝑡 ) ⊋ 𝑆 𝑛 (𝑡 )+ 1 (𝑡 ) := ∅, (2) where 𝑛 (𝑡 ) is the number of different sets with positive fractional order quantity at time 𝑡 . To simplify notation, for each 𝑟 ∈ [ 𝑛 (𝑡 )] , let 𝑦 𝑟 (𝑡 ) := 𝑦 𝑆 𝑟 (𝑡 ) 
+
+> 𝑡
+
+be the fractional order quantity of the subset 𝑆 𝑟 (𝑡 ) at time 𝑡 .8For any period 𝑡 ∈ [ 𝑇 ] and any item 𝑖 ∈ [ 𝑁 ], let 𝐴 𝑖 𝑡 denote the largest subset in 𝑆 1 (𝑡 ), . . . , 𝑆 𝑛 (𝑡 )+ 1 (𝑡 )
+
+that does not contain 𝑖 . If 𝑖 ∈ 𝑆 1 (𝑡 ), let 𝐵 𝑖 𝑡 denote the smallest subset in this collection that contains 
+
+𝑖 . The sets 𝐴 𝑖 𝑡 and 𝐵 𝑖 𝑡 are adjacent in the ordering. That is, if 𝐵 𝑖 𝑡 = 𝑆 𝑟 (𝑡 ), then 𝐴 𝑖 𝑡 = 𝑆 𝑟 +1 (𝑡 ).Lemma 1 below states a property of the optimal fractional solution of the LP: 
+
+Lemma 1. The optimal solution satisfies the following property. For any demand point (𝑖, 𝑐, 𝑑 ) ∈ D ,the following holds: 
+
+max  
+
+> 𝑡 ∈[ 𝑐,𝑑 ]:𝑖 ∈𝑆 1(𝑡 )
+
+𝐾  𝐵 𝑖 𝑡 
+
+ − 𝐾  𝐵 𝑖 𝑡 \ { 𝑖 } 
+
+≤ min 
+
+> 𝑡 ∈[ 𝑐,𝑑 ]
+
+𝐾  𝐴 𝑖 𝑡 ∪ { 𝑖 } − 𝐾  𝐴 𝑖 𝑡 
+
+ .
+
+Lemma 1 captures the intuition that the optimality of the fractional solution implies that the marginal cost of increasing the amount of item 𝑖 ordered at any time within its demand interval must be no less than the marginal cost of reducing the amount ordered at any other time in that interval with positive fractional order of 𝑖 . Otherwise, one could shift mass across time periods to reduce cost, contradicting the optimality of the LP solution. It turns out that the inequalities in Lemma 1 can be made strict by adjusting the fractional order quantities while preserving optimality, which will be important for establishing the theoretical guarantees. This is formalized in the following property: 
+
+Property 2 (Temporal tie-breaking property) . There exists an LP optimal solution such that for any demand point (𝑖, 𝑐, 𝑑 ) ∈ D and any two distinct times 𝑡 1 < 𝑡 2 within its demand interval, either item 
+
+𝑖 is not ordered by the LP solution in period 𝑡 2 (i.e., Í𝑆 :𝑖 ∈𝑆 𝑦 𝑆 𝑡 2 = 0), or 
+
+𝐾 (𝐵 𝑖 𝑡 2 ) − 𝐾 (𝐵 𝑖 𝑡 2 \ { 𝑖 }) < 𝐾 ( 𝐴 𝑖 𝑡 1 ∪ { 𝑖 }) − 𝐾 ( 𝐴 𝑖 𝑡 1 ).
+
+Intuitively, Property 2 prioritizes ordering subsets in earlier times 𝑡 1 < 𝑡 2. Suppose instead that 
+
+𝐾 (𝐵 𝑖 𝑡 2 )− 𝐾 (𝐵 𝑖 𝑡 2 \{ 𝑖 }) ≥ 𝐾 ( 𝐴 𝑖 𝑡 1 ∪{ 𝑖 })− 𝐾 ( 𝐴 𝑖 𝑡 1 ). Then by Lemma 1, the equality 𝐾 ( 𝐴 𝑖 𝑡 1 ∪{ 𝑖 })− 𝐾 ( 𝐴 𝑖 𝑡 1 ) =
+
+𝐾 (𝐵 𝑖 𝑡 2 ) − 𝐾 (𝐵 𝑖 𝑡 2 \ { 𝑖 }) must hold. In this case, it is possible to increase the amount of item 𝑖 ordered at time 𝑡 1 and decrease the amount ordered at 𝑡 2 without increasing the LP cost. The role of Property 2 is to ensure that, in the presence of such ties, item 𝑖 is ordered at the earlier time 𝑡 1. This provides a consistent tie-breaking convention across time steps, which is an important invariant for the algorithm, as it relies on a unified ordering of subsets ordered in the LP solution. It is shown in Lemma 11 of Section A.1 that there exists an optimal solution to (DICP) satisfying both Property 1 and Property 2. 
+
+Algorithm overview. The algorithm operates separately on each item category 𝑃 𝑗 for 𝑗 ∈ [ 𝑘 ]
+
+and consists of two main steps. The first step applies a water-filling procedure to all subsets ordered across all time periods by the optimal LP solution to (DICP) , {𝑆 𝑟 (𝑡 ), 𝑡 ∈ [ 𝑇 ], 𝑟 ∈ [ 𝑛 (𝑡 )]} . Subsets are processed in order of their levels with respect to a given category 𝑗 , introduced in Section 3.1. The water-filling procedure, described in Section 3.2, constructs a collection of regions from the solution to (DICP). The second step, detailed in Section 3.3, places orders within each constructed region using a dynamic program. The procedures described in Section 3.2 and Section 3.3 are performed separately for each category 𝑗 ∈ [ 𝑘 ]. The final order schedule is then constructed by consolidating the resulting orders across all categories, as detailed in Section 3.4. 93.1 Subset levels. 
+
+The water-filling algorithm described subsequently, relies on the notion of subset levels that is defined for each subset 𝑆 of items and item category 𝑗 ∈ [ 𝑘 ], which determine the water level in the water-filling procedure. Intuitively, the level represents the marginal cost of adding an additional item from a given category to the subset. Let 𝜕 𝑓 𝜕𝑢 𝑗 denote the partial derivative of 𝑓 with respect to its 𝑗 -th argument. 
+
+Definition 2 (The 𝑗 -level of subsets) . For any category 𝑗 ∈ [ 𝑘 ] and subset of items 𝑆 ⊆ [ 𝑁 ], let 
+
+𝑖 ★ ∈ arg min 𝑤 𝑖 , 𝑖 ∈ 𝑃 𝑗 \ 𝑆 and let e𝑗 ∈ R𝑘 denote the unit vector in direction 𝑗 . The 𝑗 -level of 𝑆 
+
+is defined as 
+
+𝐿 𝑗 (𝑆 ) :=
+
+( 𝐾 (𝑆 ∪{ 𝑖 ★})− 𝐾 (𝑆 ) 
+
+> 𝑤 𝑖 ★
+
+if 𝑃 𝑗 ⊈ 𝑆, 
+
+0 otherwise. To simplify the exposition, when the category 𝑗 is clear from context, the 𝑗 -level of 𝑆 will be simply called the level of 𝑆 . Note that for any 𝑆 ⊆ [ 𝑁 ] with 𝑃 𝑗 ⊈ 𝑆 :
+
+𝐿 𝑗 (𝑆 ) = 𝐾 (𝑆 ∪ { 𝑖 ★}) − 𝐾 (𝑆 )
+
+𝑤 𝑖 ★
+
+= 𝑓 (u(𝑆 ) + 𝑤 𝑖 ★ · e𝑗 ) − 𝑓 (u(𝑆 )) 
+
+𝑤 𝑖 ★
+
+≈ 𝜕 𝑓 𝜕𝑢 𝑗 𝑢 =u(𝑆 )
+
+.
+
+Therefore, 𝐿 𝑗 (𝑆 ) approximately captures the marginal cost of ordering an additional item with weight 1 from category 𝑃 𝑗 . That is, ordering an item from 𝑃 𝑗 with weight 𝑤 would incur marginal cost approximately 𝑤 · 𝐿 𝑗 (𝑆 ). While the precise definition of the 𝑗 -level is somewhat involved, its precise form is not critical for describing the algorithm. The key idea is that these values serve as 
+
+levels for comparing different subsets ordered by the LP solution across time periods. Note that, by the concavity of 𝑓 in its 𝑗 -th coordinate, the quantity 
+
+𝑓 (u(𝑆 ) + 𝑤 · e𝑗 ) − 𝑓 (u(𝑆 )) 
+
+𝑤 
+
+is non-increasing in 𝑤 . Hence, similarly to marginal costs, the 𝑗 -levels satisfy a natural monotonicity property: 
+
+Lemma 2. For any subset of items 𝑆 1 ⊇ 𝑆 2, the 𝑗 -level satisfies 𝐿 𝑗 (𝑆 1) ≤ 𝐿 𝑗 (𝑆 2) for any 𝑗 ∈ [ 𝑘 ].
+
+In particular, combined with Property 1 of the optimal LP solution, it follows that for each period 
+
+𝑡 ∈ [ 𝑇 ]:
+
+𝐿 𝑗 (𝑆 1 (𝑡 )) ≤ 𝐿 𝑗 (𝑆 2 (𝑡 )) ≤ . . . ≤ 𝐿 𝑗 (𝑆 𝑛 (𝑡 ) (𝑡 )) .
+
+The algorithm depends only on the relative ordering of the levels, not on their numerical values. To break potential ties between subsets ordered by the LP with the same level, the time (subsets ordered earlier are treated as having lower levels) and then the size (larger subsets are treated as having lower levels) are used. This results in a complete order on the subsets ordered by the LP solution, captured by the index of the subsets, defined below. 10 Definition 3 (The 𝑗 -index of subsets) . For a subset 𝑆 ordered by the LP optimal solution at period 
+
+𝑡 , the 𝑗 -index 𝛼 𝑗 (𝑆, 𝑡 ) ∈ N is the position of (𝑆, 𝑡 ) among all subsets ordered by the LP solution according to the lexicographic order on (𝐿 𝑗 (𝑆 ), 𝑡, −| 𝑆 |) . That is, the order is determined first by increasing 𝑗 -level, then (to break ties) by increasing time, and finally (for any remaining ties) by decreasing subset size. Lemma 2 and the definition of the index in Definition 3 readily imply the following monotonicity property for the index. 
+
+Corollary 1. Let 𝑗 ∈ [ 𝑘 ], 𝑡 ∈ [ 𝑇 ], and 𝑟 1 < 𝑟 2 ∈ [ 𝑛 (𝑡 )] . Then, 𝛼 𝑗 (𝑆 𝑟 1 (𝑡 ), 𝑡 ) < 𝛼 𝑗 (𝑆 𝑟 2 (𝑡 ), 𝑡 ).
+
+One key insight regarding the indices is that any item 𝑖 ∈ 𝑃 𝑗 with demand interval 𝐼 can be associated with an index 𝛼 such that the subsets ordered by the LP during 𝐼 that contain item 𝑖 are precisely those with 𝑗 -index at most 𝛼 . The formal statement and proof of this property is deferred to Lemma 3. Building on the notion of 𝑗 -index, the algorithm can now be described. The algorithm takes as input an optimal LP solution (𝑦 𝑆 𝑡 )𝑡 ∈[ 𝑇 ],𝑆 ⊆[ 𝑁 ] to (DICP), representing a schedule of fractional subset orders, and consists of two main steps. First, it constructs regions of the LP solution via a water-filling procedure and second, it places orders within each region. These two steps are carried out independently for each item category, after which the resulting orders across all categories are combined. 
+
+## 3.2 Step 1: Construct regions using water-filling procedure. 
+
+To conveniently describe the water-filling procedure, a continuous relaxation of the time periods [𝑇 ]
+
+is used. From now on, instead of viewing time discretely, each original time period 𝑡 is considered as a continuous interval (𝑡 − 1, 𝑡 ]. In particular, the problem now spans the continuous time interval 
+
+(0, 𝑇 ]. A subset 𝑆 ordered by the LP at time 𝑡 then corresponds to a subset ordered uniformly during the interval (𝑡 − 1, 𝑡 ]. That is, 𝑦 𝑆 𝑠 = 𝑦 𝑆 𝑡 for all 𝑠 ∈ ( 𝑡 − 1, 𝑡 ] and all item subsets 𝑆 ⊆ [ 𝑁 ].To illustrate the algorithm and its analysis, it is helpful to use a pictorial representation of the fractional solution in the 2-dimensional Cartesian plane (see Figure 1a), where the 𝑥 -axis denotes time and the 𝑦 -axis denotes the fractional order quantity of various subsets. Fractional orders placed in each period are depicted as rectangles stacked on top of one another. This representation is used to demonstrate the water-filling procedure described below (see Figure 1). In this coordinate system, each subset ordered by the LP is naturally associated with an area . Specifically, for a subset 𝑆 
+
+ordered in period 𝑠 , its area is given by the product of its fractional order quantity 𝑦 𝑆 𝑠 and the length of the time interval it spans. 
+
+Intuitive description of the water-filling procedure. The water-filling procedure for a given item category 𝑗 begins by filling the subset 𝑆 with the smallest 𝑗 -index 𝛼 𝑗 (𝑆 ), followed by the subset with second smallest 𝑗 -index, and so on. Filling continues until the total filled area reaches 1/2 ,with the last subset possibly only partially filled. The filled region constitutes the first layer . The time interval (0, 𝑇 ] is then partitioned into two intervals such that exactly half the filled area lies on each side of the split. Note that the split point may correspond to a non-integral time. The two filled regions on either side of time horizon are called level-sets . They partition the first layer, with each 11 level-set having area exactly 1/4 . An example of the resulting level-sets and the time-horizon split for the first layer are illustrated in Figure 1b. The same water-filling procedure is then applied independently to each half of the time horizon defined by the first layer’s split. In each sub-interval, filling again begins with the subset of smallest index, regardless of whether it was filled in the previous layer, and continues until a total area of 1/2 is filled, forming the second layer. Each sub-interval is then split into two parts, producing a partition of the second layer into four level-sets, each with area 1/4 . The four level-sets for the second layer and their corresponding time intervals determined by the splits are illustrated in green in Figure 1c and Figure 1d. This process continues recursively. If the water-filling procedure exhausts all available subsets within a given interval before reaching area 1/2, then no level-set is created in that interval, and it is not split further. While this cannot occur in the first layer, it serves as the termination condition for subsequent layers. For example, in Figure 1e, the third layer contains only four level-sets because the termination criterion is met for the right side of the time horizon. In summary, for each category 𝑗 ∈ [ 𝑘 ], the water-filling procedure produces a sequence of layers, each of which is partitioned into disjoint level-sets. An example of the full procedure is shown in Figure 1, and the resulting layers and level-sets within each layer are illustrated in Figure 2. 
+
+Formal description of the water-filling procedure. The goal of the water-filling procedure is to construct a collection of level-sets . The level-sets are in different layers, and each level-set is fully characterized by three parameters: a time interval 𝐼 , an index 𝛼 , and a fractional quantity 𝛽 ∈ ( 0, 1].Specifically, the level-set contains all subsets within the interval 𝐼 whose index is at most 𝛼 , with the subset of index 𝛼 included only up to a proportion 𝛽 . Definition 4 provides a precise mathematical definition of level-sets: 
+
+Definition 4 (Level-set) . Fix a category 𝑗 ∈ [ 𝑘 ], a continuous time interval 𝐼 , an index 𝛼 ∈ N, and a proportion 𝛽 ∈ ( 0, 1]. Consider the collection of all subsets ordered by the optimal LP solution during time interval 𝐼 with 𝑗 -index at most 𝛼 , that is, 
+
+(𝑆, 𝑡 ) : 𝑡 ∈ 𝐼, 𝑟 ∈ [ 𝑛 (𝑡 )] , 𝑆 = 𝑆 𝑟 (𝑡 ), 𝛼 𝑗 (𝑆, 𝑡 ) ≤ 𝛼 .
+
+The level-set LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) consists of these fractional LP orders, except the subset with 𝑗 -index equal to 𝛼 is only included up to a proportion 𝛽 .Recall that each subset ordered by the LP solution is associated with an area in the order quantity–time coordinate system, defined as the product of its order quantity and the length of the time interval it spans. Level-sets admit an analogous notion of area, i.e., the total area of all subsets they contain, where partially included subsets contribute proportionally to the extent of their inclusion. Specifically, for a level-set LS 𝑗 (𝛼, 𝛽 ; 𝐼 ), its area, denoted Area 𝑗 
+
+ LS 𝑗 (𝛼, 𝛽 ; 𝐼 ), is the total area over the interval 𝐼 of all subsets with 𝑗 -index at most 𝛼 , where the subset with 𝑗 -index 
+
+𝛼 has area contribution that is scaled by 𝛽 . For convenience, let Area 𝑗 (𝐼 ) := Area 𝑗 (LS 𝑗 (∞ , 1; 𝐼 )) 
+
+denote the area of all subsets ordered by the LP solution in the time interval 𝐼 .With this formal notion of level-sets and their associated area, the water-filling algorithm can be described as follows. The algorithm is applied recursively to working time intervals 𝐼 ,starting with the full time horizon (0, 𝑇 ]. For a given time interval 𝐼 := (𝑡 1, 𝑡 2], the first step is to identify the level-set on 𝐼 with area 1/2 ; that is, find the 𝛼 ∈ N and 𝛽 ∈ ( 0, 1] such that 12 time 
+
+order quantity 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+1 2 3
+
+{1,2 } 3
+
+{1} 5
+
+{1,2,3,4 }
+
+> 1
+
+{1,3,4 } 4
+
+{3,4 } 6
+
+{4}
+
+> 8
+
+{2,3 } 2
+
+{3} 7        
+
+> (a)
+> time
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> (b)
+> time
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> (c)
+> time
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> (d)
+> time
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> (e)
+
+Figure 1: This figure illustrates Step 1 of Algorithm 1 on an instance with 𝑁 = 4 and 𝑇 = 3 .Subfigure (a) shows the fractional solution to (DICP) with the 𝑗 -index of each subset indicated in purple. In (b), subsets with the lowest indices are filled to a total area of 1/2 ; the blue region represents the first layer, and the dotted blue line splits the time horizon so that each side contains exactly half of the filled area. In (c) and (d), the same procedure is applied recursively to each sub-interval, producing the second layer (green). In (e), only two of the four resulting sub-intervals has area at least 1/2 ; they are filled to 1/2 (red, indicating the third layer) and again split evenly (dotted red line). All intervals now have area below 1 /2, satisfying the termination condition. 13 time    
+
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> a1 a2
+
+(a)      
+
+> time
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> b1 b2 b3 b4
+
+(b)      
+
+> time
+> order quantity
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 123
+> {1,2 }
+> {1}
+> {1,2,3,4 }
+> {1,3,4 }
+> {3,4 }
+> {4}
+> {2,3 }
+> {3}
+> c1 c2 c3 c4
+
+(c) 
+
+Figure 2: The level-sets constructed in Layers 1, 2, and 3, shown from left to right. Layer 1 contains two level-sets (shown in blue), Layer 2 contains four (shown in green), and Layer 3 contains four (shown in red). Note that although level-set a1 does not include any subset in the time interval 
+
+(0, 1], it still spans that interval. Area 𝑗 (LS 𝑗 (𝛼, 𝛽 ; 𝐼 )) = 1/2 (if no such level-set exists, the procedure for interval 𝐼 terminates). Next, determine a cutoff time 𝑡 ∈ 𝐼 that splits this level-set in two parts of equal area, i.e., such that Area 𝑗 (LS 𝑗 (𝛼, 𝛽 ; (𝑡 1, 𝑡 ])) = 1/4 . This yields the two regions LS 𝑗 (𝛼, 𝛽 ; (𝑡 1, 𝑡 ]) and LS 𝑗 (𝛼, 𝛽 ; (𝑡, 𝑡 2]) ,which make up the first layer for category 𝑗 . The same procedure is then applied to the sub-intervals 
+
+(𝑡 1, 𝑡 ] and (𝑡, 𝑡 2], generating additional regions in the next layer. This water-filling procedure is summarized in Step 1 of Algorithm 1. 
+
+Tree structure of level-sets. This recursive construction naturally induces a tree structure. For each category 𝑗 , consider a rooted tree whose nodes correspond to level-sets. The root node is given by the dummy level-set {LS 𝑗 (0, 1; (0, 𝑇 ])} that encompasses the entire time horizon. If applying the procedure to a level-set associated with an interval 𝐼 = (𝑡 1, 𝑡 2] yields a split at time 𝑡 , then the corresponding node has two children, given by the level-sets defined on the sub-intervals (𝑡 1, 𝑡 ] and 
+
+(𝑡, 𝑡 2]. Taking the root to be at depth 0, the nodes at depth ℓ in the tree correspond exactly to the level-sets in the ℓ-th layer, denoted Lℓ ( 𝑗 ). Let L( 𝑗 ) := Ðℓ≥0 Lℓ ( 𝑗 ) denote the set of all level-sets across layers. When the category 𝑗 is clear from context, the dependence on 𝑗 is omitted. For any level-set 𝑅 ∈ L , let Dsc (𝑅 ) denote the set of its descendants, i.e., all level-sets in L for which 𝑅 is an ancestor under this tree structure, and let Ch (𝑅 ) denote the children of 𝑅 .
+
+## 3.3 Step 2: Placing orders to satisfy demands for items in 𝑃 𝑗 .
+
+Step 2 of Algorithm 1 aims to select and order one subset from each level-set in L while minimizing the total ordering cost. For convenience, we say that a level-set is satisfied if it contains an element 
+
+(𝑆, 𝑡 ) such that subset 𝑆 is ordered at time 𝑡 . Crucially, an order placed at a node 𝑅 = LS 𝑗 (𝛼, 𝛽 ; 𝐼 )
+
+satisfies all nodes along a single root-to-leaf path in the subtree rooted at 𝑅 . Specifically, an order at time 𝑡 ∈ 𝐼 corresponds to a unique root-to-leaf path consisting of descendant nodes whose associated intervals contain 𝑡 , and it satisfies exactly those descendants. Consequently, once an order is placed at node 𝑅 , no additional orders are required for the nodes along one path in its subtree. This will be important when bounding the cost of the orders. 14 Algorithm 1: Algorithm for satisfying demands associated with items in category 𝑗 
+
+Input: Category 𝑗 ∈ [ 𝑘 ]. LP solution: 𝑆 𝑟 (𝑡 ), 𝑦 𝑟 (𝑡 ) for 𝑡 ∈ ( 0, 𝑇 ], 𝑟 ∈ [ 𝑛 (𝑡 )] 
+
+Output: Schedule of orders O( 𝑗 ) for category 𝑗 
+
+Step 1: Construction of regions for each layer  
+
+> 1
+
+Initialize I1 := {( 0, 𝑇 ]} and 𝑙 ← 1 
+
+> 2
+
+while I𝑙 ≠ ∅ do  
+
+> 3
+
+Initialize layer L𝑙 ← ∅ and intervals for the next layer I𝑙 +1 ← ∅  
+
+> 4
+
+for 𝐼 = (𝑡 1, 𝑡 2] ∈ I 𝑙 such that Area 𝑗 (𝐼 ) ≥ 1/2 do  
+
+> 5
+
+Find the 𝛼 ∈ N and 𝛽 ∈ ( 0, 1] with Area 𝑗 (LS 𝑗 (𝛼, 𝛽 ; 𝐼 )) = 1/2 
+
+> 6
+
+Find smallest 𝑡 ∈ 𝐼 such that Area 𝑗 (LS 𝑗 (𝛼, 𝛽 ; (𝑡 1, 𝑡 ])) = 1/4 
+
+> 7
+
+Update the layer L𝑙 ← L 𝑙 ∪ { LS 𝑗 (𝛼, 𝛽 ; (𝑡 1, 𝑡 ]) , LS 𝑗 (𝛼, 𝛽 ; (𝑡, 𝑡 2])}  
+
+> 8
+
+Update intervals for the next layer I𝑙 +1 ← I 𝑙 +1 ∪ {( 𝑡 1, 𝑡 ], (𝑡, 𝑡 2]}  
+
+> 9
+
+end  
+
+> 10
+
+𝑙 ← 𝑙 + 1 
+
+> 11
+
+end Step 2: Order placements for each level-set  
+
+> 12
+
+Solve the dynamic program Í𝑅 ∈L 1 DP (𝑅 ). 
+
+> 13
+
+Set O( 𝑗 ) to the set of pairs (𝑆, 𝑡 ) that attain the minimum dynamic program solution  
+
+> 14
+
+return O( 𝑗 )
+
+To deterministically select subsets that satisfy all nodes in L with minimum cost, we formulate a dynamic programming (DP) procedure over the tree induced by the level-sets. Each DP state corresponds to a node 𝑅 ∈ L . The value DP (𝑅 ) denotes the minimum cost required to satisfy 𝑅 
+
+and all of its descendants. To compute DP (𝑅 ), consider all candidate orders (𝑆, 𝑡 ) ∈ 𝑅 . Placing such an order incurs cost 𝐾 (𝑆 ) and satisfies 𝑅 , as well as all descendants whose intervals contain 𝑡 ,i.e., those lying along a single path in the subtree rooted at 𝑅 .A key subtlety is how to account for the remaining nodes that are not satisfied by this order. These correspond precisely to the subtrees branching off from this path. In particular, we sum over the roots of the maximal unsatisfied subtrees, i.e., the children of nodes along the path that are not themselves on the path. For a fixed time 𝑡 , define the residual cost 𝐻 (𝑅, 𝑡 ) as the minimum cost required to satisfy all descendants of 𝑅 that are not already satisfied by an order at time 𝑡 . This can be computed recursively as 
+
+𝐻 (𝑅, 𝑡 ) =∑︁ 
+
+> 𝐶 ∈Ch (𝑅 )
+
+(
+
+𝐻 (𝐶, 𝑡 ), if 𝑡 ∈ 𝐼 𝐶 ,
+
+DP (𝐶 ), if 𝑡 ∉ 𝐼 𝐶 ,
+
+where 𝐼 𝐶 denotes the time interval associated with node 𝐶 . If 𝑅 is a leaf, then 𝐻 (𝑅, 𝑡 ) = 0. The DP recursion is then given by DP (𝑅 ) = min  
+
+> (𝑆,𝑡 )∈ 𝑅
+
+{𝐾 (𝑆 ) + 𝐻 (𝑅, 𝑡 )} . (3) Intuitively, once an order (𝑆, 𝑡 ) is placed at node 𝑅 , it “covers” a single path in the subtree. Along this path, no further cost is needed for the nodes themselves, but we must still account for any side branches that are not covered. 15 The final schedule is obtained by minimizing the total cost of satisfying all first-layer level-sets, 
+
+Í𝑅 ∈L 1 DP (𝑅 ), while keeping track of the orders (𝑆, 𝑡 ) that attain the minimum in (3) . The resulting set of orders O( 𝑗 ) is a minimum-cost collection of orders that satisfies all level-sets in L. This procedure is summarized in Step 2 of Algorithm 1, and Lemma 9 shows that it can be implemented in polynomial time. In Section 4.1, we prove that these orders satisfy all demand associated with items in 𝑃 𝑗 .
+
+Algorithm 2: Approximation Algorithm for the DICP 
+
+Input: Optimal solution to (DICP), expressed as in (2): 𝑆 𝑟 (𝑡 ), 𝑦 𝑟 (𝑡 ) for 𝑡 ∈ [ 𝑇 ], 𝑟 ∈ [ 𝑛 (𝑡 )] 
+
+Output: Schedule of orders 𝑂 𝑡 for 𝑡 ∈ [ 𝑇 ] 
+
+> 1
+
+Preprocessing: Update (𝑆 𝑟 (𝑡 ), 𝑦 𝑟 (𝑡 )) 𝑡 ∈[ 𝑇 ],𝑟 ∈[ 𝑛 (𝑡 )] so that it satisfies both Property 1 and 2, as detailed in Section A.1  
+
+> 2
+
+Continuous time extension: for 𝑠 ∈ ( 𝑡 − 1, 𝑡 ], 𝑛 (𝑠 ) := 𝑛 (𝑡 ), and for 𝑟 ∈ [ 𝑛 (𝑠 )] , 𝑆 𝑟 (𝑠 ) := 𝑆 𝑟 (𝑡 ),
+
+𝑦 𝑟 (𝑠 ) := 𝑦 𝑟 (𝑡 ) 
+
+> 3
+
+for 𝑗 ∈ [ 𝑘 ] do  
+
+> 4
+
+Construct the schedule of orders O( 𝑗 ) for category 𝑗 using Algorithm 1  
+
+> 5
+
+end  
+
+> 6
+
+For 𝑡 ∈ [ 𝑇 ], let 𝑂 𝑡 := Ð  𝑆 : ∃ 𝑗 ∈ [ 𝑘 ], ∃𝑡 ′ ∈ ( 𝑡 − 1, 𝑡 ] : (𝑆, 𝑡 ′) ∈ O ( 𝑗 ) 
+
+> 7
+
+return (𝑂 𝑡 )𝑡 ∈[ 𝑇 ]
+
+## 3.4 The final schedule of orders. 
+
+Having constructed the order schedules O( 𝑗 ) for each category 𝑗 ∈ [ 𝑘 ], we now combine them into a single schedule. At each time 𝑡 ∈ [ 𝑇 ], the final order 𝑂 𝑡 is defined as the union of all subsets ordered during the interval (𝑡 − 1, 𝑡 ] across all categories. Formally, 
+
+𝑂 𝑡 :=
+
+Ø  𝑆 : ∃ 𝑗 ∈ [ 𝑘 ], ∃𝑡 ′ ∈ ( 𝑡 − 1, 𝑡 ], (𝑆, 𝑡 ′) ∈ O ( 𝑗 ) .
+
+The complete algorithm is summarized in Algorithm 2, and it runs in polynomial time, as shown in Lemma 9. 
+
+# 4 Correctness of the DICP Approximation Algorithm 
+
+This section establishes that Algorithm 2 returns a feasible integral solution to the DICP and bounds its cost. Section 4.1 shows that the schedule of orders produced by the algorithm satisfies all demand points. Section 4.2 proves that the ordering cost associated with each of the 𝑘 categories is at most 4𝐶 ★ where 𝐶 ★ is the optimal objective value of the LP relaxation in (DICP) . By submodularity, this yields a bound of 4 𝑘𝐶 ★ on the total ordering cost. 
+
+## 4.1 Feasibility 
+
+The goal of this subsection is to show that the schedule of orders (𝑂 𝑡 )𝑡 ∈[ 𝑇 ] produced by Algorithm 2 is a feasible integral solution to the DICP by establishing the following result. 16 Proposition 1. The schedule of orders (𝑂 𝑡 )𝑡 ∈[ 𝑇 ] returned by Algorithm 2 is feasible for the DICP. 
+
+Recall that the algorithm constructs a collection of level-sets 𝑅 ∈ L , each with area exactly 1/4,and guarantees that every such level-set is satisfied. That is, for each level-set 𝑅 ∈ L , one of the subsets within that level-set is ordered. The proof of feasibility proceeds in two steps. First, it is shown that every demand point (𝑖, 𝑐, 𝑑 ) ∈ D is associated with a level-set of area at least 1 spanning its demand interval, such that every subset within this level-set contains item 𝑖 . In other words, for every demand point (𝑖, 𝑐, 𝑑 ), there exists a threshold index such that every subset ordered by the LP solution during the demand interval has an index below this threshold if and only if it contains item 𝑖 . It is then shown that for each demand point, the subsets ordered by the LP solution to satisfy this demand point fully contains at least one of the constructed level-sets 𝑅 ∈ L 
+
+(Lemma 4). Since every constructed level-set in L is satisfied, the demand point is also satisfied. Together, these steps establish that all demand points are fulfilled by the orders produced by the algorithm. The first step of the proof is captured by the following lemma. 
+
+Lemma 3. Fix any demand point (𝑖, 𝑐, 𝑑 ) ∈ D and suppose that 𝑖 belongs to category 𝑗 ∈ [ 𝑘 ]. Let 
+
+𝐼 := (𝑐 − 1, 𝑑 ] denote its demand interval. Then, the collection of subsets ordered by the LP solution that contain item 𝑖 during the interval 𝐼 forms a level-set for category 𝑗 . Precisely, there exists an index 𝛼 ∈ N such that every subset in 𝑅 := LS 𝑗 (𝛼, 1; 𝐼 ) contains item 𝑖 . Moreover, Area 𝑗 (𝑅 ) ≥ 1.Proof of Lemma 3. Fix a demand point (𝑖, 𝑐, 𝑑 ) ∈ D , and let 𝐼 := (𝑐 − 1, 𝑑 ] denote its demand interval. Let S be the collection of pairs (𝑆, 𝑡 ), where 𝑆 is ordered by the LP solution at time 𝑡 within the demand interval 𝐼 and contains item 𝑖 (i.e., 𝑖 ∈ 𝑆 and 𝑡 ∈ 𝐼 ). Define ¯𝛼 := max  
+
+> (𝑆,𝑡 )∈ S
+
+𝛼 𝑗 (𝑆, 𝑡 ) (4) to be the maximum index among these subsets. By construction, we immediately have S ⊆
+
+LS 𝑗 ( ¯𝛼, 1; 𝐼 ). It remains to show the reverse inclusion. To show LS 𝑗 ( ¯𝛼, 1; 𝐼 ) ⊆ S, it suffices to show that for any 𝑡 ∈ 𝐼 and any subset 𝑆 = 𝑆 𝑟 (𝑡 ) with index 𝛼 𝑗 (𝑆, 𝑡 ) ≤ ¯𝛼 , we must have 𝑖 ∈ 𝑆 . By the monotonicity property of indices from Corollary 1, 𝐴 𝑖 𝑡 is the subset ordered at period 𝑡 which does not contain 𝑖 with the smallest index. Hence, it suffices to show that min  
+
+> 𝑡 ∈𝐼
+
+𝛼 𝑗 ( 𝐴 𝑖 𝑡 , 𝑡 ) > ¯𝛼. (5) Let 𝑡 1 ∈ 𝐼 be the time that achieves the minimum in (5), and let 𝑡 2 ∈ 𝐼 be the time that achieves the maximum in (4). Note that Í𝑆 :𝑖 ∈𝑆 𝑦 𝑆 𝑡 2 > 0. Next, 
+
+𝐿 𝑗 ( 𝐴 𝑖 𝑡 1 ) (𝑖 )
+
+≥ 𝐾 ( 𝐴 𝑖 𝑡 1 ∪ { 𝑖 }) − 𝐾 ( 𝐴 𝑖 𝑡 1 )
+
+𝑤 𝑖 
+
+> (𝑖𝑖 )
+
+≥ 𝐾 (𝐵 𝑖 𝑡 2 ) − 𝐾 (𝐵 𝑖 𝑡 2 \ { 𝑖 }) 
+
+𝑤 𝑖 
+
+> (𝑖𝑖𝑖 )
+
+≥ 𝐿 𝑗 (𝐵 𝑖 𝑡 2 ). (6) In (𝑖 ), the component-wise concavity of 𝑓 is used. In (𝑖𝑖 ) we used Lemma 1. In (𝑖𝑖𝑖 ), the component-wise concavity of 𝑓 is used again. 17 Now suppose for contradiction that (5) does not hold, that is, 𝛼 𝑗 ( 𝐴 𝑖 𝑡 1 , 𝑡 1) < 𝛼 𝑗 (𝐵 𝑖 𝑡 2 , 𝑡 2) (equality cannot occur since all subsets have distinct indices). Then, by the definition of the index, 
+
+𝐿 𝑗 ( 𝐴 𝑖 𝑡 1 ) ≤ 𝐿 𝑗 (𝐵 𝑖 𝑡 2 ), which implies that all inequalities in (6) hold with equality. In particular 
+
+𝐾 ( 𝐴 𝑖 𝑡 1 ∪ { 𝑖 }) − 𝐾 ( 𝐴 𝑖 𝑡 1 ) = 𝐾 (𝐵 𝑖 𝑡 2 ) − 𝐾 (𝐵 𝑖 𝑡 2 \ { 𝑖 }) . (7) If 𝑡 1 > 𝑡 2, then combined with 𝐿 𝑗 ( 𝐴 𝑖 𝑡 1 ) = 𝐿 𝑗 (𝐵 𝑖 𝑡 2 ), we would have 𝛼 𝑗 ( 𝐴 𝑖 𝑡 1 , 𝑡 1) > 𝛼 𝑗 (𝐵 𝑖 𝑡 2 , 𝑡 2), a contradiction. If instead 𝑡 1 = 𝑡 2, then we would still have 𝛼 𝑗 ( 𝐴 𝑖 𝑡 1 , 𝑡 1) > 𝛼 𝑗 (𝐵 𝑖 𝑡 2 , 𝑡 2) due to the fact that 𝐴 𝑖 𝑡 1 and 𝐵 𝑖 𝑡 2 have equal levels, but 𝐵 𝑖 𝑡 2 is the larger subset out of the two and thus precedes 𝐴 𝑖 𝑡 1 in the lexicographical order, and we again arrive at a contradiction. Thus, we must have 𝑡 1 < 𝑡 2.However, 𝑡 1 < 𝑡 2, combined with (7), contradicts the fact that the solution (𝑥, 𝑦 ) satisfies Property 2 since Í𝑆 :𝑖 ∈𝑆 𝑦 𝑆 𝑡 2 > 0. Therefore, (5) holds, which establishes that S = LS 𝑗 ( ¯𝛼, 1; 𝐼 ).Finally, the area of this level-set corresponds to the total order quantity within S, which is guaranteed to be at least 1 due to the constraint in (DICP): Area 𝑗 (LS 𝑗 ( ¯𝛼, 1; 𝐼 )) =
+
+∫
+
+> 𝑠 ∈𝐼
+
+ ∑︁ 𝑆 :𝑖 ∈𝑆 
+
+𝑦 𝑆 𝑠 
+
+!
+
+𝑑𝑠 ≥ 1.
+
+This completes the proof. □
+
+Lemma 3 shows that for any demand point (𝑖, 𝑐, 𝑑 ) ∈ D , the ordered sets that include 𝑖 within the demand interval correspond exactly to the ordered subsets within this interval with index up to some threshold 𝛼 . This implies that for any period in this demand interval, the algorithm first fills all ordered sets that include 𝑖 before filling any sets that do not include 𝑖 . With this observation, we are ready to show the second step of the proof. 
+
+Lemma 4. Fix any demand point (𝑖, 𝑐, 𝑑 ) ∈ D and suppose that 𝑖 belongs to category 𝑗 ∈ [ 𝑘 ]. The collection 𝑅 of subsets ordered by the LP solution to satisfy this demand point fully contains at least one constructed level-set from some layer for category 𝑗 . That is, there exists 𝑅 ′ ∈ L( 𝑗 ) such that 
+
+𝑅 ′ ⊆ 𝑅 .Proof of Lemma 4. By feasibility, Area 𝑗 (𝑅 ) ≥ 1. In other words, the total area of ordered subsets containing item 𝑖 within (𝑐 −1, 𝑑 ] is at least 1, so the water-filling partitioning algorithm is guaranteed to make a split within this demand interval. Consider the first time the algorithm makes a split within the demand interval (𝑐 − 1, 𝑑 ]. Suppose that the split is triggered when a total area of 1/2 has been filled over some interval (𝑎, 𝑏 ] that fully contains the demand interval, and suppose the split occurs at period 𝑠 . This partitions the demand interval (𝑐 − 1, 𝑑 ] into two sub-intervals: (𝑐 − 1, 𝑠 ] and (𝑠, 𝑑 ]. Since the total area of ordered subsets containing item 𝑖 within (𝑐 − 1, 𝑑 ] is at least 1, at least one of the two resulting sub-intervals ( (𝑐 − 1, 𝑠 ] and (𝑠, 𝑑 ]) must contain area at least 1/2 from ordered subsets that include item 𝑖 . Without loss of generality, suppose this is the right sub-interval (𝑠, 𝑑 ].Because (𝑠, 𝑑 ] contains at least 1/2 area and has not yet been split, the algorithm must eventually make another split within this interval. This split is triggered when a total area of 1/2 has been filled over some interval (𝑠, 𝑠 ′], where 𝑏 ≥ 𝑠 ′ ≥ 𝑑 . Therefore, the portion of this filled area that lies within (𝑠, 𝑑 ] is at most 1 /2. Moreover, within (𝑠, 𝑑 ], subsets containing item 𝑖 are always filled before any subsets that do not contain 𝑖 . Since (𝑠, 𝑑 ] already contains at least 1/2 area from subsets containing 𝑖 , then all filled 18 subsets within (𝑠, 𝑑 ] must contain 𝑖 . It follows that one of the level-sets created by this split lies entirely within (𝑐 − 1, 𝑑 ] and consists only of ordered subsets that include item 𝑖 , as claimed. □
+
+By the design of Algorithm 2, every level-set 𝑅 ∈ L is satisfied. Hence, the two lemmas above directly imply that the ordering schedule (𝑂 𝑡 )𝑡 ∈[ 𝑇 ] is a feasible solution. This concludes the proof of Proposition 1. 
+
+## 4.2 Bounding the cost of the orders 
+
+To bound the cost of the ordering schedule O( 𝑗 ) produced by the dynamic program for each category 
+
+𝑗 ∈ [ 𝑘 ], an alternate randomized algorithm is analyzed. Specifically, instead of the dynamic program in Step 2 of Algorithm 1, the randomized procedure samples ordering pairs (𝑆, 𝑡 ) to satisfy all the level-sets 𝑅 ∈ L . It is shown that the expected total ordering cost of this sampled schedule is at most four times the LP cost in (DICP) . Since the dynamic program computes the minimum-cost solution that satisfies all level-sets, its cost cannot exceed the expected cost of the randomized procedure. Therefore, the cost of the dynamic program solution is also at most four times the cost of the LP. This section provides an intuitive description of the randomized procedure and the proof for bounding its expected cost; the formal algorithm and proof are given in Section A.2. Recall that in the water-filling procedure of Algorithm 2, each category 𝑗 ∈ [ 𝑘 ] is handled independently. The randomized procedure for constructing an ordering schedule is now described for a fixed category 𝑗 ∈ [ 𝑘 ].The procedure proceeds layer by layer, starting from the first layer L1. For each level-set in 
+
+L1, a subset is independently sampled with probability proportional to its area within the level-set, where partially included subsets are sampled proportionally to their extent of inclusion. If a subset 
+
+𝑆 ordered at time 𝑡 is selected, the order (𝑆, 𝑡 ) is added to the schedule and all descendant level-sets whose intervals contain 𝑡 are marked as satisfied; these level-sets are then removed from further consideration. The procedure then continues to subsequent layers. For each level-set that has not yet been satisfied, the same sampling procedure is repeated. Importantly, when sampling from a level-set LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) ∈ L ℓ, the sampling distribution is restricted to the portion of the level-set that is not already covered by its parent LS 𝑗 (𝛼 𝑝 , 𝛽 𝑝 ; 𝐼 𝑝 ) ∈ L ℓ−1. That is, sampling occurs only from the region of LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) lying outside its parent. Again, the selected order (𝑆, 𝑡 ) is added to the schedule, and all descendant level-sets containing 𝑡 are removed. By construction, this procedure ensures that every level-set is satisfied by at least one order. The randomized algorithm is formalized in Algorithm 4 in Section A.2, and it achieves cost at most four times that of the optimal objective value 𝐶 ★ of the LP relaxation (DICP). 
+
+Proposition 2. Fix a category 𝑗 ∈ [ 𝑘 ], and let ˜O( 𝑗 ) denote the schedule of orders returned by the randomized procedure (which is formally described in Algorithm 4) for category 𝑗 . Then, 
+
+E
+
+∑︁ (𝑆,𝑡 )∈ ˜O ( 𝑗 )
+
+𝐾 (𝑆 )
+
+
+
+≤ 4𝐶 ★.
+
+Instead of presenting the full formal proof (deferred to Section A.2), we provide intuition for the result. Step 1 of Algorithm 1 constructed a nested collection of level-sets with constant LP mass per 
+
+19 region ; specifically, each region carries LP mass 1/4 . However, within each region, the algorithm selects a subset to order with probability 1. This mismatch—ordering with probability 1 from regions with LP mass 1 /4—is what contributes the factor of 4 in the cost bound of Proposition 2. To relate the algorithm’s behavior to the LP, we aim to show that the probability with which any given subset is ordered is proportional, up to a factor of 4, to its LP ordering quantity. Equivalently, we show that the algorithm samples from any region (i.e., the portion of a level-set not covered by its parent) with probability equal to 4 times its area. Establishing this requires carefully accounting for overlap between level-sets and the fact that some level-sets may already be satisfied by orders selected in earlier layers. We verify this claim by induction on the layers. In the base case, the algorithm samples from every level-set in the first layer. Each such region has area 1/4 and we sample from each with probability 1, so the sampling probability is exactly 4 × Area (·) , as desired. For the inductive step, assume the claim holds for all layers up to ℓ − 1, and consider a level-set 
+
+𝑅 in layer ℓ. Let 𝑄 denote the portion of its parent that overlaps with 𝑅 . The algorithm samples from 𝑅 \ 𝑄 only if no subset from 𝑄 has been ordered previously. By the induction hypothesis, the probability that an order has already been placed in 𝑄 is 4 · Area (𝑄 ). Therefore, the probability that a subset is sampled from 𝑅 \ 𝑄 is 1 − 4 · Area (𝑄 ), which is precisely 4 · Area (𝑅 \ 𝑄 ) since Area (𝑅 ) = 1/4. This establishes the desired proportionality and completes the inductive argument. Since Algorithm 1 computes a minimum-cost schedule that satisfies all level-sets, we can use Proposition 2 to bound the cost of the resulting orders for each category 𝑗 ∈ [ 𝑘 ]. Then, using submodularity, we obtain the following overall cost bound: 
+
+Proposition 3. The cost for the orders (𝑂 𝑡 )𝑡 ∈[ 𝑇 ] returned by Algorithm 2 is at most 4𝑘𝐶 ★.Proof of Proposition 3. Fix a category 𝑗 ∈ [ 𝑘 ]. In step 2 of Algorithm 1, a dynamic program computes the minimum-cost schedule O( 𝑗 ) that satisfies all level-sets across all layers Ð𝑙 ≥1 L𝑙 
+
+constructed in step 1 of Algorithm 1. By design, this cost is at most the expected cost of the randomized schedule of orders constructed using Algorithm 4, denoted ˜O( 𝑗 ) . Hence, Proposition 2 implies that ∑︁    
+
+> (𝑆,𝑡 )∈O (𝑗 )
+
+𝐾 (𝑆 ) ≤ E
+
+∑︁ (𝑆,𝑡 )∈ ˜O ( 𝑗 )
+
+𝐾 (𝑆 )
+
+
+
+≤ 4𝐶 ★. (8) Let 𝑂 𝑡 = Ð{𝑆 : ∃ 𝑗 ∈ [ 𝑘 ], ∃𝑡 ′ ∈ ( 𝑡 − 1, 𝑡 ] : (𝑆, 𝑡 ′) ∈ O ( 𝑗 ) } denote the final order placed at time 
+
+𝑡 ∈ [ 𝑇 ] by Algorithm 2. By the submodularity of the cost function 𝐾 , we have 
+
+𝐾 (𝑂 𝑡 ) ≤ ∑︁  
+
+> 𝑗 ∈[ 𝑘 ]
+
+∑︁ (𝑆,𝑡 ′)∈O ( 𝑗 ) : 
+
+> 𝑡 ′∈( 𝑡 −1,𝑡 ]
+
+𝐾 (𝑆 ).
+
+Summing over all time periods 𝑡 ∈ [ 𝑇 ],∑︁ 
+
+> 𝑡 ∈[ 𝑇 ]
+
+𝐾 (𝑂 𝑡 ) ≤ ∑︁  
+
+> 𝑗 ∈[ 𝑘 ]
+
+∑︁ (𝑆,𝑡 )∈O ( 𝑗 )
+
+𝐾 (𝑆 ) ≤ 4𝑘𝐶 ★,
+
+where the last inequality follows from (8). This completes the proof. □
+
+20 5 SJRP Approximation Algorithm 
+
+This section describes how to solve the original SJRP by leveraging the approximation algorithm for the simpler DICP, presented in Section 3, as a subroutine. The main result shows that the SJRP with cost functions of the form (1) admits an efficient approximation algorithm, with an approximation guarantee that scales with the number of item categories 𝑘 .
+
+Theorem 1. Suppose that the ordering cost function 𝐾 admits a decomposition of the form (1) . Then Algorithm 3 produces a solution to the SJRP in polynomial time with an (8𝑘 + 1)-approximation guarantee. 
+
+We begin with an optimal solution to (LP), the LP relaxation of the SJRP, whose objective value provides a lower bound on the optimal integral solution. Using this solution, a corresponding DICP instance is constructed such that the ordering cost incurred by the fractional solution to its LP relaxation is at most twice that of (LP). In Section 3, it was shown how to round this fractional DICP solution to an integer one, with an ordering cost at most 4𝑘 times larger, where 𝑘 is the number of item categories from the decomposition given in Definition 1. This section shows that the integral solution obtained for the DICP yields a feasible solution to the original SJRP instance and bounds both its ordering and holding cost. 
+
+## 5.1 Algorithm 
+
+This subsection describes how to construct a DICP instance IDICP from a given SJRP instance I.Intuitively, for each item, a sequence of time intervals is identified based on cumulative fractional order quantities reaching 0.5. These intervals become the demand intervals for the corresponding item in the constructed DICP instance. This intuition is formalized below. Fix an optimal LP solution (𝑥, 𝑦 ) to the linear relaxation (LP) of I. For convenience, we use a continuous relaxation of the time periods [𝑇 ]: each discrete time period 𝑡 is viewed as the continuous interval (𝑡 − 1, 𝑡 ]. In particular, the entire time horizon becomes (0, 𝑇 ]. We then naturally extend the LP solution to this continuous setting by defining 𝑥 𝑖 𝑟𝑑 = 𝑥 𝑖 𝑠𝑑 and 𝑦 𝑆 𝑟 = 𝑦 𝑆 𝑠 for all 𝑟 ∈ ( 𝑠 − 1, 𝑠 ], for each demand point (𝑖, 𝑑 ) and item subset 𝑆 ⊆ [ 𝑁 ].Fix an item 𝑖 ∈ [ 𝑁 ] and define 𝑧 𝑖 𝑠 := Í𝑆 :𝑖 ∈𝑆 𝑦 𝑆 𝑠 for 𝑠 ∈ ( 0, 𝑇 ], which corresponds to the total fractional order of item 𝑖 in period 𝑠 . We can also view 𝑧 𝑖 𝑠 as the density of a measure over the interval 
+
+(0, 𝑇 ]. Next, we define the set of all 1/2 -quantiles of this measure. Precisely, let 𝐾 𝑖 = ⌊2 ∫ 𝑇  
+
+> 0
+
+𝑧 𝑖 𝑠 𝑑𝑠 ⌋
+
+denote the number of such quantiles within the time horizon. For each 𝜅 ∈ { 0, . . . , 𝐾 𝑖 }, we define the lower and upper 𝜅 /2-quantile as follows: 
+
+𝑎 𝑖 𝜅 := max 𝑄 𝑖 𝜅 , 𝑏 𝑖 𝜅 := min 𝑄 𝑖 𝜅 , (9) where 𝑄 𝑖 𝜅 :=
+
+
+
+𝑡 ∈ [ 0, 𝑇 ] :
+
+∫ 𝑡 𝑠 =0
+
+𝑧 𝑖 𝑠 𝑑𝑠 = 𝜅 
+
+2
+
+
+
+.
+
+We now define the reduced DICP instance, denoted I𝐷𝐼𝐶𝑃 . The reduced instance is an ordinary discrete-time DICP instance, but its periods are obtained from a refinement of the original time horizon. Define 
+
+E := {0, 1, . . . , 𝑇 } ∪ { 𝑎 𝑖 𝜅 , 𝑏 𝑖 𝜅 : 𝑖 ∈ [ 𝑁 ], 𝜅 ∈ [ 𝐾 𝑖 ]} . (10) 21 Algorithm 3: Solving an SJRP Instance via Reduction to a DICP Instance 
+
+Input: SJRP instance 
+
+Output: Feasible ordering schedule for the SJRP instance  
+
+> 1
+
+Compute an LP solution 𝑥 𝑖 𝑠𝑑 , 𝑦 𝑆 𝑠 for (𝑖, 𝑑 ) ∈ D , 𝑠 ∈ [ 𝑇 ], 𝑆 ⊆ [ 𝑁 ] to the SJRP instance  
+
+> 2
+
+Continuous time extension: 𝑥 𝑖 𝑟𝑑 := 𝑥 𝑖 𝑠𝑑 and 𝑦 𝑆 𝑟 := 𝑦 𝑆 𝑠 for 
+
+(𝑖, 𝑑 ) ∈ D , 𝑠 ∈ [ 𝑇 ], 𝑟 ∈ ( 𝑠 − 1, 𝑠 ], 𝑆 ⊆ [ 𝑁 ] 
+
+> 3
+
+For each 𝑖 ∈ [ 𝑁 ], let 𝑧 𝑖 𝑠 := Í𝑆 :𝑖 ∈𝑆 𝑦 𝑆 𝑠 for 𝑠 ∈ ( 0, 𝑇 ], and let 𝐾 𝑖 := ⌊2 ∫ 𝑇  
+
+> 0
+
+𝑧 𝑖 𝑠 𝑑𝑠 ⌋ 
+
+> 4
+
+For each 𝑖 ∈ [ 𝑁 ] and 𝜅 ∈ [ 𝐾 𝑖 ], define 𝑎 𝑖 𝜅 , 𝑏 𝑖 𝜅 as in (9)  
+
+> 5
+
+Construct the reduced DICP instance I𝐷𝐼𝐶𝑃 using (10) and (11)  
+
+> 6
+
+Run Algorithm 2 on I𝐷𝐼𝐶𝑃 and obtain the output schedule ( ˜𝑂 𝑚 )𝑚 ∈[ 𝑀 ] 
+
+> 7
+
+For each 𝑡 ∈ [ 𝑇 ], define b𝑂 𝑡 := Ð𝑚 :𝑡 (𝑚 )=𝑡 ˜𝑂 𝑚  
+
+> 8
+
+Define 𝑂 𝑠 :=
+
+n
+
+𝑖 ∈ [ 𝑁 ] : ∃( 𝑖, 𝑑 ) ∈ D such that 𝑠 = max {𝑟 ≤ 𝑑 : 𝑖 ∈ b𝑂 𝑟 }
+
+o 
+
+> 9
+
+return (𝑂 𝑠 )𝑠 ∈[ 𝑇 ]
+
+Let 0 = 𝜏 0 < 𝜏 1 < · · · < 𝜏 𝑀 = 𝑇 denote the sorted elements of E, and let 𝐽 𝑚 := (𝜏 𝑚 −1, 𝜏 𝑚 ]
+
+for 𝑚 ∈ [ 𝑀 ]. Since {0, 1, . . . , 𝑇 } ⊆ E , each atom 𝐽 𝑚 is contained in a unique original period 
+
+(𝑡 (𝑚 ) − 1, 𝑡 (𝑚 )] , where 𝑡 (𝑚 ) ∈ [ 𝑇 ].For each item 𝑖 ∈ [ 𝑁 ] and 𝜅 ∈ [ 𝐾 𝑖 ], let 𝑐 𝑖 𝜅 , 𝑑 𝑖 𝜅 ∈ [ 𝑀 ] be such that 
+
+(𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] =
+
+> 𝑑 𝑖 𝜅
+
+Ø
+
+> 𝑚 =𝑐 𝑖 𝜅
+
+𝐽 𝑚 . (11) The reduced DICP instance has horizon [𝑀 ] and contains the demand interval (𝑖, 𝑐 𝑖 𝜅 , 𝑑 𝑖 𝜅 ) for every 
+
+𝑖 ∈ [ 𝑁 ] and 𝜅 ∈ [ 𝐾 𝑖 ]. Since the continuous intervals (𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] are disjoint for each fixed item 𝑖 ,the corresponding discrete intervals [𝑐 𝑖 𝜅 , 𝑑 𝑖 𝜅 ] are also disjoint. This concludes the construction of the reduced instance I𝐷𝐼𝐶𝑃 .It remains to describe how to reconstruct a solution to I from a solution to I𝐷𝐼𝐶𝑃 . Let ( ˜𝑂 𝑚 )𝑚 ∈[ 𝑀 ]
+
+denote a feasible integral schedule of orders for I𝐷𝐼𝐶𝑃 . We first map this atom-indexed schedule back to the original time periods by defining, for every 𝑡 ∈ [ 𝑇 ],
+
+b𝑂 𝑡 :=
+
+Ø 
+
+> 𝑚 :𝑡 (𝑚 )=𝑡
+
+˜𝑂 𝑚 .
+
+To reconstruct a feasible solution for I, we assign each demand point (𝑖, 𝑑 ) to the latest order in 
+
+( b𝑂 𝑡 )𝑡 ∈[ 𝑇 ] that includes item 𝑖 and occurs no later than time 𝑑 . Formally, we define 
+
+𝑠 (𝑖,𝑑 ) := max {𝑟 ≤ 𝑑 : 𝑖 ∈ b𝑂 𝑟 },
+
+and fulfill demand (𝑖, 𝑑 ) at time 𝑠 (𝑖,𝑑 ) . The resulting schedule of discrete-time orders for I is then defined as follows for every period 𝑠 ∈ [ 𝑇 ]:
+
+𝑂 𝑠 := 𝑖 ∈ [ 𝑁 ] : ∃( 𝑖, 𝑑 ) ∈ D , 𝑠 (𝑖,𝑑 ) = 𝑠 . (12) The entire procedure is summarized in Algorithm 3. 22 5.2 Correctness 
+
+We now show that the resulting schedule of orders (𝑂 𝑠 )𝑠 ∈[ 𝑇 ] , defined in (12), is feasible for the SJRP and incurs only a constant-factor loss in the approximation guarantee relative to the cost of the associated DICP instance. This is formalized in the following result: 
+
+Proposition 4. Consider any SJRP instance I. Algorithm 3 constructs, in polynomial time, a corresponding DICP instance I𝐷𝐼𝐶𝑃 such that if the solution for I𝐷𝐼𝐶𝑃 has cost at most 𝛾 times the cost of its LP relaxation, then the schedule constructed in (12) is a (2𝛾 + 1)-approximation for I.
+
+Since the LP relaxation of an SJRP instance can be solved in polynomial time, it is readily verified that Algorithm 3 also constructs the DICP instance in polynomial time. Indeed, the refined grid contains only the original integer endpoints and the quantile endpoints generated by the reduction, so 𝑀 is polynomial in the input size and the support size of the LP solution. To complete the proof of Proposition 4, we proceed in three steps: we establish feasibility in Lemma 5, bound the holding cost in Lemma 6, and bound the ordering cost in Lemma 7 and Lemma 8. The proofs of all these lemmas are provided in Appendix B. To show that the schedule constructed in (12) yields a feasible solution to the original SJRP instance I, we show that for each demand point (𝑖, 𝑑 ) in I, there is a demand interval in I𝐷𝐼𝐶𝑃 
+
+whose associated atoms lie within the continuous interval (𝑠 ★ 
+
+> (𝑖,𝑑 )
+
+, 𝑑 ]. Since the DICP solution orders item 𝑖 in one of these atoms, the mapped schedule ( b𝑂 𝑡 )𝑡 ∈[ 𝑇 ] orders item 𝑖 no later than period 𝑑 .
+
+Lemma 5. For any demand point (𝑖, 𝑑 ) in I, there exists 𝜅 ∈ [ 𝐾 𝑖 ] such that 
+
+(𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] ⊆ ( 𝑠 ★ 
+
+> (𝑖,𝑑 )
+
+, 𝑑 ], (13) 
+
+where 𝑠 ★ 
+
+> (𝑖,𝑑 )
+
+:= inf 𝑠 ∈ ( 0, 𝑑 ] : 𝑥 𝑖 𝑠𝑑 > 0 . Hence, the schedule (𝑂 𝑠 )𝑠 ∈[ 𝑇 ] satisfies all demand points in I.
+
+We next bound the holding cost. Lemma 6 shows that the holding cost incurred by the schedule 
+
+(𝑂 𝑠 )𝑠 ∈[ 𝑇 ] is at most the total cost of the optimal LP solution (𝑥, 𝑦 ) to (LP), the LP relaxation of 
+
+I. This result also appears in Cheung et al. (2016); for completeness, we include a proof in the appendix based on a weak duality argument. 
+
+Lemma 6. The holding cost incurred by the schedule (𝑂 𝑠 )𝑠 ∈[ 𝑇 ] is at most the total cost of the optimal LP solution (𝑥, 𝑦 ) to (LP), the LP relaxation of I.
+
+We next bound the ordering cost in the LP relaxation of I𝐷𝐼𝐶𝑃 in Lemma 7, which follows by observing that scaling (𝑥, 𝑦 ) by a factor of two yields a feasible solution to this LP relaxation. 
+
+Lemma 7. The ordering cost in the LP relaxation of I𝐷𝐼𝐶𝑃 is at most twice that of the optimal LP solution (𝑥, 𝑦 ) to (LP), the LP relaxation of I.
+
+The previous lemma bounds the LP cost of the reduced DICP instance relative to the LP cost of the original SJRP instance. It remains to check that converting an atom-indexed DICP schedule back to the original time horizon does not introduce any additional ordering cost. This is because several atom-level orders may be mapped to the same original period, but they are consolidated into a single order in that period. 23 Lemma 8. Let ( ˜𝑂 𝑚 )𝑚 ∈[ 𝑀 ] be any feasible integral schedule for I𝐷𝐼𝐶𝑃 , and let (𝑂 𝑡 )𝑡 ∈[ 𝑇 ] be the corresponding SJRP schedule constructed in Algorithm 3. Then 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+𝐾 (𝑂 𝑡 ) ≤ 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑚 =1
+
+𝐾 ( ˜𝑂 𝑚 ).
+
+Together, these lemmas establish the approximation guarantee claimed in Proposition 4. By Lemma 7, the LP relaxation of the reduced DICP instance has ordering cost at most twice the ordering cost of the optimal LP solution to I. Therefore, if the DICP algorithm achieves an ordering-cost approximation ratio of 𝛾 , then 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑚 =1
+
+𝐾 ( ˜𝑂 𝑚 ) ≤ 2𝛾 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑠 =1
+
+∑︁ 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 )𝑦 𝑆 𝑠 .
+
+By Lemma 8, mapping the atom-indexed DICP schedule back to the original SJRP periods does not increase ordering cost, and hence 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+𝐾 (𝑂 𝑡 ) ≤ 2𝛾 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑠 =1
+
+∑︁ 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 )𝑦 𝑆 𝑠 .
+
+Moreover, by Lemma 6, the holding cost of the constructed schedule is at most the total objective value of the optimal LP solution to I. It follows that Algorithm 3 gives a (2𝛾 + 1)-approximation for the SJRP instance I.Finally, all results are combined to establish Theorem 1. Proposition 1 guarantees that the orders returned by Algorithm 2 form a feasible solution to the DICP, while Proposition 3 bounds the total ordering cost across all 𝑘 categories by at most 4𝑘 times the LP relaxation cost of the DICP. Substituting 𝛾 = 4𝑘 into Proposition 4 then yields an overall (8𝑘 + 1)-approximation for the SJRP, as claimed in Theorem 1. 
+
+# 6 Conclusions 
+
+This paper presents a novel approximation algorithm for the submodular joint replenishment problem (SJRP) under a broad family of submodular ordering cost functions that admit a structured decomposition over item categories. This framework substantially generalizes prior work by capturing complex cross-category interactions through an arbitrary multivariate function over category-level aggregates. Our main result establishes an 𝑂 (𝑘 )-approximation guarantee, where 𝑘 
+
+is the number of item categories. For fixed 𝑘 , this yields the first known constant-factor bound for this general class—a guarantee that was previously unknown even in the case 𝑘 = 1. The analysis proceeds by recasting the problem as a disjoint interval covering problem (DICP), where the objective is to select orders that cover disjoint demand intervals. A novel rounding algorithm is introduced, combining a water-filling partitioning of the fractional LP solution with a dynamic programming procedure to produce a feasible integral schedule. This approach departs substantially from prior methods. We believe the techniques developed here may inform future work on approximation algorithms for inventory problems, including the longstanding open problems of obtaining constant-factor 24 guarantees for the SJRP under general submodular cost functions and the IRP under arbitrary metrics. 
+
+# Acknowledgments 
+
+This work was supported by the National Science Foundation Graduate Research Fellowship under Grant No. 2141064. Any opinions, findings, conclusions, or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the National Science Foundation. 
+
+# References 
+
+Esther Arkin, Dev Joneja, and Robin Roundy. Computational complexity of uncapacitated multi-echelon production planning problems. Operations research letters , 8(2):61–66, 1989. Walter J Bell, Louis M Dalberto, Marshall L Fisher, Arnold J Greenfield, Ramchandran Jaikumar, Pradeep Kedia, Robert G Mack, and Paul J Prutzman. Improving the distribution of industrial gases with an on-line computerized routing and scheduling optimizer. Interfaces , 13(6):4–23, 1983. Marcin Bienkowski, Jaroslaw Byrka, Marek Chrobak, L ukasz Je˙ z, Dorian Nogneng, and Ji ˇr´ı Sgall. Better approximation bounds for the joint replenishment problem. In Proceedings of the twenty-fifth annual ACM-SIAM symposium on discrete algorithms , pages 42–54. SIAM, 2014. Marcin Bienkowski, Jaros law Byrka, Marek Chrobak, Neil Dobbs, Tomasz Nowicki, Maxim Sviridenko, Grzegorz ´Swirszcz, and Neal E Young. Approximation algorithms for the joint replenishment problem with deadlines. Journal of Scheduling , 18(6):545–560, 2015. Thomas Bosman and Neil Olver. Improved approximation algorithms for inventory problems. In International conference on integer programming and combinatorial optimization , pages 91–103. Springer, 2020. Lawrence D Burns, Randolph W Hall, Dennis E Blumenfeld, and Carlos F Daganzo. Distribution strategies that minimize transportation and inventory costs. Operations research , 33(3):469–490, 1985. Maurice Cheung, Adam N Elmachtoub, Retsef Levi, and David B Shmoys. The submodular joint replenishment problem. Mathematical Programming , 158:207–233, 2016. Leandro C Coelho, Jean-Fran c¸ ois Cordeau, and Gilbert Laporte. Thirty years of inventory routing. Trans-portation science , 48(1):1–19, 2014. Awi Federgruen and Paul Zipkin. A combined vehicle routing and inventory allocation problem. Operations research , 32(5):1019–1037, 1984. Takuro Fukunaga, Afshin Nikzad, and R Ravi. Deliver or hold: approximation algorithms for the periodic inventory routing problem. In Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques (APPROX/RANDOM 2014) , pages 209–225. Schloss Dagstuhl–Leibniz-Zentrum f¨ ur Informatik, 2014. Retsef Levi, Robin Roundy, and David B Shmoys. Primal-dual algorithms for deterministic inventory problems. In Proceedings of the thirty-sixth annual ACM symposium on Theory of computing , pages 353–362, 2004. Retsef Levi, Robin Roundy, David Shmoys, and Maxim Sviridenko. A constant approximation algorithm for the one-warehouse multiretailer problem. Management Science , 54(4):763–776, 2008. 
+
+25 Viswanath Nagarajan and Cong Shi. Approximation algorithms for inventory problems with submodular or routing costs. Mathematical Programming , 160:225–244, 2016. Tim Nonner and Alexander Souza. Approximating the joint replenishment problem with deadlines. Discrete Mathematics, Algorithms and Applications , 1(02):153–173, 2009. Alexander Schrijver. Theory of linear and integer programming . John Wiley & Sons, 1998. Peter Stobbe and Andreas Krause. Efficient minimization of decomposable submodular functions. Advances in Neural Information Processing Systems , 23, 2010. Harvey M Wagner and Thomson M Whitin. Dynamic version of the economic lot size model. Management science , 5(1):89–96, 1958. 
+
+26 A Proof of Correctness for the DICP Approximation Algorithm 
+
+We include here the proofs omitted from the main text that justify the approximation guarantee for the DICP. Below, we prove that the notion of level and index introduced in Definitions 2 and 3 follow the desired monotonicity property. 
+
+Proof of Lemma 2. It suffices to show that for any subset of items 𝑆 and 𝑖 ∉ 𝑆 , we have 𝐿 𝑗 (𝑆 ∪ { 𝑖 }) ≤ 
+
+𝐿 𝑗 (𝑆 ). If 𝑃 𝑗 ⊆ 𝑆 the result is immediate from 𝐿 𝑗 (𝑆 ∪ { 𝑖 }) = 𝐿 𝑗 (𝑆 ) = 0. We now suppose that this is not the case and distinguish between two cases. First, suppose that 𝑖 ∉ arg min 𝑤 𝑖 ′ , 𝑖 ′ ∈ 𝑃 𝑗 \ 𝑆 . Fix 𝑖 0 ∈ arg min 𝑤 𝑖 ′ , 𝑖 ′ ∈ 𝑃 𝑗 \ 𝑆 . Deleting 𝑖 
+
+does not change this argmin, hence we also have 𝑖 0 ∈ arg min 𝑤 𝑖 ′ , 𝑖 ′ ∈ 𝑃 𝑗 \ ( 𝑆 ∪ { 𝑖 }) Then, 
+
+𝐿 𝑗 (𝑆 ∪ { 𝑖 }) 
+
+= 𝑓 (u(𝑆 ∪ { 𝑖 }) + 𝑤 𝑖 0 · e𝑗 ) − 𝑓 (u(𝑆 ∪ { 𝑖 })) 
+
+𝑤 𝑖 0
+
+= 𝐾 (𝑆 ∪ { 𝑖 0, 𝑖 }) − 𝐾 (𝑆 ∪ { 𝑖 })) 
+
+𝑤 𝑖 0
+
+≤ 𝐾 (𝑆 ∪ { 𝑖 0}) − 𝐾 (𝑆 )) 
+
+𝑤 𝑖 0
+
+= 𝐿 𝑗 (𝑆 ).
+
+In the inequality, we used the fact that 𝐾 is submodular. Next, consider the case where 𝑖 ∈ arg min 𝑤 𝑖 ′ , 𝑖 ′ ∈ 𝑃 𝑗 \ 𝑆 . Then, 
+
+𝐿 𝑗 (𝑆 )
+
+= 𝑓 (u(𝑆 ) + 𝑤 𝑖 · e𝑗 ) − 𝑓 (u(𝑆 )) 
+
+𝑤 𝑖 
+
+> (𝑖 )
+
+≥ 𝜕 𝑓 𝜕𝑢 𝑗 u(𝑆 )+ 𝑤 𝑖 ·e 𝑗 
+
+= 𝜕 𝑓 𝜕𝑢 𝑗 u(𝑆 ∪{ 𝑖 }) (𝑖𝑖 )
+
+≥ sup 
+
+> 𝑤> 0
+
+𝑓 (u(𝑆 ∪ { 𝑖 }) + 𝑤 · e𝑗 ) − 𝑓 (u(𝑆 ∪ { 𝑖 })) 
+
+𝑤 
+
+≥ 𝐿 𝑗 (𝑆 ∪ { 𝑖 }) .
+
+In (𝑖 ) and (𝑖𝑖 ), we used the component-wise concavity of 𝑓 . □
+
+Proof of Lemma 1. Assume for contradiction that the statement is not true. Then there exist time periods 𝑡, 𝜏 ∈ [ 𝑐, 𝑑 ] such that 
+
+𝐾  𝐴 𝑖 𝑡 ∪ { 𝑖 } − 𝐾  𝐴 𝑖 𝑡 
+
+ < 𝐾  𝐵 𝑖 𝜏 
+
+ − 𝐾  𝐵 𝑖 𝜏 \ { 𝑖 } .
+
+Consider a perturbation of the LP solution where we increase the order quantity of a subset containing item 𝑖 at time 𝑡 by a sufficiently small amount 𝜀 > 0 , and simultaneously decrease the order quantity of a subset containing 𝑖 at time 𝜏 by the same amount 𝜀 , preserving feasibility. 27 The change in the total cost from this perturbation is: 
+
+𝜀 𝐾  𝐴 𝑖 𝑡 ∪ { 𝑖 } − 𝐾  𝐴 𝑖 𝑡 
+
+ − 𝐾  𝐵 𝑖 𝜏 
+
+ + 𝐾  𝐵 𝑖 𝜏 \ { 𝑖 } .
+
+By the assumption above, the expression in brackets is strictly negative, so the total cost strictly decreases. This contradicts the optimality of the LP solution. □
+
+We now prove that Algorithm 2 has polynomial running time. 
+
+Lemma 9. Algorithm 2 has polynomial running time. Proof of Lemma 9. We first verify that the LPs (DICP) and (P2) can be solved in polynomial time. This follows from classical results: their duals are finite-dimensional but have exponentially many constraints, which can be handled with the ellipsoid method. A separation oracle for identifying violated dual constraints reduces to minimizing a submodular function (namely, the cost function 
+
+𝐾 plus a linear term). Since submodular minimization is polynomial-time solvable, and a primal solution can be recovered from the dual in polynomial time (Schrijver 1998), both LPs are solvable in polynomial time. Although Algorithm 2 is described using a continuous-time extension over (0, 𝑇 ], it can be implemented in a discrete manner. Specifically, it only requires storing information at discrete time points: the original times 𝑡 ∈ [ 𝑇 ] and the additional split points 𝑡 ∈ ( 0, 𝑇 ] used for partitioning layers. At each such time, it suffices to track the subsets ordered by the LP, the regions at each layer, and their associated levels 𝛼 and proportion 𝛽 for the last level. Therefore, to show that Algorithm 2 runs in polynomial time, it suffices to show that Algorithm 1 constructs a polynomial number of level-set regions (and layers) (this would imply that the dynamic program (3) would also run in polynomial time). To bound the number of level-sets constructed by Algorithm 1 for a given category 𝑗 ∈ [ 𝑘 ],consider a parent level-set 𝑅 = LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) ∈ L 𝑙 in some layer 𝑙 ≥ 0. Its two children collectively cover area exactly 1/2 , while the parent has area 1/4 . Let 𝑃 (𝑅 ) := (𝑅 1 ∪ 𝑅 2) \ 𝑅 , where 𝑅 1 and 𝑅 2
+
+are the children of 𝑅 . For all parent level-sets 𝑅 , these sets 𝑃 (𝑅 ) are disjoint and each have area 1/4. Therefore, Number of parent level-sets (14) 
+
+≤ 4 · ( Total area of LP solution )≤ 4|D| 𝑇 . 
+
+The final bound follows since for all non-empty 𝑆 ⊆ [ 𝑁 ], we have 𝐾 (𝑆 ) > 0 , so if we had 
+
+Í𝑆 ⊆[ 𝑁 ] 𝑦 𝑆 𝑡 > |D| at any time 𝑡 ∈ [ 𝑇 ], we could strictly reduce the LP cost by decreasing some 𝑦 𝑆 𝑡 
+
+while maintaining feasibility. Since each parent region gives rise to at most two children, the total number of level-sets constructed by Algorithm 1 is at most 12 |D| 𝑇 , which ends the proof. □
+
+Finally, we establish conditions on the decomposition function 𝑓 that guarantee the submodularity of the ordering cost function 𝐾 .
+
+Lemma 10. Let 𝑓 : R𝑘  
+
+> +
+
+→ R+ be a function that is twice continuously differentiable on R𝑘 
+
+> +
+
+. If for any 𝑖, 𝑗 ∈ [ 𝑘 ],
+
+∀v ∈ R𝑘 
+
+> +
+
+, 𝜕 2 𝑓 𝜕𝑥 𝑖 𝜕𝑥 𝑗 
+
+(v) ≤ 0,
+
+28 then, for any weight vectors w1, . . . , w𝑘 ∈ R𝑁  
+
+> +
+
+with strictly positive entries on items in 𝑃 𝑗 and zeroes elsewhere, the set function 𝐾 : 𝑆 ⊆ [ 𝑁 ] ↦ → 𝑓 (w⊤ 
+
+> 1
+
+e𝑆 , . . . , w⊤ 
+
+> 𝑘
+
+e𝑆 ) is submodular. Moreover, if |𝑃 𝑗 | ≥ 3 for all categories 𝑗 ∈ [ 𝑘 ], the two statements are equivalent. 
+
+We note that 𝑓 need not be jointly concave for 𝐾 to be submodular under this structure. 
+
+Proof of Lemma 10. We start with the first claim. Assume that 𝜕 2 𝑓 𝜕𝑥 𝑖 𝜕𝑥 𝑗 ≤ 0 for all 𝑖, 𝑗 ∈ [ 𝑘 ], and fix weight vectors w1, . . . , w𝑘 satisfying the lemma’s conditions. Let 𝐴 ⊂ [ 𝑁 ] and pick distinct items 𝑖, 𝑏 ∈ [ 𝑁 ] \ 𝐴 . Set 𝐵 := 𝐴 ∪ { 𝑏 }—in other words, 
+
+u(𝐵 ) = u( 𝐴 ) + 𝑤 𝑏 e𝑗 (𝑏 ) , where 𝑗 (𝑏 ) denotes the category of item 𝑏 . Then, 
+
+(𝐾 (𝐵 ∪ { 𝑖 }) − 𝐾 (𝐵 )) − ( 𝐾 ( 𝐴 ∪ { 𝑖 }) − 𝐾 ( 𝐴 )) 
+
+=   𝑓 (u(𝐵 ) + 𝑤 𝑖 e𝑗 (𝑖 ) ) − 𝑓 (u(𝐵 )) 
+
+−   𝑓 (u( 𝐴 ) + 𝑤 𝑖 e𝑗 (𝑖 ) ) − 𝑓 (u( 𝐴 )) 
+
+=
+
+∫ 𝑤 𝑖 
+
+> 𝑦 =0
+
+𝜕 𝑓 𝜕𝑥 𝑗 (𝑖 )
+
+(u(𝐵 ) + 𝑦 e𝑗 (𝑖 ) )− 𝜕 𝑓 𝜕𝑥 𝑗 (𝑖 )
+
+(u( 𝐴 ) + 𝑦 e𝑗 (𝑖 ) )
+
+!
+
+𝑑𝑦 
+
+=
+
+∫ 𝑤 𝑖 
+
+> 𝑦 =0
+
+∫ 𝑤 𝑏 
+
+> 𝑧 =0
+
+𝜕 2 𝑓 𝜕𝑥 𝑗 (𝑖 ) 𝜕𝑥 𝑗 (𝑏 )
+
+
+
+u( 𝐴 )+ 𝑦 e𝑗 (𝑖 ) + 𝑧 e𝑗 (𝑏 )
+
+
+
+𝑑𝑧𝑑𝑦 (15) 
+
+≤ 0.
+
+That is, we showed that 
+
+𝐾 (𝐵 ∪ { 𝑖 }) − 𝐾 (𝐵 ) ≤ 𝐾 ( 𝐴 ∪ { 𝑖 }) − 𝐾 ( 𝐴 ), (16) whenever 𝐵 contains exactly one more item than 𝐴 . Summing these equations then shows that for any 𝐴 ⊆ 𝐵 and 𝑖 ∈ [ 𝑁 ], (16) holds. This shows that 𝐾 is submodular. Next, we prove the second claim assuming that |𝑃 𝑗 | ≥ 3 for all 𝑗 ∈ [ 𝑘 ]. Suppose that the function 𝑓 satisfies the second statement—that is, for any choice of weights, the corresponding function 𝐾 is submodular. Fix v ∈ R𝑘 
+
+> +
+
+, and for each category 𝑗 ∈ [ 𝑘 ], we fix three distinct items 
+
+𝑖 1 ( 𝑗 ), 𝑖 2 ( 𝑗 ), 𝑖 3 ( 𝑗 ) ∈ 𝑃 𝑗 . Finally, fix two (possibly equal) categories 𝑙 1, 𝑙 2 ∈ [ 𝑘 ]. We consider any weights w1, . . . , w𝑘 that satisfy the requirements in the lemma statement, and additionally satisfy the following: 𝑤 𝑗 (𝑖 1 ( 𝑗 )) = 𝑣 𝑗 for any 𝑗 ∈ [ 𝑘 ] with 𝑣 𝑗 > 0, and 𝑤 𝑙 1 (𝑖 2 (𝑙 1)) = 𝑤 𝑙 2 (𝑖 3 (𝑙 2)) = 𝜖 for some 𝜖 > 0. Denote by 𝐾 𝜖 the corresponding cost function, which by assumption is submodular. Next, we consider the following sets: 
+
+𝐴 = 𝑖 1 ( 𝑗 ) : 𝑗 ∈ [ 𝑘 ], 𝑣 𝑗 > 0 , 𝐵 = 𝐴 ∪ { 𝑖 2 (𝑙 1)} .
+
+By construction, we have u( 𝐴 ) = v and u(𝐵 ) = v + 𝜖 e𝑙 1 . Moreover, note that 𝑖 3 (𝑙 2) is not contained 29 in either 𝐴 or 𝐵 by construction. Then, since 𝐾 𝜖 is submodular, we have 0 ≥ ( 𝐾 𝜖 (𝐵 ∪ { 𝑖 3 (𝑙 2)}) − 𝐾 𝜖 (𝐵 )) − ( 𝐾 𝜖 ( 𝐴 ∪ { 𝑖 3 (𝑙 2)}) − 𝐾 𝜖 ( 𝐴 )) 
+
+> (𝑖 )
+
+=
+
+∫ 𝜖 𝑦 =0
+
+∫ 𝜖 𝑧 =0
+
+𝜕 2 𝑓 𝜕𝑥 𝑙 1 𝜕𝑥 𝑙 2
+
+(v + 𝑦 e𝑙 1 + 𝑧 e𝑙 2 )𝑑𝑦𝑑𝑧 
+
+> (𝑖𝑖 )
+
+= 𝜖 2 𝜕 2 𝑓 𝜕𝑥 𝑙 1 𝜕𝑥 𝑙 2
+
+(v) + 𝑜 (𝜖 2)
+
+In (𝑖 ) we used (15) and in (𝑖𝑖 ) we used the fact that 𝜕 2 𝑓 𝜕𝑥 𝑙 1 𝜕𝑥 𝑙 2
+
+is continuous since 𝑓 is twice continuously differentiable. Therefore, this shows that 𝜕 2 𝑓 𝜕𝑥 𝑙 1 𝜕𝑥 𝑙 2
+
+(v) ≤ 0. This ends the proof. □
+
+## A.1 Preprocessing 
+
+In this subsection, we prove the following lemma using a constructive argument, which also provides a technique for obtaining the desired solution. 
+
+Lemma 11. There exists an optimal solution to (DICP) that satisfies both Property 1 and Property 2. Proof. The procedure used to ensure that Properties 1 and 2 hold involves solving a modified submodular optimization problem. This problem is similar to (DICP) , but also optimizes over an additional variable 𝑧 𝑖 𝑡 , representing the total quantity of item 𝑖 ∈ [ 𝑁 ] ordered in period 𝑡 ∈ [ 𝑇 ]. In contrast to (DICP) , this formulation prioritizes placing orders earlier in time. Let 𝐶 ★ denote the optimal objective value of (DICP). We solve the following problem: minimize 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+> 𝑁
+
+∑︁ 
+
+> 𝑖 =1
+
+𝑡 · 𝑧 𝑖 𝑡 (P2) subject to ∑︁ 
+
+> 𝑆 ⊆[ 𝑁 ]
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+𝐾 (𝑆 )𝑦 𝑆 𝑡 ≤ 𝐶 ★
+
+𝑧 𝑖 𝑡 =∑︁ 
+
+> 𝑆 :𝑖 ∈𝑆 ⊆[ 𝑁 ]
+
+𝑦 𝑆 𝑡 , 𝑖 ∈ [ 𝑁 ], 𝑡 ∈ [ 𝑇 ]∑︁ 
+
+> 𝑡 ∈[ 𝑐,𝑑 ]
+
+𝑧 𝑖 𝑡 ≥ 1, (𝑖, 𝑐, 𝑑 ) ∈ D 
+
+𝑦 𝑆 𝑡 ≥ 0, 𝑡 ∈ [ 𝑇 ], 𝑆 ⊆ [ 𝑁 ]
+
+The 𝑦 component of the optimal solution (𝑦, 𝑧 ) to (P2) is also optimal for (DICP) , since the first constraint guarantees that the order cost is bounded by 𝐶 ★. Using the procedure from Lemma 1 in Cheung et al. (2016), this 𝑦 component can be transformed to satisfy the nested structure property. The following claim formalizes this transformation and shows that the resulting solution ˜𝑦 remains optimal for (DICP) while also satisfying both structural properties: Property 1 and Property 2. 
+
+Claim 1. Let (𝑦, 𝑧 ) be an optimal solution to (P2). For each 𝑡 ∈ [ 𝑇 ], let 𝜋 𝑡 (1), . . . , 𝜋 𝑡 (𝑁 ) be the items ordered so that 
+
+𝑧 𝜋 𝑡 (1) 
+
+> 𝑡
+
+≤ . . . ≤ 𝑧 𝜋 𝑡 (𝑁 ) 
+
+> 𝑡
+
+.
+
+30 For 𝑖 ∈ [ 𝑁 ], define the subset 
+
+𝑆 (𝑖, 𝑡 ) := {𝜋 𝑡 (𝑖 ), . . . , 𝜋 𝑡 (𝑁 )} 
+
+of items whose order quantity is at least 𝑧 𝜋 𝑡 (𝑖 ) 
+
+> 𝑡
+
+. We then define ˜𝑦 𝑆 (𝑖,𝑡 ) 
+
+> 𝑡
+
+:= 𝑧 𝜋 𝑡 (𝑖 ) 
+
+> 𝑡
+
+− 𝑧 𝜋 𝑡 (𝑖 −1) 
+
+> 𝑡
+
+,
+
+where 𝑧 𝜋 𝑡 (0) 
+
+> 𝑡
+
+:= 0 . For all other sets 𝑆 ⊆ [ 𝑁 ], set ˜𝑦 𝑆 𝑡 = 0 . Then, ˜𝑦 is also an optimal solution to (DICP) and satisfies Property 1 and Property 2. 
+
+□
+
+Proof of Claim 1. For any 𝑡 ∈ [ 𝑇 ], ˜𝑦 𝑆 𝑡 has positive value only for sets of the form 𝑆 (𝑖, 𝑡 ) =
+
+{𝜋 𝑡 (𝑖 ), . . . , 𝜋 𝑡 (𝑁 )} with 𝑖 ∈ [ 𝑁 ]. These sets are nested, so ˜ 𝑦 satisfies Property 1. Let 𝑗 ∈ [ 𝑁 ] denote an actual item label and let 𝑖 ∈ [ 𝑁 ] be such that 𝑗 = 𝜋 𝑡 (𝑖 ). Then ∑︁   
+
+> 𝑆 :𝑗 ∈𝑆 ⊆[ 𝑁 ]
+
+˜𝑦 𝑆 𝑡 =∑︁  
+
+> 𝑖 ′∈[ 𝑖 ]
+
+˜𝑦 𝑆 (𝑖 ′,𝑡 ) 
+
+> 𝑡
+
+= 𝑧 𝜋 𝑡 (𝑖 ) 
+
+> 𝑡
+
+= 𝑧 𝑗 𝑡 .
+
+Also, for any 𝑡 ∈ [ 𝑇 ], submodularity of 𝐾 implies (see (Cheung et al. 2016, Lemma 1)) ∑︁ 
+
+> 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 ) ˜𝑦 𝑆 𝑡 ≤∑︁ 
+
+> 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 )𝑦 𝑆 𝑡 .
+
+Thus ( ˜𝑦, 𝑧 ) is feasible for (P2) and achieves the same objective value as (𝑦, 𝑧 ). Since (𝑦, 𝑧 ) is optimal, ( ˜𝑦, 𝑧 ) is also optimal for (P2). By definition, 𝐶 ★ is the optimal value of (DICP), so the constraints of (P2) imply ˜ 𝑦 is also optimal for (DICP). It remains to show Property 2. Suppose, for contradiction, that it does not hold. Then there exists a demand point ( 𝑗, 𝑐, 𝑑 ) and two distinct times 𝑡 1, 𝑡 2 ∈ [ 𝑐, 𝑑 ] with 𝑡 1 < 𝑡 2, 𝑧 𝑗 𝑡 2 > 0, and 
+
+𝐾 ( 𝐴 𝑗 𝑡 1 ∪ { 𝑗 }) − 𝐾 ( 𝐴 𝑗 𝑡 1 ) ≤ 𝐾 (𝐵 𝑗 𝑡 2 ) − 𝐾 (𝐵 𝑗 𝑡 2 \ { 𝑗 }) . (17) By Lemma 1, since ˜𝑦 is optimal for (DICP), the inequality in (17) must hold with equality. Furthermore, since 𝑧 𝑗 𝑡 2 > 0 , we have ˜𝑦 𝐵 𝑗 𝑡 2 
+
+> 𝑡 2
+
+> 0 . Now consider decreasing the amount of 𝑗 ordered at 
+
+𝑡 2 and increasing the amount ordered at 𝑡 1 by 
+
+𝛿 := min { ˜𝑦 𝐵 𝑗 𝑡 2 
+
+> 𝑡 2
+
+, ˜𝑦 𝐴 𝑗 𝑡 1 
+
+> 𝑡 1
+
++ ( 1 − 𝑧 𝑗 𝑡 1 ) · 1[ 𝐴 𝑗 𝑡 1 = ∅]} .
+
+This strictly improves the objective of (P2) by (𝑡 2 − 𝑡 1)𝛿 > 0, contradicting the optimality of ( ˜𝑦, 𝑧 ).Therefore, ˜ 𝑦 satisfies Property 2. □
+
+## A.2 Bounding the expected cost of the randomized procedure 
+
+We now formalize the randomized procedure. Let 𝑞 𝑗 (𝑆, 𝑡 ; 𝛼, 𝛽 ) denote the inclusion proportion of each subset (𝑆, 𝑡 ) in LS 𝑗 (𝛼, 𝛽 ; 𝐼 ), defined as 1 if 𝛼 𝑗 (𝑆, 𝑡 ) ≤ 𝛼 − 1, 𝛽 if 𝛼 𝑗 (𝑆, 𝑡 ) = 𝛼 , and 0 otherwise. Then, the area of LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) is Area 𝑗 
+
+ LS 𝑗 (𝛼, 𝛽 ; 𝐼 )
+
+:=
+
+∫
+
+> 𝑡 ∈𝐼
+
+©«∑︁ 𝑆 ⊆[ 𝑁 ]
+
+𝑦 𝑆 𝑡 𝑞 𝑗 (𝑆, 𝑡 ; 𝛼, 𝛽 )ª®¬
+
+𝑑𝑡. 
+
+31 Algorithm 4: Randomized version of Step 2 of Algorithm 1 
+
+Input: Category 𝑗 ∈ [ 𝑘 ]. Constructed layers L𝑙 ( 𝑗 ) for 𝑙 ∈ [ 𝐿 ] where 𝐿 is the total number of layers 
+
+Output: Schedule of orders ˜O( 𝑗 )
+
+Step 2: Order placements for each level-set  
+
+> 1
+
+Initialize all regions remaining to be satisfied R𝑙 ← L 𝑙 ( 𝑗 ) for 𝑙 ∈ [ 𝐿 ] 
+
+> 2
+
+Initialize orders ˜O( 𝑗 ) ← ∅  
+
+> 3
+
+for 𝑙 = 1, . . . , 𝐿 do  
+
+> 4
+
+for LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) ∈ R 𝑙 do  
+
+> 5
+
+Sample (𝑆, 𝑡 ) ∼ Q 𝑗 (𝛼, 𝛽 ; 𝐼 ) and update orders ˜O( 𝑗 ) ← ˜O( 𝑗 ) ∪ {( 𝑆, 𝑡 )}  
+
+> 6
+
+For every layer 𝑙 ′ > 𝑙 , delete from R𝑙 ′ all level-sets LS 𝑗 (𝛼 ′, 𝛽 ′; 𝐼 ′) with 𝑡 ∈ 𝐼 ′ 
+
+> 7
+
+end  
+
+> 8
+
+end  
+
+> 9
+
+return ˜O( 𝑗 )
+
+Fix a category 𝑗 ∈ [ 𝑘 ]. For each level-set LS 𝑗 (𝛼, 𝛽 ; 𝐼 ), we define a probability distribution 
+
+Q 𝑗 (𝛼, 𝛽 ; 𝐼 ) supported on pairs (𝑆 𝑟 (𝑡 ), 𝑡 ) with 𝑡 ∈ 𝐼 and 𝑟 ∈ [ 𝑛 (𝑡 )] . Intuitively, this distribution samples subsets proportionally to their (possibly fractional) contribution within the level-set. Formally, for any 𝑡 ∈ 𝐼 and 𝑆 ⊆ [ 𝑁 ], the density of Q 𝑗 (𝛼, 𝛽 ; 𝐼 ) at (𝑆, 𝑡 ) is defined as: 
+
+𝑝 Q 𝑗 (𝛼,𝛽 ;𝐼 ) (𝑆, 𝑡 )
+
+:= 𝑦 𝑆 𝑡 
+
+ 𝑞 (𝑆, 𝑡 ; 𝛼, 𝛽 ) − 𝑞 (𝑆, 𝑡 ; 𝛼 𝑝 , 𝛽 𝑝 )
+
+Area 𝑗 (LS 𝑗 (𝛼, 𝛽 ; 𝐼 )) − Area 𝑗 (LS 𝑗 (𝛼 𝑝 , 𝛽 𝑝 ; 𝐼 )) .
+
+That is, the probability of sampling (𝑆, 𝑡 ) is proportional to its associated fractional order quantity 𝑦 𝑆 𝑡 ,scaled by 𝑞 (𝑆, 𝑡 ; 𝛼, 𝛽 ) − 𝑞 (𝑆, 𝑡 ; 𝛼 𝑝 , 𝛽 𝑝 ) to account for the portion of this fractional subset contained in the level-set LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) but not in its parent. The denominator is given by the area of LS 𝑗 (𝛼, 𝛽 ; 𝐼 )
+
+outside its parent. To satisfy LS 𝑗 (𝛼, 𝛽 ; 𝐼 ), we sample (𝑆, 𝑡 ) ∼ Q 𝑗 (𝛼, 𝛽 ; 𝐼 ), add the corresponding order to the schedule, and delete all level-sets in higher layers that contain time 𝑡 . By construction, this procedure ensures that every level-set in every layer for category 𝑗 is satisfied by at least one order. The randomized algorithm is summarized in Algorithm 4. We now formalize notation for the layers. Each layer L𝑙 consists of 𝑁 𝑙 := |L 𝑙 | disjoint level-sets, denoted (𝑅 𝑙 𝑟 )𝑟 ∈[ 𝑁 𝑙 ] , ordered by increasing time intervals. Each level-set 𝑅 𝑙 𝑟 ∈ L 𝑙 is associated with a parent level-set in the previous layer L𝑙 −1, from which the time interval was split into two; one of these subintervals corresponds to 𝑅 𝑙 𝑟 . We now define notation to specify the parent and ancestors of a given level-set. Recall that the parent of any level-set in the first layer L1 is LS 𝑗 (0, 1; (0, 𝑇 ]) .
+
+Definition 5 (Parents and ancestors) . Given a level-set 𝑅 𝑙 𝑟 ∈ L 𝑙 , we denote by 𝜋 (𝑟, 𝑙 ) ∈ [ 𝑁 𝑙 −1]
+
+the index of its parent level-set 𝑅 𝑙 −1 
+
+> 𝜋 (𝑟,𝑙 )
+
+. More generally, we define 𝜋 (𝑟, 𝑙, 𝑙 ′) ∈ [ 𝑁 𝑙 ′ ] to be the index of the ancestor of 𝑅 𝑙 𝑟 at layer 𝑙 ′ ∈ [ 𝑙 − 1]. For example, 𝜋 (𝑟, 𝑙 ) = 𝜋 (𝑟, 𝑙, 𝑙 − 1) and 
+
+𝜋 (𝑟, 𝑙, 𝑙 − 2) = 𝜋 (𝜋 (𝑟, 𝑙 ), 𝑙 − 1), and so on. We are now ready to bound the expected cost of the sampled schedule. In particular, we prove 32 that the expected ordering cost for each of the 𝑘 categories is at most 4𝐶 ★, where 𝐶 ★ is the optimal objective value of the LP relaxation in (DICP). 
+
+Proof of Proposition 2. Since we focus on a single category 𝑗 ∈ [ 𝑘 ] throughout this proof, we omit subscripts and superscripts referring to category 𝑗 . In Algorithm 4, each level-set is satisfied exactly once in the sense that either it is first satisfied by an ancestral sample, or the algorithm samples once from its residual region. For each such level-set, we define a corresponding subregion 𝑄 𝑙 𝑟 , which intuitively captures the portion of 𝑅 𝑙 𝑟 not covered by its parent level-set. Formally, let 𝑅 𝑙 𝑟 = LS 𝑗 (𝛼, 𝛽 ; 𝐼 ) and let 
+
+𝑅 𝑙 −1 
+
+> 𝜋 (𝑟,𝑙 )
+
+= LS 𝑗 (𝛼 𝑝 , 𝛽 𝑝 ; 𝐼 𝑝 ) be its parent level-set, where 𝐼 ⊆ 𝐼 𝑝 . We define 𝑄 𝑙 𝑟 to consist of a 
+
+𝑞 (𝑆 ′, 𝑡 ; 𝛼, 𝛽 ) − 𝑞 (𝑆 ′, 𝑡 ; 𝛼 𝑝 , 𝛽 𝑝 ) fraction of each subset 𝑆 ′ := 𝑆 𝑟 ′ (𝑡 ), for all 𝑡 ∈ 𝐼 and 𝑟 ′ ∈ [ 𝑛 (𝑡 )] .Accordingly, the area of subregion 𝑄 𝑙 𝑟 is given by Area 𝑗 (𝑄 𝑙 𝑟 ) = Area 𝑗 (𝑅 𝑙 𝑟 ) − Area 𝑗 (𝑅 𝑙 𝑟 ∩ 𝑅 𝑙 −1 
+
+> 𝜋 (𝑟,𝑙 )
+
+).Importantly, unlike the level-sets 𝑅 𝑙 𝑟 , the sub-regions (𝑄 𝑙 𝑟 )𝑙 ≥1,𝑟 ∈[ 𝑁 𝑙 ] are disjoint. For any region 𝑅 , let 𝑝 𝑎𝑙𝑔 (𝑅 ) and 𝑝 𝐿𝑃 (𝑅 ) := Area 𝑗 (𝑅 ) denote the probability that Algorithm 4 and the pre-processed LP solution (𝑦 𝑆 𝑡 )𝑡 ∈[ 𝑇 ],𝑆 ⊆[ 𝑁 ] to the DICP relaxation (DICP) place an order in 
+
+𝑅 , respectively. Similarly, let cost 𝑎𝑙𝑔 (𝑅 ) and cost 𝐿𝑃 (𝑅 ) denote the total expected cost of orders from 𝑅 under Algorithm 4 and the LP solution, respectively. Whenever Algorithm 4 orders from a region 𝑄 𝑙 𝑟 , it samples this order with probabilities proportional to the LP solution. Hence, cost 𝑎𝑙𝑔 (𝑄 𝑙 𝑟 ) = cost 𝐿𝑃 (𝑄 𝑙 𝑟 ) · 𝑝 𝑎𝑙𝑔 (𝑄 𝑙 𝑟 )
+
+𝑝 𝐿𝑃 (𝑄 𝑙 𝑟 )
+
+when 𝑝 𝐿𝑃 (𝑄 𝑙 𝑟 ) > 0. The benefit of this sampling procedure is that the probability ratio is bounded: 
+
+Lemma 12. For any layer 𝑙 ≥ 1 and region 𝑟 ∈ [ 𝑁 𝑙 ], we have 𝑝 𝑎𝑙𝑔 (𝑄 𝑙 𝑟 ) = 4 · 𝑝 𝐿𝑃 (𝑄 𝑙 𝑟 ).
+
+Using this, we can bound the total expected cost of the algorithm: 
+
+E
+
+∑︁ (𝑆,𝑡 )∈ ˜O ( 𝑗 )
+
+𝐾 (𝑆 )
+
+
+
+=∑︁ 
+
+> 𝑙 ≥1
+
+∑︁ 𝑟 ∈[ 𝑁 𝑙 ]
+
+cost 𝑎𝑙𝑔 (𝑄 𝑙 𝑟 )
+
+= 4∑︁ 
+
+> 𝑙 ≥1
+
+∑︁ 𝑟 ∈[ 𝑁 𝑙 ]
+
+cost 𝐿𝑃 (𝑄 𝑙 𝑟 )≤ 4𝐶 ★.
+
+In the last inequality, we used the fact that all regions 𝑄 𝑙 𝑟 for 𝑙 ≥ 1 and 𝑟 ∈ [ 𝑁 𝑙 ] are disjoint. □
+
+We now prove the lemma bounding the probability that the algorithm places an order from each region 𝑄 𝑙 𝑟 for 𝑙 ≥ 1 and 𝑟 ∈ [ 𝑁 𝑙 ].
+
+Proof of Lemma 12. We prove the result by induction on the layer index 𝑙 ≥ 1 . In the first layer 
+
+𝑙 = 1 , Algorithm 4 always samples an order from each of the two regions 𝑄 𝑙 𝑟 = 𝑅 𝑙 𝑟 for 𝑟 ∈ [ 2].Hence, 
+
+𝑝 𝑎𝑙𝑔 (𝑄 1 
+
+> 𝑟
+
+) = 1 = 4 · 𝑝 𝐿𝑃 (𝑄 1 
+
+> 𝑟
+
+), 𝑟 ∈ [ 2].
+
+In the last equality, we used the fact that each constructed region has area 1 /4 by design. 33 Next, fix 𝑙 ≥ 2 and 𝑟 ∈ [ 𝑁 𝑙 ], and assume that the claim holds for all level-sets in all layers 𝑙 ′ < 𝑙 .By construction, Algorithm 4 samples from 𝑄 𝑙 𝑟 if and only if region 𝑅 𝑙 𝑟 has not been satisfied by any order sampled in previous layers. That is, sampling from 𝑄 𝑙 𝑟 occurs if and only if there were no order from the region 𝑅 𝑙 𝑟 ∩ 𝑅 𝑙 −1 
+
+> 𝜋 (𝑟,𝑙 )
+
+while processing earlier layers. In particular, we have 
+
+𝑅 𝑙 𝑟 = 𝑄 𝑙 𝑟 ⊔ ( 𝑅 𝑙 𝑟 ∩ 𝑅 𝑙 −1 
+
+> 𝜋 (𝑟,𝑙 )
+
+)
+
+= 𝑄 𝑙 𝑟 ⊔
+
+Ä 
+
+> 𝑙 ′∈[ 𝑙 −1]
+
+(𝑅 𝑙 𝑟 ∩ 𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+), (18) where Ã denotes a disjoint union. Therefore, 
+
+𝑝 𝑎𝑙𝑔 (𝑄 𝑙 𝑟 )
+
+= 1 − P
+
+Ø 
+
+> 𝑙 ′∈[ 𝑙 −1]
+
+{Alg 4 sampled in 𝑅 𝑙 𝑟 ∩ 𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+}
+
+
+
+> (𝑖 )
+
+= 1 −∑︁  
+
+> 𝑙 ′∈[ 𝑙 −1]
+
+P
+
+h
+
+Alg 4 sampled in 𝑅 𝑙 𝑟 ∩ 𝑄 𝑙 ′
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+i
+
+= 1 −∑︁  
+
+> 𝑙 ′∈[ 𝑙 −1]
+
+𝑝 𝑎𝑙𝑔 (𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+)× P
+
+h
+
+Alg 4 sampled in 𝑅 𝑙 𝑟 ∩ 𝑄 𝑙 ′
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+Alg 4 sampled in 𝑄 𝑙 ′
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+i
+
+> (𝑖𝑖 )
+
+= 1 −∑︁  
+
+> 𝑙 ′∈[ 𝑙 −1]
+
+𝑝 𝑎𝑙𝑔 (𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+) · 𝑝 𝐿𝑃 (𝑅 𝑙 𝑟 ∩ 𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+)
+
+𝑝 𝐿𝑃 (𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+)
+
+> (𝑖𝑖𝑖 )
+
+= 1 − 4∑︁  
+
+> 𝑙 ′∈[ 𝑙 −1]
+
+𝑝 𝐿𝑃 (𝑅 𝑙 𝑟 ∩ 𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+)
+
+> (𝑖𝑣 )
+
+= 1 − 4( 𝑝 𝐿𝑃 (𝑅 𝑙 𝑟 ) − 𝑝 𝐿𝑃 (𝑄 𝑙 𝑟 )) 
+
+> (𝑣 )
+
+= 4 · 𝑝 𝐿𝑃 (𝑄 𝑙 𝑟 ).
+
+In (𝑖 ), we used the fact that the events in the union are disjoint: Algorithm 4 samples an order from region 𝑄 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+only if 𝑅 𝑙 ′ 
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+has not been satisfied, which implies that for all 𝑚 ∈ [ 𝑙 ′ − 1], no order was sampled in 𝑅 𝑙 𝑟 ∩ 𝑄 𝑚 𝜋 (𝑟,𝑙,𝑚 ) . In (𝑖𝑖 ) we used the fact that Algorithm 4 samples in 𝑅 𝑙 ′
+
+> 𝜋 (𝑟,𝑙,𝑙 ′)
+
+proportionally to the LP solution. In (𝑖𝑖𝑖 ) we used the induction hypothesis, and in (𝑖𝑣 ) we used (18). Finally, in (𝑣 ) we used the fact that 𝑝 𝐿𝑃 (𝑅 𝑙 𝑟 ) = Area 𝑗 (𝑅 𝑙 𝑟 ) = 1/4 . This completes the induction and the proof. □
+
+# B Proof of correctness for the SJRP approximation algorithm 
+
+This appendix provides the proofs omitted from the main text that establish the correctness of the SJRP algorithm, assuming access to the approximation algorithm for the DICP. We use the same 34 notations as in the construction of I𝐷𝐼𝐶𝑃 described in Section 5.1. In particular, we let (𝑥, 𝑦 ) be the optimal solution to (LP)—the linear relaxation of I that was used to construct I𝐷𝐼𝐶𝑃 .Let ˜𝑂 𝑚 for 𝑚 ∈ [ 𝑀 ] denote a feasible integral schedule of orders for I𝐷𝐼𝐶𝑃 . We let b𝑂 𝑡 =
+
+Ð𝑚 :𝑡 (𝑚 )=𝑡 ˜𝑂 𝑚 for 𝑡 ∈ [ 𝑇 ], and denote by 𝑂 𝑡 the corresponding schedule of orders for I as defined in (12). 
+
+Proof of Lemma 5. Fix a demand point (𝑖, 𝑑 ). Define 𝑧 as in the construction of I𝐷𝐼𝐶𝑃 : that is, 
+
+𝑧 𝑖 𝑠 = Í𝑆 :𝑖 ∈𝑆 𝑦 𝑆 𝑠 . Since the solution 𝑦 is feasible for (LP), we have 
+
+∫ 𝑑 𝑠 =0
+
+𝑧 𝑖 𝑠 𝑑𝑠 ≥
+
+∫ 𝑠 ★
+
+> (𝑖,𝑑 )
+> 𝑠 =0
+
+𝑧 𝑖 𝑠 𝑑𝑠 +
+
+∫ 𝑑 𝑠 =𝑠 ★
+
+> (𝑖,𝑑 )
+
+𝑥 𝑖 𝑠 𝑑𝑠 
+
+≥
+
+∫ 𝑠 ★
+
+> (𝑖,𝑑 )
+> 𝑠 =0
+
+𝑧 𝑖 𝑠 𝑑𝑠 + 1.
+
+In particular, there must exist an integer 𝜅 ≥ 1 such that 
+
+∫ 𝑠 ★
+
+> (𝑖,𝑑 )
+> 𝑠 =0
+
+𝑧 𝑖 𝑠 𝑑𝑠 ≤ 𝜅 − 12 ≤ 𝜅 
+
+2 ≤
+
+∫ 𝑑 𝑠 =0
+
+𝑧 𝑖 𝑠 𝑑𝑠. 
+
+Next, recall that 𝑎 𝑖 𝜅 −1 is defined as the largest value 𝜃 for which ∫ 𝜃 𝑠 =0 𝑧 𝑖 𝑠 𝑑𝑠 = 𝜅 −12 and similarly, 𝑏 𝑖 𝜅 is the smallest value 𝜃 for which ∫ 𝜃 𝑠 =0 𝑧 𝑖 𝑠 𝑑𝑠 = 𝜅  
+
+> 2
+
+. In summary, we showed that 
+
+𝑠 ★ 
+
+> (𝑖,𝑑 )
+
+≤ 𝑎 𝑖 𝜅 −1 ≤ 𝑏 𝑖 𝜅 ≤ 𝑑. 
+
+This implies (13): (𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] ⊆ ( 𝑠 ★ 
+
+> (𝑖,𝑑 )
+
+, 𝑑 ].By construction of the reduced DICP instance, the interval (𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] is exactly the union of the atoms 𝐽 𝑚 for 𝑚 ∈ [ 𝑐 𝑖 𝜅 , 𝑑 𝑖 𝜅 ]. Since the DICP solution is feasible, item 𝑖 is ordered in some atom 
+
+𝑚 ∈ [ 𝑐 𝑖 𝜅 , 𝑑 𝑖 𝜅 ]. Therefore 𝐽 𝑚 ⊆ ( 𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] ⊆ ( 𝑠 ★ 
+
+> (𝑖,𝑑 )
+
+, 𝑑 ]. Since 𝐽 𝑚 ⊆ ( 𝑡 (𝑚 ) − 1, 𝑡 (𝑚 )] , this implies 
+
+𝑡 (𝑚 ) ≤ 𝑑 . Hence 𝑖 ∈ b𝑂 𝑡 (𝑚 ) for some 𝑡 (𝑚 ) ≤ 𝑑 , and the final schedule (𝑂 𝑠 )𝑠 ∈[ 𝑇 ] satisfies demand point (𝑖, 𝑑 ). □
+
+Below, we prove Lemma 6, which shows that the holding cost incurred by the schedule 𝑂 𝑡 for 
+
+𝑡 ∈ [ 𝑇 ] is at most the cost of the solution (𝑥, 𝑦 ) to (LP). This result also appears in Cheung et al. (2016), but we include its proof for completeness. 
+
+Proof of Lemma 6. We write the dual program of (LP). Let 𝑀 𝑖 𝑑 and 𝐿 𝑖 𝑠𝑑 be the dual variables corresponding to the first and second constraints in the linear relaxation of (IP) respectively. Then the dual program of (LP) is maximize ∑︁ 
+
+> (𝑖,𝑑 )∈D
+
+𝑀 𝑖 𝑑 (D) subject to 𝑀 𝑖 𝑑 ≤ 𝑞 𝑖𝑑 ℎ𝑖 𝑠𝑑 + 𝐿 𝑖 𝑠𝑑 , (𝑖, 𝑑 ) ∈ D , 𝑠 ∈ [ 𝑑 ]∑︁ 
+
+> 𝑖 ∈𝑆 𝑇
+
+∑︁ 
+
+> 𝑡 =𝑠
+
+𝐿 𝑖 𝑠𝑡 ≤ 𝐾 (𝑆 ), 𝑠 ∈ [ 𝑇 ], 𝑆 ⊆ [ 𝑁 ]
+
+𝐿 𝑖 𝑠𝑑 ≥ 0, (𝑖, 𝑑 ) ∈ D , 𝑠 ∈ [ 𝑑 ]
+
+35 By complementary slackness in the optimal (LP) solution, any variable 𝑥 𝑖 𝑠𝑑 > 0 implies that the corresponding constraint 𝑀 𝑖 𝑑 ≤ 𝑞 𝑖𝑑 ℎ𝑖 𝑠𝑑 + 𝐿 𝑖 𝑠𝑑 is tight. Since 𝐿 𝑖 𝑠𝑑 ≥ 0, it follows that 𝑀 𝑖 𝑑 ≥ 𝑞 𝑖𝑑 ℎ𝑖 𝑠𝑑 for all 𝑖, 𝑠, 𝑑 such that 𝑥 𝑖 𝑠𝑑 > 0. In particular, due to the monotonicity of ℎ𝑖 𝑠𝑑 in 𝑠 , this holds for every 
+
+(𝑖, 𝑑 ) ∈ D and every 𝑠 ≥ min {𝑠 ∈ [ 𝑑 ] : 𝑥 𝑖 𝑠𝑑 > 0} =: 𝑠 (𝑖,𝑑 ) .We now bound the holding cost incurred by the schedule of orders 𝑂 𝑡 for 𝑡 ∈ [ 𝑇 ]. By Lemma 5 and its proof, each demand point (𝑖, 𝑑 ) is fulfilled by an order placed at some original period 
+
+𝑠 ≥ 𝑠 (𝑖,𝑑 ) , where 𝑠 (𝑖,𝑑 ) := min {𝑠 ∈ [ 𝑑 ] : 𝑥 𝑖 𝑠𝑑 > 0}. Therefore, the holding cost incurred for each 
+
+(𝑖, 𝑑 ) is 𝑞 𝑖𝑑 ℎ𝑖 𝑠𝑑 ≤ 𝑀 𝑖 𝑑 . Summing over all demand points, the total holding cost is at most Í(𝑖,𝑑 )∈D 𝑀 𝑖 𝑑 ,which is itself bounded by the cost of (LP) by weak duality. 
+
+□
+
+Finally, we prove the bound on the ordering cost: 
+
+Proof of Lemma 7. We define a fractional solution ˜ 𝑦 for the LP relaxation of I𝐷𝐼𝐶𝑃 by setting ˜𝑦 𝑆 𝑚 := 2|𝐽 𝑚 |𝑦 𝑆 𝑡 (𝑚 ) , 𝑚 ∈ [ 𝑀 ], 𝑆 ⊆ [ 𝑁 ].
+
+We first show that ˜𝑦 is feasible for I𝐷𝐼𝐶𝑃 . Fix 𝑖 ∈ [ 𝑁 ] and 𝜅 ∈ [ 𝐾 𝑖 ]. Since (𝑎 𝑖 𝜅 −1, 𝑏 𝑖 𝜅 ] = Ð𝑑 𝑖 𝜅 
+
+> 𝑚 =𝑐 𝑖 𝜅
+
+𝐽 𝑚 ,we have 
+
+> 𝑑 𝑖 𝜅
+
+∑︁ 
+
+> 𝑚 =𝑐 𝑖 𝜅
+
+∑︁ 𝑆 :𝑖 ∈𝑆 
+
+˜𝑦 𝑆 𝑚 =
+
+> 𝑑 𝑖 𝜅
+
+∑︁ 
+
+> 𝑚 =𝑐 𝑖 𝜅
+
+2|𝐽 𝑚 |∑︁ 
+
+> 𝑆 :𝑖 ∈𝑆
+
+𝑦 𝑆 𝑡 (𝑚 )
+
+=
+
+∫ 𝑏 𝑖 𝜅  
+
+> 𝑎 𝑖 𝜅 −1
+
+2𝑧 𝑖 𝑟 𝑑𝑟 
+
+= 1,
+
+where the last equality follows from the definition of 𝑎 𝑖 𝜅 −1 and 𝑏 𝑖 𝜅 as the (𝜅 − 1)/ 2 and 𝜅 /2 quantiles of 𝑧 𝑖 𝑠 . Hence, ˜ 𝑦 is feasible for the LP relaxation of I𝐷𝐼𝐶𝑃 .The ordering cost of ˜ 𝑦 is 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑚 =1
+
+∑︁ 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 ) ˜𝑦 𝑆 𝑚 = 2
+
+> 𝑀
+
+∑︁ 
+
+> 𝑚 =1
+
+|𝐽 𝑚 |∑︁ 
+
+> 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 )𝑦 𝑆 𝑡 (𝑚 )
+
+= 2
+
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+∑︁ 𝑆 ⊆[ 𝑁 ]
+
+𝐾 (𝑆 )𝑦 𝑆 𝑡 ,
+
+where the last equality uses the fact that the atoms contained in each original period (𝑡 − 1, 𝑡 ]
+
+partition that period. Therefore, the ordering cost in the LP relaxation of I𝐷𝐼𝐶𝑃 is at most twice the ordering cost of the optimal LP solution (𝑥, 𝑦 ) to I. □
+
+Proof of Lemma 8. For each original period 𝑡 ∈ [ 𝑇 ], Algorithm 3 first defines 
+
+b𝑂 𝑡 :=
+
+Ø 
+
+> 𝑚 :𝑡 (𝑚 )=𝑡
+
+˜𝑂 𝑚 .
+
+36 By subadditivity of the monotone submodular function 𝐾 ,
+
+𝐾 ( b𝑂 𝑡 ) ≤ ∑︁  
+
+> 𝑚 :𝑡 (𝑚 )=𝑡
+
+𝐾 ( ˜𝑂 𝑚 ).
+
+Since the final schedule satisfies 𝑂 𝑡 ⊆ b𝑂 𝑡 for every 𝑡 ∈ [ 𝑇 ], monotonicity implies 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+𝐾 (𝑂 𝑡 ) ≤ 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+𝐾 ( b𝑂 𝑡 ) ≤ 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑚 =1
+
+𝐾 ( ˜𝑂 𝑚 ).
+
+□
+
+37

@@ -1,10 +1,70 @@
 {
   "date": "20260721-20260730",
   "date_label": "2026-07-21 ~ 2026-07-30",
-  "generated_at": "2026-07-30 10:34:33 UTC",
+  "generated_at": "2026-07-30 12:07:03 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
+    {
+      "paper_id": "2607.25956v1",
+      "route": "20260721-20260730/2607.25956v1-large-language-model-for-operations-research-formulation-selection-in-multi-warehouse-inventory-allocation",
+      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        },
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "LLM引导的运筹学公式选择用于需求波动的多仓库库存分配",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 12:07:03 UTC"
+    },
+    {
+      "paper_id": "2607.21354v1",
+      "route": "20260721-20260730/2607.21354v1-spord-a-simulation-propose-then-or-dispose-approach-for-supply-chain-planning",
+      "title": "SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        },
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "动态仓库品类规划",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 12:07:03 UTC"
+    },
+    {
+      "paper_id": "2607.25664v1",
+      "route": "20260721-20260730/2607.25664v1-contextual-deconvolution-for-variance-stable-demand-sensing-kernel-modulated-operators-in-promotional-retail",
+      "title": "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demand-inv"
+        },
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向促销零售的需求感知方法，旨在降低安全库存和牛鞭效应，与基于需求的库存管理直接相关。",
+      "first_seen_at": "2026-07-30 10:34:33 UTC",
+      "updated_at": "2026-07-30 12:07:03 UTC"
+    },
     {
       "paper_id": "2607.19835v1",
       "route": "20260721-20260730/2607.19835v1-beyond-recency-and-magnitude-learning-aware-uncertainty-estimation-for-safety-stock-under-evolving-forecast-error-distributions",
@@ -22,52 +82,52 @@
       "updated_at": "2026-07-30 10:34:33 UTC"
     },
     {
-      "paper_id": "2607.21354v1",
-      "route": "20260721-20260730/2607.21354v1-spord-a-simulation-propose-then-or-dispose-approach-for-supply-chain-planning",
-      "title": "SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning",
-      "section": "deep",
+      "paper_id": "biorxiv-10-64898-2025-12-12-693799-v2",
+      "route": "20260721-20260730/biorxiv-10-64898-2025-12-12-693799-v2-seek-vec-augmenting-topic-modeling-with-spectral-ensemble-learning",
+      "title": "SEEK-VEC: Augmenting topic modeling with spectral ensemble learning",
+      "section": "quick",
       "tags": [
         {
           "kind": "query",
-          "label": "demand-inv"
+          "label": "wo"
         }
       ],
-      "score": 9.0,
-      "evidence": "面向动态仓库品类规划与库存优化的供应链规划方法",
-      "first_seen_at": "2026-07-30 10:34:33 UTC",
-      "updated_at": "2026-07-30 10:34:33 UTC"
+      "score": 7.0,
+      "evidence": "集成主题建模从计数数据中发现潜在产品分组",
+      "first_seen_at": "2026-07-30 12:07:03 UTC",
+      "updated_at": "2026-07-30 12:07:03 UTC"
     },
     {
-      "paper_id": "2607.25664v1",
-      "route": "20260721-20260730/2607.25664v1-contextual-deconvolution-for-variance-stable-demand-sensing-kernel-modulated-operators-in-promotional-retail",
-      "title": "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail",
-      "section": "deep",
+      "paper_id": "2607.19761v1",
+      "route": "20260721-20260730/2607.19761v1-harnessing-heterogeneous-data-for-conditional-optimization-via-optimal-transport",
+      "title": "Harnessing Heterogeneous Data for Conditional Optimization via Optimal Transport",
+      "section": "quick",
       "tags": [
         {
           "kind": "query",
-          "label": "demand-inv"
+          "label": "wo"
         }
       ],
-      "score": 9.0,
-      "evidence": "用于库存管理的需求感知，直接减少安全库存和牛鞭效应",
-      "first_seen_at": "2026-07-30 10:34:33 UTC",
-      "updated_at": "2026-07-30 10:34:33 UTC"
+      "score": 6.0,
+      "evidence": "利用异构数据进行条件优化，可建模产品需求相关性",
+      "first_seen_at": "2026-07-30 12:07:03 UTC",
+      "updated_at": "2026-07-30 12:07:03 UTC"
     },
     {
-      "paper_id": "2607.25956v1",
-      "route": "20260721-20260730/2607.25956v1-large-language-model-for-operations-research-formulation-selection-in-multi-warehouse-inventory-allocation",
-      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
-      "section": "deep",
+      "paper_id": "2607.21858v1",
+      "route": "20260721-20260730/2607.21858v1-approximation-algorithms-for-inventory-problems-with-decomposable-submodular-ordering-costs",
+      "title": "Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs",
+      "section": "quick",
       "tags": [
         {
           "kind": "query",
-          "label": "demand-inv"
+          "label": "wo"
         }
       ],
-      "score": 9.0,
-      "evidence": "多仓库库存分配，考虑需求集中度、库存不平衡、服务约束和预测波动性",
-      "first_seen_at": "2026-07-30 10:34:33 UTC",
-      "updated_at": "2026-07-30 10:34:33 UTC"
+      "score": 6.0,
+      "evidence": "针对多物品库存的联合补货问题",
+      "first_seen_at": "2026-07-30 12:07:03 UTC",
+      "updated_at": "2026-07-30 12:07:03 UTC"
     }
   ]
 }

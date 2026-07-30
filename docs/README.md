@@ -44,14 +44,14 @@
       <span class="dpr-home-dashboard-kicker">2026-07-21 ~ 2026-07-30</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>4</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-07-30 10:34:33 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-07-30 12:07:03 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日聚焦供应链智能决策，精读两篇顶会高分论文，探索安全库存与规划的创新解法。</p>
-<p>一篇提出用学习感知的不确定性估计，超越传统“最近性”与“量级”来动态优化安全库存；另一篇构建“仿真-提议-处置”框架，让供应链规划兼顾灵活与效率。</p>
-<p>建议库存与规划负责人重点关注：如何借力时序预测误差的进化特征，以及用仿真驱动优化，实现更韧性的运营决策。</p>
+<p>本期日报聚焦AI在供应链与运筹优化中的前沿应用，覆盖从库存分配到整体规划的系统性突破。</p>
+<p>最值得关注的是：大语言模型已被验证能精准选择混合整数规划模型，且“先仿真-后优化”的闭环架构显著提升了供应链计划的鲁棒性。</p>
+<p>建议从业者重点研读那篇满分论文，并开始尝试将大模型嵌入经典运筹工作流，以应对多仓库库存分配等复杂决策场景。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -76,9 +76,9 @@
     <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Beyond recency and magnitude: Learning-aware uncertainty estimation for safety stock under evolving forecast-error distributions">Beyond recency and magnitude: Learning-aware uncertainty estimation for safety stock under evolving forecast-error distributions</span></li><li><span class="dpr-home-dashboard-paper-title" title="SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning">SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail">Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation">Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation</span></li><li><span class="dpr-home-dashboard-paper-title" title="SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning">SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail">Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demand-inv <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demand-inv <strong>4</strong></span><span class="dpr-home-dashboard-tag">wo <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SEEK-VEC: Augmenting topic modeling with spectral ensemble learning">SEEK-VEC: Augmenting topic modeling with spectral ensemble learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Harnessing Heterogeneous Data for Conditional Optimization via Optimal Transport">Harnessing Heterogeneous Data for Conditional Optimization via Optimal Transport</span></li><li><span class="dpr-home-dashboard-paper-title" title="Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs">Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>3</strong></span></div>
 </section>
 </div>
 
