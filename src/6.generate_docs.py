@@ -33,6 +33,13 @@ from daily_report_state import (
     merge_daily_state,
     save_daily_state,
 )
+from transportation_prompts import (
+    DEEP_SUMMARY_DOMAIN_REQUIREMENTS,
+    DEEP_SUMMARY_SYSTEM_PROMPT,
+    GLANCE_DOMAIN_REQUIREMENT,
+    GLANCE_SYSTEM_PROMPT,
+    TRANSLATION_SYSTEM_PROMPT,
+)
 
 try:
     from paper_figures import ensure_paper_media
@@ -312,10 +319,7 @@ def translate_title_and_abstract_to_zh(
     if not title and not abstract:
         return "", ""
 
-    system_prompt = (
-        "你是一名熟悉机器学习与自然科学论文的专业翻译，请将英文标题和摘要翻译为自然、准确的中文。"
-        "保持学术风格，尽量保留专有名词，不要额外添加评论。"
-    )
+    system_prompt = TRANSLATION_SYSTEM_PROMPT
     payload = {"title": title, "abstract": abstract}
     user_text = json.dumps(payload, ensure_ascii=False)
 
@@ -564,20 +568,10 @@ def generate_deep_summary(
         with open(txt_file_path, "r", encoding="utf-8") as f:
             paper_txt_content = f.read()
 
-    system_prompt = (
-        "你是一名资深学术论文分析助手，请使用中文、以 Markdown 形式，"
-        "对给定论文做结构化、深入、客观的总结。"
-    )
+    system_prompt = DEEP_SUMMARY_SYSTEM_PROMPT
     user_prompt = (
         "请基于下面提供的论文内容，生成一段详细的中文总结，要求按照如下要点依次展开：\n"
-        "1. 论文的核心问题与整体含义（研究动机和背景）。\n"
-        "2. 论文提出的方法论：核心思想、关键技术细节、公式或算法流程（用文字说明即可）。\n"
-        "3. 实验设计：使用了哪些数据集 / 场景，它的 benchmark 是什么，对比了哪些方法。\n"
-        "4. 资源与算力：如果文中有提到，请总结使用了多少算力（GPU 型号、数量、训练时长等）。若未明确说明，也请指出这一点。\n"
-        "5. 实验数量与充分性：大概做了多少组实验（如不同数据集、消融实验等），这些实验是否充分、是否客观、公平。\n"
-        "6. 论文的主要结论与发现。\n"
-        "7. 优点：方法或实验设计上有哪些亮点。\n"
-        "8. 不足与局限：包括实验覆盖、偏差风险、应用限制等。\n\n"
+        f"{DEEP_SUMMARY_DOMAIN_REQUIREMENTS}"
         "请用分层标题和项目符号（Markdown 格式）组织上述内容，语言尽量简洁但信息要尽量完整。\n"
         "要求：最后单独输出一行“（完）”作为结束标记。"
     )
@@ -634,7 +628,7 @@ def generate_glance_overview(
         log("[WARN] 未配置 LLM_CLIENT，跳过速览生成。")
         return None
 
-    system_prompt = "你是论文速览助手，请用中文生成信息密度高、但不冗长的论文速览。"
+    system_prompt = GLANCE_SYSTEM_PROMPT
     payload = {"title": title, "abstract": abstract}
     user_text = json.dumps(payload, ensure_ascii=False)
     user_prompt = (
@@ -643,6 +637,7 @@ def generate_glance_overview(
         "要求：\n"
         "- tldr：150-220个中文字符，不是一句话口号；通常写成3-4个短句，按“问题背景→核心方法→关键结果→贡献意义”的顺序组织\n"
         "- motivation/method/result/conclusion：每个字段30-70个中文字符，通常一句话；对标论文页速览卡片，简洁但必须包含具体信息\n"
+        f"{GLANCE_DOMAIN_REQUIREMENT}"
         "- 不要把英文句子放进中文字段；可保留必要英文术语或模型名\n"
         "Output must be strict JSON only, no markdown, no fences, no extra text."
     )

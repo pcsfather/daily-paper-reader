@@ -11,6 +11,11 @@ from typing import Any, Dict, List
 import yaml  # type: ignore
 
 from llm import DeepSeekClient
+from transportation_prompts import (
+  build_keyword_rewrite_prompt,
+  build_related_prompt,
+  build_rewrite_prompt,
+)
 
 SCRIPT_DIR = os.path.dirname(__file__)
 CONFIG_FILE = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "config.yaml"))
@@ -34,82 +39,6 @@ def group_start(title: str) -> None:
 
 def group_end() -> None:
   print("::endgroup::", flush=True)
-
-
-def build_related_prompt(keyword: str) -> List[Dict[str, str]]:
-  return [
-    {
-      "role": "system",
-      "content": (
-        "You are a query expansion assistant. Generate related academic search terms for the given keyword. "
-        "Do NOT output simple synonyms or translations. Include adjacent concepts, tasks, methods, and application domains. "
-        "Output JSON only. All terms must be in English."
-      ),
-    },
-    {
-      "role": "user",
-      "content": (
-        f"Keyword: {keyword}\n"
-        "Generate 4-6 related search terms. Avoid duplicates and obvious synonyms. "
-        "Output JSON in the format:\n"
-        "{\"related\": [\"term1\", \"term2\", \"term3\", \"term4\"]}"
-      ),
-    },
-  ]
-
-
-def build_keyword_rewrite_prompt(keyword: str) -> List[Dict[str, str]]:
-  return [
-    {
-      "role": "system",
-      "content": (
-        "You are a query rewriter for academic retrieval. "
-        "Write a single natural-language sentence that describes the ideal paper. "
-        "Do NOT use boolean operators, parentheses, or query syntax. "
-        "The rewrite must start with: \"Find research papers describing\". "
-        "Output JSON only. English only."
-      ),
-    },
-    {
-      "role": "user",
-      "content": (
-        "Task: Expand this keyword into a clear, detailed academic search sentence focused on recent research. "
-        "Write one sentence that reads like a paper title/abstract fragment.\n"
-        f"Keyword: {keyword}\n"
-        "Output JSON in the format:\n"
-        "{\"rewrite\": \"...\"}\n"
-        "The rewrite must be in English and start with: \"Find research papers describing\"."
-      ),
-    },
-  ]
-
-
-def build_rewrite_prompt(query: str) -> List[Dict[str, str]]:
-  return [
-    {
-      "role": "system",
-      "content": (
-        "You are a query rewriter for a cross-encoder reranker. "
-        "Write a single English sentence describing the ideal paper (not a command). "
-        "Do NOT translate literally; reframe the intent. "
-        "The rewrite must start with: \"Find research papers describing\". "
-        "Output JSON only."
-      ),
-    },
-    {
-      "role": "user",
-      "content": (
-        "Rewrite the user's query into a concise, intent-focused academic search sentence. "
-        "Include key constraints (e.g., benchmarks, datasets, evaluation, technical reports). "
-        "Optionally add example entities if helpful (e.g., Google, OpenAI, Meta). "
-        "Keep it to 1 sentence.\n"
-        f"User query: {query}\n"
-        "Output JSON in the format:\n"
-        "{\"rewrite\": \"...\"}\n"
-        "The rewrite must be in English and start with: \"Find research papers describing\"."
-      ),
-    },
-  ]
 
 
 def call_llm_json(client: DeepSeekClient, messages: List[Dict[str, str]], schema_name: str, schema: Dict[str, Any]) -> Dict[str, Any]:

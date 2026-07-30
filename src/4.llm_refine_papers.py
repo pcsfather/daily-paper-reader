@@ -12,6 +12,11 @@ from typing import Any, Callable, Dict, List
 
 from llm import DeepSeekClient, resolve_max_output_tokens
 from subscription_plan import build_pipeline_inputs
+from transportation_prompts import (
+    REFINEMENT_DOMAIN_GUARDRAIL,
+    REFINEMENT_SYSTEM_PROMPT,
+    REFINEMENT_ZH_TERMINOLOGY,
+)
 
 SCRIPT_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
@@ -370,12 +375,7 @@ def call_filter(
         "additionalProperties": False,
     }
 
-    system_prompt = (
-        "You are an intelligent Research Relevance Evaluator. "
-        "Score papers (0-10) based purely on relevance to ANY item in user's requirement list. "
-        "Prioritize conceptual/method relevance over exact term overlap. "
-        "Use the rubric and return JSON only."
-    )
+    system_prompt = REFINEMENT_SYSTEM_PROMPT
     req_lines = []
     for idx, req in enumerate(all_requirements, start=1):
         desc = (req.get("description_en") or req.get("query") or "").strip()
@@ -405,7 +405,7 @@ def call_filter(
         "5) Be strict only when mismatch is substantive (different task objective, incompatible setting, or no reusable method).\n"
         "6) Some requirements may be profile-level composite requirements built from multiple keywords. "
         "Use them when a paper is clearly central to the overall theme but does not fit a narrower requirement cleanly.\n"
-        "7) Do not over-score generic LLM-for-science or infrastructure papers under a composite requirement unless they materially advance the core task.\n\n"
+        f"{REFINEMENT_DOMAIN_GUARDRAIL}"
         "Papers:\n"
         f"{json.dumps(docs, ensure_ascii=False)}\n\n"
         "Output JSON format example:\n"
@@ -431,6 +431,7 @@ def call_filter(
         "Keep tldr_en concise but informative: 160-240 English characters. "
         "Also generate title_zh as a concise Chinese translation of the paper title. "
         "title_zh must always be a real translated title based on the input title, even when the paper is unrelated. "
+        f"{REFINEMENT_ZH_TERMINOLOGY}"
         "Also generate four Chinese-only overview fields: motivation_cn, method_cn, result_cn, conclusion_cn. "
         "For relevant papers with score > 0, each overview field should target 30-70 Chinese characters, normally one concrete Chinese sentence. "
         "Match the style of a paper page overview: concise but not a bare phrase; include concrete content from the title/abstract. "
