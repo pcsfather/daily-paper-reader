@@ -20,5 +20,14 @@ conclusion: SEEK-VEC 作为一种谱集成学习方法，有效增强了主题�
 ## 摘要
 计数数据在许多应用中普遍存在，而理解其中的潜在模式一直是人们关注的重点。主题建模是检测计数数据中潜在结构的强大工具。然而，标准主题建模方法往往受限于其严格的假设，容易受到噪声干扰，并对主题数目的错误设定十分敏感。本文提出SEEK-VEC（主题模型的谱集成方法，利用特征评分实现K未知情况下的词汇嵌入与分类），这是一种集成主题建模框架，通过谱集成过程整合多个候选主题模型的见解。SEEK-VEC生成一个元结构矩阵，其中包含优先级评分和分组评分，能够用于变量分类、交互式模式发现和模型诊断。通过模拟实验，我们证明SEEK-VEC增强了标准主题模型在识别重要词汇和理解它们之间关系方面的性能，尤其是在信号强度较弱的情况下。我们将SEEK-VEC应用于统计摘要的MADStat数据集，并展示了其在评估主题模型所提出的解释方面的实用性。
 
+## 速览
+**TLDR**：计数数据广泛存在于多领域，理解其潜在模式至关重要，但标准主题建模方法受限于严格假设、噪声敏感与主题数误设问题。为此，提出SEEK-VEC框架，通过谱集成学习整合多候选模型，生成优先化与分组分数，支持变量分类与交互发现。仿真证实，尤其在弱信号下，能显著提升重要词汇识别及关系捕捉性能；在MADStat统计摘要数据集的应用展示了其模型诊断与解释评估的实用价值，为复杂计数数据中的稳健主题发现提供了可扩展方案。 \
+**Motivation**：计数数据的潜在模式挖掘受限于标准主题模型的严格假设、噪声敏感与主题数误设。 \
+**Method**：提出SEEK-VEC框架，利用谱集成学习整合多候选模型，生成优先化与分组分数构造元矩阵。 \
+**Result**：仿真弱信号下词汇识别与关系捕捉性能提升，MADStat数据集验证了模型解释评估效用。 \
+**Conclusion**：SEEK-VEC增强了主题建模鲁棒性，为复杂计数数据提供可解释的集成方案。
+
+---
+
 ## Abstract
 Count data are ubiquitous across many applications in which understanding latent patterns is of interest. Topic modeling is a powerful tool for detecting latent structure in count data. However, standard topic modeling methods are often constrained by their restrictive assumptions, susceptible to noise, and sensitive to misspecification of the number of topics. Here, we introduce SEEK-VEC (Spectral Ensembling of topic models with Eigenscore for K-agnostic Vocabulary Embedding and Classification), an ensemble topic modeling framework that integrates insights from multiple candidate topic models through a spectral ensembling procedure. SEEK-VEC produces a meta-structure matrix containing prioritization scores and grouping scores that enable variable classification, interactive pattern discovery, and model diagnostics. Through simulations, we demonstrate that SEEK-VEC augments the performance of standard topic models for identifying important vocabulary words and understanding the relationships among them, particularly when signal strength is weak. We apply SEEK-VEC to the MADStat dataset of statistical abstracts and demonstrate its utility for evaluating the proposed interpretation of a topic model.

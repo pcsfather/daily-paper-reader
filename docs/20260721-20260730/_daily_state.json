@@ -1,9 +1,9 @@
 {
   "date": "20260721-20260730",
   "date_label": "2026-07-21 ~ 2026-07-30",
-  "generated_at": "2026-07-30 12:07:03 UTC",
+  "generated_at": "2026-07-30 12:26:23 UTC",
   "recommend_exists": true,
-  "run_count": 2,
+  "run_count": 3,
   "papers": [
     {
       "paper_id": "2607.25956v1",
@@ -21,9 +21,9 @@
         }
       ],
       "score": 10.0,
-      "evidence": "LLM引导的运筹学公式选择用于需求波动的多仓库库存分配",
+      "evidence": "基于大语言模型的多仓库库存分配模型选择以应对需求异质性",
       "first_seen_at": "2026-07-30 10:34:33 UTC",
-      "updated_at": "2026-07-30 12:07:03 UTC"
+      "updated_at": "2026-07-30 12:26:23 UTC"
     },
     {
       "paper_id": "2607.21354v1",
@@ -41,9 +41,9 @@
         }
       ],
       "score": 9.0,
-      "evidence": "动态仓库品类规划",
+      "evidence": "解决动态仓库品类规划、库存与路径问题",
       "first_seen_at": "2026-07-30 10:34:33 UTC",
-      "updated_at": "2026-07-30 12:07:03 UTC"
+      "updated_at": "2026-07-30 12:26:23 UTC"
     },
     {
       "paper_id": "2607.25664v1",
@@ -61,9 +61,9 @@
         }
       ],
       "score": 9.0,
-      "evidence": "面向促销零售的需求感知方法，旨在降低安全库存和牛鞭效应，与基于需求的库存管理直接相关。",
+      "evidence": "通过需求感知降低零售库存的安全库存与运营波动",
       "first_seen_at": "2026-07-30 10:34:33 UTC",
-      "updated_at": "2026-07-30 12:07:03 UTC"
+      "updated_at": "2026-07-30 12:26:23 UTC"
     },
     {
       "paper_id": "2607.19835v1",
@@ -82,6 +82,22 @@
       "updated_at": "2026-07-30 10:34:33 UTC"
     },
     {
+      "paper_id": "2607.27172v1",
+      "route": "20260721-20260730/2607.27172v1-improving-item-discoverability-in-e-commerce-search-via-related-intent-generation",
+      "title": "Improving Item Discoverability in e-Commerce Search via Related Intent Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "提升电商搜索中替代品和互补品的可发现性，捕捉物品关联性",
+      "first_seen_at": "2026-07-30 12:26:23 UTC",
+      "updated_at": "2026-07-30 12:26:23 UTC"
+    },
+    {
       "paper_id": "biorxiv-10-64898-2025-12-12-693799-v2",
       "route": "20260721-20260730/biorxiv-10-64898-2025-12-12-693799-v2-seek-vec-augmenting-topic-modeling-with-spectral-ensemble-learning",
       "title": "SEEK-VEC: Augmenting topic modeling with spectral ensemble learning",
@@ -93,9 +109,9 @@
         }
       ],
       "score": 7.0,
-      "evidence": "集成主题建模从计数数据中发现潜在产品分组",
+      "evidence": "谱集成主题建模可从需求计数数据中发现商品亲和性",
       "first_seen_at": "2026-07-30 12:07:03 UTC",
-      "updated_at": "2026-07-30 12:07:03 UTC"
+      "updated_at": "2026-07-30 12:26:23 UTC"
     },
     {
       "paper_id": "2607.19761v1",

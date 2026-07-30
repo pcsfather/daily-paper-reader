@@ -1,8 +1,8 @@
 {
   "label": "2026-07-21 ~ 2026-07-30",
   "date": "2026-07-21 ~ 2026-07-30",
-  "generated_at": "2026-07-30T12:07:09",
-  "count": 7,
+  "generated_at": "2026-07-30T12:26:30",
+  "count": 8,
   "papers": [
     {
       "paper_id": "20260721-20260730/2607.25956v1-large-language-model-for-operations-research-formulation-selection-in-multi-warehouse-inventory-allocation",
@@ -61,6 +61,21 @@
       "tldr": "在快消品安全库存设定中，仅依赖误差大小或时间新近性无法反映预测误差分布的动态演化。本文提出了一种非参数诊断工具LOWDII，利用留一法Wasserstein距离量化每个历史误差对经验分布的影响，进而筛选出代表性不足的扭曲观测。基于后续年实际需求的模拟验证表明，LOWDII在满足目标服务水平的前提下，平均库存较基准方法减少5.1%至22.6%。从管理角度看，该方法使企业能将预测能力提升更及时地转化为库存效益，避免过时误差的错误投射，从而更早获得低不确定性要求的经济优势。",
       "tags": "query:demand-inv",
       "abstract_en": "We develop a non-parametric approach to refine forecast-error histories for safety stock estimation without relying on error magnitude or recency alone. Using forecast-error data from a fast-moving consumer goods environment, we show that one year of errors is insufficient to characterize service-level risk, while pooling several years is problematic because error distributions change over time. Non-parametric annual comparisons indicate a progressive reduction in bias and dispersion, consistent with learning in the forecasting process. We propose LOWDII (Leave-One-Out Wasserstein Distributional Influence Index), a diagnostic that evaluates the distributional influence of each historical forecast error on the empirical uncertainty distribution used for safety stock calibration. LOWDII identifies observations whose influence is disproportionate to their representativeness, separating transient distortions from persistent tail behaviour without imposing parametric assumptions. We evaluate the method in a discrete-event simulation using subsequent-year demand realizations as validation. The results show that LOWDII achieves the target service level while reducing average stock by 5.1% to 22.6% relative to benchmark methods. From a managerial perspective, LOWDII helps firms translate improvements in the forecasting process into safety stock decisions, avoiding the projection of obsolete historical errors into the future and capturing the economic benefit of lower uncertainty requirements earlier.\n\n---",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "20260721-20260730/2607.27172v1-improving-item-discoverability-in-e-commerce-search-via-related-intent-generation",
+      "section": "quick",
+      "title_en": "Improving Item Discoverability in e-Commerce Search via Related Intent Generation",
+      "authors": "Ji Xin, Xiao Xiao, Ishan Bhatt, Vinesh Gudla, Trace Levinson, Raochuan Fan, Shishir Kumar Prasad, Prakash Putta, Tejaswi Tenneti",
+      "date": "2026-07-29",
+      "pdf": "https://arxiv.org/pdf/2607.27172v1",
+      "score": "7.0",
+      "evidence": "提升电商搜索中替代品和互补品的可发现性，捕捉物品关联性",
+      "tldr": "电子商务搜索中，传统方法过度追求精确匹配，忽略了互补与替代品的发现。本研究提出一种意图条件召回扩展系统，通过两阶段混合架构，利用大语言模型和微调小语言模型增强商品可发现性。实验表明，该方法将发现覆盖率从约60%提升至80%的查询流量，且推理成本仅为教师模型的30%。该系统不仅提升了相关性，还有助于为长尾商品提供曝光机会，促进市场平衡。",
+      "tags": "query:wo",
+      "abstract_en": "Traditional search systems are optimized to retrieve items that strictly match a query, often prioritizing precision over recall. In e-commerce marketplaces and particularly grocery, this paradigm is limiting, as user satisfaction and commercial outcomes depend heavily on the discoverability of substitute, complementary, and thematically related items. In this paper, we present a scalable system for discovery-augmented search that leverages intent-conditioned recall expansion. Our approach generates implicit user intents to expand candidate recall while maintaining relevance.   The system addresses the cost-quality tradeoff of generative retrieval through a two-stage hybrid architecture. First, we leverage closed-weight large language models (LLMs) to maximize discoverability for head queries. To extend these benefits to tail queries, we then introduce a finetuned small language model (SLM), trained via LoRA adapters and teacher-student distillation. We evaluate the system using a rigorous dual framework: (a) LLM-as-a-judge metrics validated against human preferences for semantic quality, and (b) end-to-end session-level purchase analysis. Results demonstrate that our approach improves both intent generation quality and downstream retrieval effectiveness, extending discovery coverage from approximately 60% to 80% of query traffic at roughly 30% of the teacher model's inference cost, offering a viable path for deployment in large-scale marketplaces. Beyond relevance gains, discovery-augmented search may serve as a marketplace-balancing mechanism, giving long-tail and emerging supply an opportunity for query-conditioned exposure.",
       "source": "arxiv",
       "selection_source": "fresh_fetch"
     },

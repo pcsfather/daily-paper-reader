@@ -1,0 +1,280 @@
+Title: Improving Item Discoverability in e-Commerce Search via Related Intent Generation
+
+URL Source: https://arxiv.org/pdf/2607.27172v1
+
+Published Time: Thu, 30 Jul 2026 01:14:04 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# Improving Item Discoverability in e-Commerce Search via Related Intent Generation 
+
+# Ji Xin ∗
+
+Instacart Toronto, Canada ji.xin@instacart.com 
+
+# Xiao Xiao ∗
+
+Instacart San Diego, USA xiao.xiao@instacart.com 
+
+# Ishan Bhatt 
+
+Instacart San Francisco, USA ishan.bhatt@instacart.com 
+
+# Vinesh Gudla 
+
+San Francisco, USA vinesh.gudla@gmail.com 
+
+# Trace Levinson 
+
+Instacart Brooklyn, USA trace.levinson@instacart.com 
+
+# Raochuan Fan 
+
+Instacart San Francisco, USA raochuan.fan@instacart.com 
+
+# Shishir Kumar Prasad 
+
+Instacart San Francisco, USA shishir@instacart.com 
+
+# Prakash Putta 
+
+Instacart San Francisco, USA prakash.putta@instacart.com 
+
+# Tejaswi Tenneti 
+
+San Francisco, USA tentejswi@gmail.com 
+
+## Abstract 
+
+Traditional search systems are optimized to retrieve items that strictly match a query, often prioritizing precision over recall. In e-commerce marketplaces and particularly grocery, this paradigm is limiting, as user satisfaction and commercial outcomes depend heavily on the discoverability of substitute, complementary, and the-matically related items. In this paper, we present a scalable system for discovery-augmented search that leverages intent-conditioned recall expansion. Our approach generates implicit user intents to expand candidate recall while maintaining relevance. The system addresses the cost-quality tradeoff of generative re-trieval through a two-stage hybrid architecture. First, we leverage closed-weight large language models (LLMs) to maximize discover-ability for head queries. To extend these benefits to tail queries, we then introduce a finetuned small language model (SLM), trained via LoRA adapters and teacher-student distillation. We evaluate the system using a rigorous dual framework: (a) LLM-as-a-judge metrics validated against human preferences for semantic quality, and (b) end-to-end session-level purchase analysis. Results demon-strate that our approach improves both intent generation quality and downstream retrieval effectiveness, extending discovery cov-erage from approximately 60% to 80% of query traffic at roughly 30% of the teacher model’s inference cost, offering a viable path for deployment in large-scale marketplaces. Beyond relevance gains, discovery-augmented search may serve as a marketplace-balancing mechanism, giving long-tail and emerging supply an opportunity for query-conditioned exposure.  
+
+> ∗Equal contribution Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> TSMO ’26, Jeju, Korea
+> ©2026 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX
+
+## CCS Concepts 
+
+• Computing methodologies → Natural language generation ;
+
+Information extraction ; Structured outputs .
+
+## Keywords 
+
+GenAI, Search, Large language models, E-commerce, Retrieval 
+
+ACM Reference Format: 
+
+Ji Xin, Xiao Xiao, Ishan Bhatt, Vinesh Gudla, Trace Levinson, Raochuan Fan, Shishir Kumar Prasad, Prakash Putta, and Tejaswi Tenneti. 2026. Improving Item Discoverability in e-Commerce Search via Related Intent Generation. In Proceedings of Workshop on Two-sided Marketplace Optimization: Search, Discovery, Matching, Pricing & Growth (TSMO ’26). ACM, New York, NY, USA, 7 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+Search systems have traditionally been designed around the prin-ciple of ad hoc retrieval, with the primary goal of returning the most directly matching results for a user’s query. While techniques such as query rewriting and expansion are widely used, they are typically optimized to address vocabulary mismatch and improve matching accuracy for the explicit query, rather than broadening 
+
+the scope of the result set. In grocery and general e-commerce marketplaces, this strictly relevance-based paradigm is insufficient. Users frequently shop with latent objectives that extend beyond the explicit keyword: seeking reasonable substitutes for out-of-stock goods, gathering ingredients for a specific recipe, or finding complementary items for a use case. In these scenarios, relationships such as substitution 
+
+(e.g., tangerine for clementine), complementarity (e.g., pasta and sauce), and thematic association (e.g., seafood platter and seasoning) are central to the user’s goal but rarely expressed in a single query. Consequently, traditional retrieval under-exposes large portions of the catalog that could satisfy users’ broader, implicit intents, thereby limiting revenue potential. In a two-sided marketplace, this under-exposure also disproportionately affects long-tail and emerging supply, framing discovery as a marketplace-balancing concern in addition to a user-satisfaction one. arXiv:2607.27172v1 [cs.IR] 29 Jul 2026 TSMO ’26, August 10th 2026, Jeju, Korea Xin et al. 
+
+This paper formalizes a distinct task setup: discovery-augmented search . Unlike standard retrieval, the goal here is to retrieve not only items that exactly match the query but also items usefully related through broader semantic associations. We approach this by modeling implicit intent generation : we infer users’ latent intents using Large Language Models (LLMs) generation and use these generated intents to expand the recall set. A core challenge in this domain is evaluation where standard relevance metrics (like NDCG on exact matches) often penalize discovery-oriented results. To address this, we conduct analyses using both a novel end-to-end evaluation dataset derived from session co-purchases and an LLM-as-a-judge framework. This dual approach allows us to validate that our generated intents are not only semantically sound but also commercially utility-preserving. The contributions of this paper are as follows: 
+
+• Task Formulation. We define discovery-augmented search 
+
+and operationalize it via three latent intent types (substitute, complement, thematic), distinguishing it from query expan-sion (lexical) and item-item recommendation (query-free). 
+
+• Production-Grade Hybrid Architecture. A two-tier sys-tem that uses cached closed-weight LLM annotations for head queries and a LoRA-finetuned 30B SLM for tail queries, balancing quality and cost at 80+% query coverage. 
+
+• Dual Evaluation Methodology. A combined session-derived purchase-prediction benchmark and a human-validated LLM-as-judge framework, providing both extrinsic utility and intrinsic semantic signal in a regime where standard relevance metrics under-credit discovery. 
+
+## 2 Background and Related Work 
+
+Query Understanding and Rewriting. Query rewriting and expansion techniques [ 5 , 11 , 18 ] have been foundational in web search to improve recall and robustness to lexical mismatch. In the e-commerce domain, where users frequently reformulate search terms, prior work has leveraged these refinement patterns for improved query understanding [ 9 ]. However, these approaches typically focus on paraphrases, synonyms, and spelling variants, effectively optimizing within the bounds of the user’s explicit 
+
+intent. They are generally evaluated on strict relevance metrics (e.g., NDCG, MRR) and do not account for latent intent expansion or the complementarity structures that are critical for discovery for grocery. 
+
+Complementarity and Co-Purchase Modeling. Prior work in rec-ommender systems has extensively explored complementary item prediction using co-occurrence statistics, graph-based methods, and session-based embeddings [ 3 , 13 , 14 , 21 ]. These methods are effec-tive for item-to-item recommendation surfaces (e.g., "You might also like") but face two limitations in a query-conditioned retrieval setting: they are typically decoupled from the search index and lack query-conditional logic, and they rely on historical co-interaction signals that are sparse for tail queries, emerging supply, and the-matic intents (e.g., smoothie station ) that seldom surface from pur-chase co-occurrence alone. Our work is complementary rather than competing: language models infer complementary and thematic re-lationships directly from the query, extending naturally to long-tail queries where co-purchase graphs are underpopulated, and their outputs can be combined with graph-based signals where dense engagement data is available. 
+
+LLMs for Query Understanding and Retrieval. LLMs have demon-strated efficacy in intent extraction, classification, and attribute extraction [ 17 , 22 , 23 ]. Furthermore, reinforcement learning tech-niques have been applied to fine-tune LLMs for customized reward signals [ 2 , 12 ]. However, deploying proprietary models across the entire query distribution—particularly the long tail—remains cost-prohibitive. We address this by transferring reasoning capabilities to cost-efficient models, enabling scalable intent generation without the operational overhead of massive LLMs. 
+
+Discovery in Two-Sided Marketplaces. Search and ranking in two-sided marketplaces must jointly satisfy consumer relevance and supply-side exposure for hosts, sellers, and merchants. Prior produc-tion work on Airbnb [ 1 , 6 , 8 ] explicitly trades off guest preferences against host diversity and listing exposure, and methodological work has formalized seller-side evaluation as a counterfactual prob-lem distinct from consumer-side A/B testing [ 7]. Multi-sided set-tings such as food delivery further generalize the objective across heterogeneous suppliers [ 19 ]. Discovery-augmented search has analogous implications for both sides of the grocery marketplace: consumers gain access to substitutes and complements they did not know to query for, and retailers and brands—particularly long-tail and emerging ones—have an opportunity to earn query-conditioned exposure beyond exact-match retrieval. Implicit intent generation thus operates as a marketplace-balancing mechanism rather than purely a relevance lever. 
+
+## 3 Implicit Intent Generation for Discovery-Augmented Search 
+
+We introduce the task of discovery-augmented search and discuss our two-stage approach of deploying implicit intent generation to the production system. Figure 1 presents an illustration for the end-to-end pipeline. Concretely, the figure walks through the head query milk : the LLM emits the carousel title breakfast essentials with milk together with intent terms ( instant oatmeal , cold cereal ); each term is then dispatched to the existing retrieval engine, whose results hydrate the carousel for display. 
+
+## 3.1 Problem Formulation 
+
+Task definition. Given a user query 𝑞 , the system outputs a set of 𝐶 carousels {( 𝑡 𝑖 , e𝑖 )} 𝐶 𝑖 =1, where 𝑡 𝑖 is a natural-language carousel title and e𝑖 = (𝑒 𝑖, 1, . . . , 𝑒 𝑖,𝐾 ) is a length-𝐾 list of intent terms. Each 
+
+𝑒 𝑖,𝑗 is then issued to the standard retrieval engine to hydrate a product list. The task differs from query expansion , which produces a single rewritten query, and from item-item recommendation , which is query-free. Concrete values of 𝐶 and 𝐾 used in production are 
+
+𝐶 = 9 and 𝐾 = 5.Given a user query, traditional retrieval systems aim to retrieve products that maximize their relevance. We instead aim to retrieve an expanded recall set that includes not only highly relevant prod-ucts but also ones that users implicitly desire. In this paper, we focus on the following latent intents of users: 
+
+• Substitute (e.g., “non-dairy milk” for the query “milk”): a product the user could swap for the queried product. Improving Item Discoverability in e-Commerce Search via Related Intent Generation TSMO ’26, August 10th 2026, Jeju, Korea Query 
+
+> milk
+> LLM- Based Implicit Intent Generation
+> Retrieval Engine
+> Substitute Carousel
+> Title
+> non-dairy milk alternatives
+> Implicit Intents
+> almond milk
+> soy milk
+> oat milk
+> Complementary Carousel
+> Title
+> breakfast essentials with milk
+> Implicit Intents
+> instant oatmeal
+> cold cereal
+> granola
+> Thematic Carousel
+> Title
+> smoothie station
+> Implicit Intents
+> protein powder
+> frozen berries
+> chia seeds
+> Carousel title
+> breakfast essentials with milk
+> Products
+> Brown Sugar Maple Instant Oatmeal
+> Optimum Power Blueberry Cinnamon Flax Hot Oatmeal
+> Kix Crispy Corn Puffs Family Size Cereal
+> Grain Free Peanut Butter Protein Granola
+> ......
+
+Figure 1: Overview of the implicit intent generation pipeline. Example output shown for the query milk .
+
+• Complementary (e.g., “coffee and tea”): a product co-consumed with the queried product. 
+
+• Thematic (e.g., “smoothie station”): a product in the same use-case context (recipe, occasion, lifestyle bundle). Our system focuses exclusively on generating these intent terms to populate discovery-oriented carousels —interface elements com-prising a descriptive title and a curated set of related products— while exact matches —products whose tokenized title contains all query tokens after stopword removal and stemming—are handled by the legacy retrieval stack. 
+
+## 3.2 Closed-Weight LLMs for Head Queries 
+
+The current in-production system uses an offline feature store and covers approximately 10k queries with the highest traffic. These 
+
+head queries cover about 60% of search traffic while the rest tail 
+
+queries cover 40%. Annotations for these queries are generated by the closed-weight LLM GPT-3.5 Turbo [15]. We utilize a generate-then-retrieve paradigm. For each user query, the LLM is instructed to generate a structured output containing two distinct components: (1) Carousel Title: A natural language string designed for the user interface (e.g., breakfast essentials with milk ). (2) Intent Terms: A list of specific search queries (e.g., instant oat-meal , cold cereal ) that semantically belong to that carousel. 
+
+Table 1: Examples from the End-to-End Evaluation Dataset. 
+
+Query Semi-relevant product categories chicken broth Cheese, Fresh Vegetables, Condiments, Pasta tomato paste Snacks, Cheese, Fresh Fruit, Pasta, Beef tequila Baking and Cooking, Fruit Juice, Snacks The generated intent terms are then executed against the standard search engine to retrieve the final product set, which, along with the 
+
+carousel title , constitutes the carousel for display. This decoupling of generation and retrieval ensures that the LLM focuses on high-level semantic reasoning, while the actual product retrieval remains grounded in the catalog index. We sample with temperature 𝑇 = 1.0.
+
+## 3.3 Finetuned SLMs for Tail Queries 
+
+To extend discovery capabilities to the long tail (the remaining 40% of traffic) without incurring prohibitive latency or cost, we introduce a finetuned SLM trained via teacher-student distillation. We construct a dataset by annotating 20k sampled queries (bal-anced 50/50 between head and tail) using a stronger teacher model, GPT-5.1 [ 16 ]. To enhance the teacher’s reasoning, we enrich the prompts with contextual metadata derived from the offline feature store. This includes associated brands, product attributes, concep-tual tags, and recent purchase history. We employ few-shot prompt-ing [ 4] to teach the model to leverage this context when available, or to rely on intrinsic knowledge for cold-start queries. The result-ing dataset is split into training ( 70% ) and validation ( 30% ) sets. We select Qwen3-30B-Instruct [ 20 ] as our base model. We finetune the model for 1 epoch using LoRA adapters [ 10 ] with a rank of 8, batch size 65536, and learning rate 1e-4; the standard next-token cross-entropy loss is used over the JSON-formatted teacher outputs. After finetuning, the SLM is deployed to serve high-frequency tail queries in real time, raising total system coverage from approximately 60% to 80% of traffic. The remaining ∼20% of traffic—extreme long-tail queries with low semantic content (e.g., single-character, code-switched, or typo-heavy)—falls through to the legacy retrieval-only stack, without showing any carousels. 
+
+## 4 Evaluation 
+
+Reflecting the hierarchical nature of our system (Query → Ti-tle/Intent → Product), we adopt a two-tiered evaluation strategy: (1) an end-to-end evaluation of the full pipeline to measure down-stream utility, and (2) an intrinsic evaluation of the generation stage to assess semantic quality. Queries selected for evaluation are from the 30% validation set with no overlap with the training set. Throughout this section, Prod. refers to the currently deployed system: closed-weight GPT-3.5-Turbo annotations cached for the top ∼10k head queries (Section 3.2). By design, Prod. does not cover tail queries; those cells are marked “—”. 
+
+## 4.1 End-to-End Evaluation 
+
+We measure the system’s end-to-end performance by constructing a "Discovery Evaluation Dataset" derived from historical search sessions. The construction process involves the following steps: TSMO ’26, August 10th 2026, Jeju, Korea Xin et al. 
+
+Table 2: End-to-End purchase prediction results. Prod. is the cached GPT-3.5-Turbo head-query system, which does not cover tail queries by design (“—”). 
+
+Model Head Queries Tail Queries P R F1 P R F1 Prod. 0.130 0.260 0.173 – – –GPT-5.1 0.124 0.426 0.192 0.108 0.379 0.168 Qwen3 0.117 0.433 0.184 0.117 0.383 0.179 Table 3: Alignment between LLM-Judge and Human Experts. 
+
+Metrics Title Relevance Intent Relevance Intent Novelty Precision 0.84 0.87 0.95 Recall 0.56 0.69 0.75 F1 0.67 0.77 0.84 
+
+• Session Aggregation: We collect (query, product) pairs where a purchase occurs in the same session as the search. We apply a position-based decay 𝑤 (𝑛 ) = 1/log 2 (2 +𝑛 ) to the 
+
+𝑛 -th purchase in the session (0-indexed, so the first purchase carries weight 1, the second ≈ 0.63 , and so on), prioritizing earlier purchases as stronger signals of intent. 
+
+• Category Mapping: Each product is mapped to its high-level product category (e.g., Mild Gouda Cheese → cheese 
+
+and Maple Beef Jerky → snacks ) to improve generalization and reduce sparsity. 
+
+• Signal Extraction: We aggregate converted products across sessions. To reduce noise as well as to normalize the signals between common vs rare queries, we exclude products that appear outside the top-10 ranking for each query. 
+
+• Exclusion of Exact Matches: We also exclude products that are exact matches for the query (Section 3.1), as these are handled by the traditional retrieval stack. The resulting dataset represents items that users implicitly 
+
+needed but could not find via exact matching. By removing both exact matches and top-ranked results, the remaining products provide a ground-truth signal for latent needs: substitutes, com-plements, or thematic additions. See Table 1 for examples. We define a retrieved product as relevant for precision and recall iff its high-level category is among the categories purchased in the session, after the position-based weighting above. We evaluate our models by pairing generated intents with a standard retrieval oracle. Table 2 compares the performance of our finetuned Qwen3 model against the production baseline (Prod.) and the teacher model (GPT-5.1). For head queries, both the teacher and student models achieve substantial recall gains at slightly lower pre-cision, translating to a clear F1 improvement over Prod. (0.192 for GPT-5.1 and 0.184 for Qwen3 vs. 0.173). Crucially, on tail queries which the production baseline does not cover, Qwen3 matches or slightly exceeds the much larger GPT-5.1 teacher across all three metrics. This demonstrates that our implicit intent gener-ation approach effectively expands category-level purchase recall for discovery-augmented search while preserving overall retrieval quality. 
+
+## 4.2 Generation Quality Evaluation 
+
+We evaluate the intrinsic quality of generated carousel titles and in-tents using an LLM-as-a-judge framework, validated against human preferences. We define metrics at two levels: 
+
+Title-level metrics. For each carousel title 𝑡 𝑖 produced for a query 
+
+𝑞 , the judge returns a binary verdict on: 
+
+• Relevance: whether 𝑡 𝑖 is topically aligned with 𝑞 .
+
+• Quality: whether 𝑡 𝑖 is a clear, descriptive natural-language phrase that summarizes the carousel. 
+
+• Safety: whether 𝑡 𝑖 avoids sensitive, offensive, or policy-violating content. 
+
+• Coherence: whether 𝑡 𝑖 is thematically consistent with the other titles {𝑡 𝑗 }𝑗 ≠𝑖 produced for the same query (i.e., the carousel set covers complementary axes rather than dupli-cating one). 
+
+Intent-level metrics. For each intent term 𝑒 𝑖,𝑗 within carousel 𝑖 :
+
+• Relevance: whether 𝑒 𝑖,𝑗 semantically belongs under title 𝑡 𝑖 .
+
+• Diversity: whether the set {𝑒 𝑖, 1, . . . , 𝑒 𝑖,𝐾 } covers distinct sub-intents rather than near-duplicates. 
+
+• Novelty: whether 𝑒 𝑖,𝑗 is a non-trivial expansion of 𝑞 (not a paraphrase or trivial restatement). We employ GPT-5 [ 16 ] as the judge model, assigning binary (pass/fail) flags for all metrics. We note a same-provider caveat: the teacher (GPT-5.1) and judge (GPT-5) share a model family, which may bias the judge toward teacher-style outputs; the human-alignment analysis below partially mitigates this concern, and we flag a cross-family judge audit as future work. To validate this auto-mated evaluation, we ask three expert annotators to label a subset of 50 (query, carousel-title, intent-term) tuples on the key metrics: Title Relevance, Intent Relevance, and Intent Novelty. Table 3 re-ports the human–LLM alignment, calculating precision, recall, and F1 between the judge and the majority-vote ground truth across annotators. We observe strong agreement, particularly in precision and F1 scores, confirming that the LLM judge provides reliable signals for model comparison. It is worth noting that metrics used by the LLM judge are subjec-tive by nature and the LLM judge tends to be stricter than human experts. For example, for the query glass bowl , humans rated the title meal prep and portion control as relevant, while the LLM flagged it as irrelevant. Similarly, for kids lunch , the intent grape tomatoes 
+
+was marked as novel by humans but not by the LLM. Consequently, the scores reported in Table 4 likely represent a conservative lower bound on performance. We show the results by the LLM judge in Table 4. The teacher model (GPT-5.1) consistently outperforms the production baseline on head queries, particularly in Intent Relevance, Diversity, and Novelty. This indicates that while titles may be of similar quality, the intents generated by the LLM retrieve a more diverse and novel set of products. Our finetuned Qwen3 model successfully retains these benefits, performing comparably to the baseline on most metrics while operating at only 30% of the inference cost. The most notable improvement seen in Table 4 is intent novelty .Table 5 illustrates this qualitatively for the query cranberry juice .Improving Item Discoverability in e-Commerce Search via Related Intent Generation TSMO ’26, August 10th 2026, Jeju, Korea 
+
+Table 4: LLM Judge scores for all models. 
+
+Title Metrics Intent Metrics Query Model Relevance Quality Safety Coherence Relevance Diversity Novelty Head Prod. 0.941 0.983 0.995 0.964 0.911 0.917 0.853 GPT-5.1 0.967 0.995 0.996 0.977 0.966 0.968 0.898 Qwen3 0.938 0.985 0.995 0.918 0.930 0.894 0.911 Tail GPT-5.1 0.933 0.994 0.991 0.933 0.965 0.977 0.868 Qwen3 0.889 0.988 0.990 0.903 0.930 0.887 0.888 
+
+Table 5: Qualitative comparison of carousels generated for the query cranberry juice .       
+
+> Title Intents Prod.
+> Other fruit juices orange juice, apple juice, grape juice, pineapple juice, mango juice Healthy alterna-tives pomegranate juice, watermelon juice, acai juice, ginger juice, blueberry juice
+> Qwen3
+> Other cranberry drinks cranberry juice cocktail, 100 percent cranberry juice, cranberry apple juice, cranberry grape juice, cranberry flavored sparkling water Light and fruity sippers sparkling water, flavored seltzer, fruit punch, lemonade, sparkling iced tea Office hydration station mini juice boxes, single serve coffee pods, trail mix, desk water bottle, reusable snack containers
+
+The production baseline restricts itself to strict taxonomic siblings (other juices). In contrast, the finetuned Qwen3 model captures broader thematic intents (e.g., Office hydration station ), surfacing non-obvious complements like snack containers and coffee pods .This improved semantic novelty directly correlates with the higher recall observed in the end-to-end evaluation (Section 4.1). 
+
+## 5 Deployment Lessons and Limitations 
+
+Deploying implicit intent generation and evaluating it offline sur-faced several failure modes, operational choices, and open caveats that shaped the current design. 
+
+Distillation context gap. The teacher was conditioned on rich offline metadata (brands, attributes, recent purchases). When the student was queried at request time without that metadata payload, quality degraded silently for tail queries. We mitigate by including a controlled fraction of metadata-stripped examples in the distillation set so the student does not rely on the contextual payload. 
+
+Coherence sensitivity to decoding. Carousel Coherence (Table 4) was the metric most sensitive to decoding temperature: high tem-peratures diversified intents but caused titles to drift off-topic across the carousel set. We selected temperature 𝑇 = 1.0 by sweeping on the Coherence metric on a held-out slice. 
+
+Long-tail policy. For the deepest ∼20% of the long tail, neither the cached LLM nor the SLM produced reliably useful intents; we elected to drop carousels for those queries rather than serve de-graded results, falling back to retrieval-only. 
+
+Maintenance. Two necessary recurring maintenance tasks are periodically refreshing head- and tail-query annotations as the query distribution and catalog shift, and re-distilling the student model when the teacher is updated or its behavior drifts. 
+
+Hallucinated brand names. Closed-weight LLMs occasionally fab-ricate plausible-sounding but non-existent brands (e.g., misspellings or invented private labels). Fabricated terms typically return sparse or empty retrieval results downstream, so the affected carousel simply is not visible to the user, but we do not currently apply a pre-retrieval validity check against a curated brand vocabulary. 
+
+Counterfactual bias in offline evaluation. Our end-to-end metric is derived from logged session data, which is itself shaped by the current retrieval and ranking system. Excluding exact matches and top-10 ranked products mitigates this bias by isolating products that users purchased despite the system not surfacing them, but does not eliminate it. 
+
+## 6 Conclusion and Future Work 
+
+We present a scalable framework for improving item discoverability in e-commerce and grocery search through implicit intent genera-tion. By effectively combining the reasoning capabilities of closed-weight LLMs with the cost-efficiency of finetuned SLMs, we demon-strated that it is possible to achieve broad recall expansion across the long tail of the query distribution without prohibitive cost. Our results suggest that discoverability should be treated as a first-class objective in search systems, particularly in domains char-acterized by strong complementary structures. Query-conditioned recall expansion provides a flexible mechanism to bridge the gap be-tween precise retrieval and exploratory recommendation, keeping results anchored to the user’s immediate context. Two meta-lessons from deployment may generalize beyond this system. First, decoupling generation from retrieval kept the LLM out of the user-facing hot path and made caching, fallback, and rollout tractable. Second, the dual evaluation framework—session-derived purchase prediction plus a human-validated LLM judge—offers a template for other discovery surfaces where standard relevance metrics under-credit exploration. This work opens several avenues for future exploration: TSMO ’26, August 10th 2026, Jeju, Korea Xin et al. 
+
+• Non-LLM baselines. A head-to-head comparison against item-item co-purchase graphs [ 3 , 13 ] and classical query-rewriting approaches, both to quantify the marginal value of LLM-based intent generation and to design hybrid pipelines that fall back to graph-based signals where engagement data is dense. 
+
+• Online experimentation. Large-scale A/B testing to quan-tify the impact on basket size, session-level revenue, and long-tail supply exposure, providing an online counterpart to our session-derived offline metric. 
+
+• Jointly optimizing intent generation and product ranking objectives beyond the two-stage pipeline. 
+
+• Using reinforcement learning to update SLM weights, leveraging online user feedback (clicks, adds-to-cart). 
+
+• Further aligning offline evaluation datasets and LLM-as-a-judge prompts to correlate with online business metrics. 
+
+• Generating personalized intents by incorporating user his-tory and session information. 
+
+## References 
+
+[1] Mustafa Abdool, Malay Haldar, Prashant Ramanathan, Tyler Sax, Lanbo Zhang, Aamir Mansawala, Shulin Yang, and Thomas Legrand. 2020. Managing Diversity in Airbnb Search. In Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD ’20) . Association for Computing Machinery, New York, NY, USA, 2952–2960. doi:10.1145/3394486.3403345 [2] Sanjay Agrawal, Srujana Merugu, and Vivek Sembium. 2023. Enhancing E-commerce Product Search through Reinforcement Learning-Powered Query Reformulation. In Proceedings of the 32nd ACM International Conference on In-formation and Knowledge Management (Birmingham, United Kingdom) (CIKM ’23) . Association for Computing Machinery, New York, NY, USA, 4488–4494. doi:10.1145/3583780.3615474 [3] Oren Barkan and Noam Koenigstein. 2016. ITEM2VEC: Neural item embedding for collaborative filtering. In 2016 IEEE 26th International Workshop on Machine Learning for Signal Processing (MLSP) . 1–6. doi:10.1109/MLSP.2016.7738886 [4] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, Chris Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. 2020. Language Models are Few-Shot Learners. In Advances in Neural Information Processing Systems , H. Larochelle, M. Ran-zato, R. Hadsell, M.F. Balcan, and H. Lin (Eds.), Vol. 33. Curran Associates, Inc., 1877–1901. https://proceedings.neurips.cc/paper_files/paper/2020/file/ 1457c0d6bfcb4967418bfb8ac142f64a-Paper.pdf [5] Claudio Carpineto and Giovanni Romano. 2012. A Survey of Automatic Query Expansion in Information Retrieval. ACM Comput. Surv. 44, 1, Article 1 (Jan. 2012), 50 pages. doi:10.1145/2071389.2071390 [6] Mihajlo Grbovic and Haibin Cheng. 2018. Real-time Personalization using Embeddings for Search Ranking at Airbnb. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD ’18) . Association for Computing Machinery, New York, NY, USA, 311–320. doi:10.1145/3219819.3219885 [7] Viet Ha-Thuc, Avishek Dutta, Ren Mao, Matthew Wood, and Yunli Liu. 2020. A Counterfactual Framework for Seller-Side A/B Testing on Marketplaces. In 
+
+Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR ’20) . Association for Computing Machinery, New York, NY, USA, 2288–2296. doi:10.1145/3397271.3401434 [8] Malay Haldar, Prashant Ramanathan, Tyler Sax, Mustafa Abdool, Lanbo Zhang, Aamir Mansawala, Shulin Yang, Bradley Turnbull, and Junshuo Liao. 2020. Im-proving Deep Learning for Airbnb Search. In Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD ’20) . Association for Computing Machinery, New York, NY, USA, 2822–2830. doi:10.1145/3394486.3403333 [9] Sharon Hirsch, Ido Guy, Alexander Nus, Arnon Dagan, and Oren Kurland. 2020. Query Reformulation in E-Commerce Search. In Proceedings of the 43rd Interna-tional ACM SIGIR Conference on Research and Development in Information Retrieval 
+
+(Virtual Event, China) (SIGIR ’20) . Association for Computing Machinery, New York, NY, USA, 1319–1328. doi:10.1145/3397271.3401065 [10] Edward J Hu, yelong shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2022. LoRA: Low-Rank Adaptation of Large Language Models. In International Conference on Learning Representations . https: //openreview.net/forum?id=nZeVKeeFYf9 [11] Rosie Jones, Benjamin Rey, Omid Madani, and Wiley Greiner. 2006. Generat-ing query substitutions. In Proceedings of the 15th International Conference on World Wide Web (Edinburgh, Scotland) (WWW ’06) . Association for Computing Machinery, New York, NY, USA, 387–396. doi:10.1145/1135777.1135835 [12] Jiacheng Lin, Tian Wang, and Kun Qian. 2025. Rec-R1: Bridging Generative Large Language Models and User-Centric Recommendation Systems via Reinforcement Learning. Transactions on Machine Learning Research (2025). https://openreview. net/forum?id=YBRU9MV2vE [13] Julian McAuley, Rahul Pandey, and Jure Leskovec. 2015. Inferring Networks of Substitutable and Complementary Products. In Proceedings of the 21th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (Syd-ney, NSW, Australia) (KDD ’15) . Association for Computing Machinery, New York, NY, USA, 785–794. doi:10.1145/2783258.2783381 [14] Hung Nguyen, Jayanth Yetukuri, Phuong Ha Nguyen, Lizzie Liang, Ishita Khan, and Zhe Wu. 2025. Enhancing Related Searches Recommendation system by leveraging LLM Approaches. (2025). [15] OpenAI. 2023. GPT-3.5 Turbo. https://developers.openai.com/api/docs/models/gpt-3.5-turbo. Accessed: 2026-02-24. [16] OpenAI. 2025. Introducing GPT-5. https://openai.com/index/introducing-gpt-5. Accessed: 2026-02-23. [17] Wenjun Peng, Guiyang Li, Yue Jiang, Zilong Wang, Dan Ou, Xiaoyi Zeng, Derong Xu, Tong Xu, and Enhong Chen. 2024. Large Language Model based Long-tail Query Rewriting in Taobao Search. In Companion Proceedings of the ACM Web Improving Item Discoverability in e-Commerce Search via Related Intent Generation TSMO ’26, August 10th 2026, Jeju, Korea 
+
+Conference 2024 (Singapore, Singapore) (WWW ’24) . Association for Computing Machinery, New York, NY, USA, 20–28. doi:10.1145/3589335.3648298 [18] Liang Wang, Nan Yang, and Furu Wei. 2023. Query2doc: Query Expansion with Large Language Models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , Houda Bouamor, Juan Pino, and Kalika Bali (Eds.). Association for Computational Linguistics, Singapore, 9414–9423. doi:10.18653/v1/2023.emnlp-main.585 [19] Yuyan Wang, Long Tao, and Xian Xing Zhang. 2022. Recommending for a Multi-sided Marketplace with Heterogeneous Contents. In Proceedings of the 16th ACM Conference on Recommender Systems (RecSys ’22) . Association for Computing Machinery, New York, NY, USA, 456–459. doi:10.1145/3523227.3547379 [20] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al . 2025. Qwen3 technical report. arXiv preprint arXiv:2505.09388 (2025). [21] Rex Ying, Ruining He, Kaifeng Chen, Pong Eksombatchai, William L. Hamilton, and Jure Leskovec. 2018. Graph Convolutional Neural Networks for Web-Scale Recommender Systems. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (London, United Kingdom) 
+
+(KDD ’18) . Association for Computing Machinery, New York, NY, USA, 974–983. doi:10.1145/3219819.3219890 [22] Chenyu Zhao, Yunjiang Jiang, Yiming Qiu, Han Zhang, and Wen-Yun Yang. 2023. Differentiable Retrieval Augmentation via Generative Language Modeling for E-commerce Query Intent Classification. In Proceedings of the 32nd ACM Inter-national Conference on Information and Knowledge Management (Birmingham, United Kingdom) (CIKM ’23) . Association for Computing Machinery, New York, NY, USA, 4445–4449. doi:10.1145/3583780.3615210 [23] Mehmet Serhan Çiftlikçi, Yusuf Çakmak, Tolga Ahmet Kalaycı, Fatih Abut, Mehmet Fatih Akay, and Mehmet Kızıldağ. 2025. A New Large Language Model for Attribute Extraction in E-Commerce Product Categorization. Electronics 14, 10 (2025). doi:10.3390/electronics14101930
