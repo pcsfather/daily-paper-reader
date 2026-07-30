@@ -1,0 +1,54 @@
+{
+  "label": "2026-07-30",
+  "date": "2026-07-30",
+  "generated_at": "2026-07-30T21:39:07",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202607/30/2607.21858v1-approximation-algorithms-for-inventory-problems-with-decomposable-submodular-ordering-costs",
+      "section": "deep",
+      "title_en": "Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs",
+      "authors": "Retsef Levi, Georgia Perakis, Emily Zhang",
+      "date": "2026-07-23",
+      "pdf": "https://arxiv.org/pdf/2607.21858v1",
+      "score": "9.0",
+      "evidence": "具有次模订购成本的联合补货问题",
+      "tldr": "联合补货问题在物流库存管理中至关重要，需协调多物品补货以最小化总持有与订购成本，其中子模订购成本捕捉了复杂订购交互。本文针对可分解为k个类别的子模成本，提出基于线性规划松弛与边际成本注水划分的舍入算法，构造可行整数调度。该算法实现O(k)近似比，当类别数固定时首次获得常数因子保证，显著扩展了可求解的子模成本函数族。",
+      "tags": "query:wo",
+      "abstract_en": "This paper develops an approximation algorithm for the submodular joint replenishment problem (SJRP) under a broad family of decomposable submodular ordering cost functions. In the SJRP, a central planner coordinates orders to satisfy deterministic demand for multiple items over a finite discrete planning horizon while minimizing total holding and ordering costs, with the latter modeled as a submodular function of the subset of items ordered in each period. The ordering cost functions considered in this paper are defined based on a decomposition of the items into $k$ categories, where the cost is a function of weighted aggregate quantities within each category and allows for arbitrary interactions across categories through a joint cost function. The proposed algorithm rounds the solution to a linear programming relaxation by partitioning the fractional solution into nested regions according to marginal costs using a novel water-filling procedure, and then selecting one order from each region to obtain a feasible integral schedule. The resulting algorithm achieves an $O(k)$-approximation. When the number of categories $k$ is fixed, this yields the first constant-factor guarantee for this broad class of submodular ordering costs, significantly expanding the class of cost functions for which such guarantees are known.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/30/2607.23676v1-specahd-localize-to-specialize-for-automated-heuristic-design-in-large-scale-routing-problems",
+      "section": "quick",
+      "title_en": "SpecAHD: Localize to Specialize for Automated Heuristic Design in Large-Scale Routing Problems",
+      "authors": "Kezhao Lai, Yutao Lai, Hai-Lin Liu",
+      "date": "2026-07-26",
+      "pdf": "https://arxiv.org/pdf/2607.23676v1",
+      "score": "6.0",
+      "evidence": "自动化启发式设计用于路径优化可提升订单拣选效率",
+      "tldr": "针对大规模路径规划中局部修复区域结构差异导致的单一构造规则妥协问题，提出SpecAHD双层框架，上层学习暴露有限修复区域，下层进化一组可执行启发式。在四种路径问题上，相比最强竞争基线，目标成本降低最高57.7%，且优于多数公开实例的每实例基线包络。该方法为LLM驱动的自动启发式设计提供了专业化与适应性解决方案。",
+      "tags": "query:wo",
+      "abstract_en": "LLM-based automated heuristic design (AHD) typically scores executable programs on complete instances or within fixed solver components. In large-scale routing problems, localized reconstruction reduces the size of each optimization task, but repair regions within the same incumbent can exhibit substantially different structures. One construction rule must therefore compromise across them. In this paper, we propose SpecAHD, a coupled bilevel framework for within-instance specialization. An upper-level search learns where to expose bounded repair regions, while a lower-level search evolves a complementary repertoire of executable heuristics for the induced repair tasks. The upper-level program determines the repair tasks seen by the lower level, while checked repair outcomes determine how upper-level programs are evaluated. The lower-level objective favors heuristics that perform well on average or solve tasks that the current repertoire handles poorly. For the repair tasks induced by a fixed upper-level program and a fixed lower-level candidate pool, this objective is monotone submodular, allowing greedy repertoire selection with a (1-1/e) approximation guarantee. Across four routing problems and multiple LLM backbones, SpecAHD reduces held-out objective cost by up to 57.7% against the strongest competing AHD baseline and outperforms the per-instance baseline envelope on most public instances.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/30/2607.24581v1-a-quantitative-framework-for-comparing-classical-and-quantum-algorithms-for-the-traveling-salesman-problem",
+      "section": "quick",
+      "title_en": "A Quantitative Framework for Comparing Classical and Quantum Algorithms for the Traveling Salesman Problem",
+      "authors": "Krit Grover, Marcelo Ponce",
+      "date": "2026-07-27",
+      "pdf": "https://arxiv.org/pdf/2607.24581v1",
+      "score": "6.0",
+      "evidence": "TSP算法对比框架可应用于订单拣选路径优化",
+      "tldr": "旅行商问题（TSP）作为运筹学中典型NP-hard组合优化问题，在物流配送路线设计与交通网络规划中占有核心地位，其高效求解算法研究具有重要现实意义。本文构建了一个量化对比框架，统一实现了四种代表性方法：精确的暴力搜索、多项式时间2-近似算法、元启发式模拟退火以及新兴的量子近似优化算法（QAOA），并在不同规模的图实例上系统评估。实验重点考察了算法的求解时间、解相对最优的偏离程度以及节点规模增大时的性能衰减趋势，发现QAOA在中等规模图中能够在可接受时间内提供竞争优势的近似解。同时，将全部代码封装为可扩展的开源工具集，不仅保证了实验的可复现性，也为交通与物流领域的研究人员测试和开发新算法提供了基准平台。",
+      "tags": "query:wo",
+      "abstract_en": "The Traveling Salesman Problem is a classical NP-hard problem with significant implications in logistics, circuit design, and operations research. This paper presents a comparative study of four approaches to solving the Traveling Salesman Problem: brute-force enumeration, a 2-approximation algorithm using minimum spanning trees, simulated annealing, and the Quantum Approximate Optimization Algorithm. We implement each technique and evaluate them on graphs of varying sizes to analyze performance, solution quality, and scalability. In doing so, we have also developed an open-source framework that allows researchers and practitioners to explore, test and extend these methods.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

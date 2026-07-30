@@ -1,0 +1,57 @@
+{
+  "date": "20260730",
+  "date_label": "",
+  "generated_at": "2026-07-30 21:39:03 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2607.21858v1",
+      "route": "202607/30/2607.21858v1-approximation-algorithms-for-inventory-problems-with-decomposable-submodular-ordering-costs",
+      "title": "Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "具有次模订购成本的联合补货问题",
+      "first_seen_at": "2026-07-30 21:39:03 UTC",
+      "updated_at": "2026-07-30 21:39:03 UTC"
+    },
+    {
+      "paper_id": "2607.23676v1",
+      "route": "202607/30/2607.23676v1-specahd-localize-to-specialize-for-automated-heuristic-design-in-large-scale-routing-problems",
+      "title": "SpecAHD: Localize to Specialize for Automated Heuristic Design in Large-Scale Routing Problems",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "自动化启发式设计用于路径优化可提升订单拣选效率",
+      "first_seen_at": "2026-07-30 21:39:03 UTC",
+      "updated_at": "2026-07-30 21:39:03 UTC"
+    },
+    {
+      "paper_id": "2607.24581v1",
+      "route": "202607/30/2607.24581v1-a-quantitative-framework-for-comparing-classical-and-quantum-algorithms-for-the-traveling-salesman-problem",
+      "title": "A Quantitative Framework for Comparing Classical and Quantum Algorithms for the Traveling Salesman Problem",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "TSP算法对比框架可应用于订单拣选路径优化",
+      "first_seen_at": "2026-07-30 21:39:03 UTC",
+      "updated_at": "2026-07-30 21:39:03 UTC"
+    }
+  ]
+}

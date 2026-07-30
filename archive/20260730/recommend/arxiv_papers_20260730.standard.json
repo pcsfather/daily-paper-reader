@@ -1,0 +1,130 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-30T21:36:05.423840+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2607.21858v1",
+      "source": "arxiv",
+      "title": "Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs",
+      "abstract": "This paper develops an approximation algorithm for the submodular joint replenishment problem (SJRP) under a broad family of decomposable submodular ordering cost functions. In the SJRP, a central planner coordinates orders to satisfy deterministic demand for multiple items over a finite discrete planning horizon while minimizing total holding and ordering costs, with the latter modeled as a submodular function of the subset of items ordered in each period. The ordering cost functions considered in this paper are defined based on a decomposition of the items into $k$ categories, where the cost is a function of weighted aggregate quantities within each category and allows for arbitrary interactions across categories through a joint cost function. The proposed algorithm rounds the solution to a linear programming relaxation by partitioning the fractional solution into nested regions according to marginal costs using a novel water-filling procedure, and then selecting one order from each region to obtain a feasible integral schedule. The resulting algorithm achieves an $O(k)$-approximation. When the number of categories $k$ is fixed, this yields the first constant-factor guarantee for this broad class of submodular ordering costs, significantly expanding the class of cost functions for which such guarantees are known.",
+      "authors": [
+        "Retsef Levi",
+        "Georgia Perakis",
+        "Emily Zhang"
+      ],
+      "primary_category": "cs.DS",
+      "categories": [
+        "cs.DS",
+        "cs.DM"
+      ],
+      "published": "2026-07-23T22:58:31+00:00",
+      "link": "https://arxiv.org/pdf/2607.21858v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "joint replenishment problem with submodular ordering costs",
+      "llm_evidence_cn": "具有次模订购成本的联合补货问题",
+      "llm_evidence": "具有次模订购成本的联合补货问题",
+      "canonical_evidence": "具有次模订购成本的联合补货问题",
+      "llm_tldr_en": "Develops an approximation algorithm for the submodular joint replenishment problem with decomposable ordering costs, minimizing total holding and ordering costs over a planning horizon.",
+      "llm_tldr_cn": "针对可分解次模订购成本下的联合补货问题，提出了一种近似算法，在有限离散规划期内协调多物品订单以最小化总持有和订购成本。算法利用物品分类和加权聚合量的成本函数分解结构，证明了常数近似比，为库存协同管理提供了理论保证。",
+      "llm_tldr": "针对可分解次模订购成本下的联合补货问题，提出了一种近似算法，在有限离散规划期内协调多物品订单以最小化总持有和订购成本。算法利用物品分类和加权聚合量的成本函数分解结构，证明了常数近似比，为库存协同管理提供了理论保证。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.23676v1",
+      "source": "arxiv",
+      "title": "SpecAHD: Localize to Specialize for Automated Heuristic Design in Large-Scale Routing Problems",
+      "abstract": "LLM-based automated heuristic design (AHD) typically scores executable programs on complete instances or within fixed solver components. In large-scale routing problems, localized reconstruction reduces the size of each optimization task, but repair regions within the same incumbent can exhibit substantially different structures. One construction rule must therefore compromise across them. In this paper, we propose SpecAHD, a coupled bilevel framework for within-instance specialization. An upper-level search learns where to expose bounded repair regions, while a lower-level search evolves a complementary repertoire of executable heuristics for the induced repair tasks. The upper-level program determines the repair tasks seen by the lower level, while checked repair outcomes determine how upper-level programs are evaluated. The lower-level objective favors heuristics that perform well on average or solve tasks that the current repertoire handles poorly. For the repair tasks induced by a fixed upper-level program and a fixed lower-level candidate pool, this objective is monotone submodular, allowing greedy repertoire selection with a (1-1/e) approximation guarantee. Across four routing problems and multiple LLM backbones, SpecAHD reduces held-out objective cost by up to 57.7% against the strongest competing AHD baseline and outperforms the per-instance baseline envelope on most public instances.",
+      "authors": [
+        "Kezhao Lai",
+        "Yutao Lai",
+        "Hai-Lin Liu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-26T14:22:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.23676v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "automated heuristic design for routing can improve order picking efficiency",
+      "llm_evidence_cn": "自动化启发式设计用于路径优化可提升订单拣选效率",
+      "llm_evidence": "自动化启发式设计用于路径优化可提升订单拣选效率",
+      "canonical_evidence": "自动化启发式设计用于路径优化可提升订单拣选效率",
+      "llm_tldr_en": "Proposes SpecAHD, a bilevel framework for automated heuristic design in large-scale routing, applicable to enhancing warehouse order picking efficiency.",
+      "llm_tldr_cn": "针对大规模路径问题中LLM自动化启发式设计无法适应不同修复区域结构的挑战，提出SpecAHD双层框架，上层搜索学习何处暴露有界修复区域，下层搜索演化一组启发式。该方法在标准测试中表现出更好的专业化能力，为仓库订单拣选路径优化提供了新的自动化思路。",
+      "llm_tldr": "针对大规模路径问题中LLM自动化启发式设计无法适应不同修复区域结构的挑战，提出SpecAHD双层框架，上层搜索学习何处暴露有界修复区域，下层搜索演化一组启发式。该方法在标准测试中表现出更好的专业化能力，为仓库订单拣选路径优化提供了新的自动化思路。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.24581v1",
+      "source": "arxiv",
+      "title": "A Quantitative Framework for Comparing Classical and Quantum Algorithms for the Traveling Salesman Problem",
+      "abstract": "The Traveling Salesman Problem is a classical NP-hard problem with significant implications in logistics, circuit design, and operations research. This paper presents a comparative study of four approaches to solving the Traveling Salesman Problem: brute-force enumeration, a 2-approximation algorithm using minimum spanning trees, simulated annealing, and the Quantum Approximate Optimization Algorithm. We implement each technique and evaluate them on graphs of varying sizes to analyze performance, solution quality, and scalability. In doing so, we have also developed an open-source framework that allows researchers and practitioners to explore, test and extend these methods.",
+      "authors": [
+        "Krit Grover",
+        "Marcelo Ponce"
+      ],
+      "primary_category": "cs.CC",
+      "categories": [
+        "cs.CC",
+        "cs.ET",
+        "quant-ph"
+      ],
+      "published": "2026-07-27T15:49:25+00:00",
+      "link": "https://arxiv.org/pdf/2607.24581v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "comparative TSP algorithm framework applicable to order picking route optimization",
+      "llm_evidence_cn": "TSP算法对比框架可应用于订单拣选路径优化",
+      "llm_evidence": "TSP算法对比框架可应用于订单拣选路径优化",
+      "canonical_evidence": "TSP算法对比框架可应用于订单拣选路径优化",
+      "llm_tldr_en": "Compares classical and quantum algorithms for TSP, providing a framework potentially useful for order picking routing in warehouses.",
+      "llm_tldr_cn": "针对旅行商问题（TSP）在物流和运筹学中的重要性，该文比较了蛮力枚举、最小生成树2-近似算法、模拟退火和量子近似优化算法四种方法，并开发了开源框架。该框架可用于评估和扩展算法，为仓库订单拣选路径优化提供方法借鉴。",
+      "llm_tldr": "针对旅行商问题（TSP）在物流和运筹学中的重要性，该文比较了蛮力枚举、最小生成树2-近似算法、模拟退火和量子近似优化算法四种方法，并开发了开源框架。该框架可用于评估和扩展算法，为仓库订单拣选路径优化提供方法借鉴。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
