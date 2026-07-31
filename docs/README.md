@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-07-02 ~ 2026-07-31</span>
+      <span class="dpr-home-dashboard-kicker">2026-07-31</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 9 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>9</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-07-31 06:44:19 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-07-31 21:25:38 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日速读了3篇满分物流与运筹优化论文，聚焦动态订单履行、多智能体取送货与大模型选模。</p>
-<p>最值得关注：策略分解框架能灵活应对订单履行波动，而信息素图记忆让多搬运智能体学会利用环境线索高效协作。</p>
-<p>建议读者从LLM辅助建模和群体智能两个方向，追踪仓储物流的智能化升级路径。</p>
+<p>今日聚焦供应链优化，精读《SCOPE》用耦合策略打通端到端协调，速览深度强化学习驱动即时取派与稀疏网络路由。亮点在于“耦合政策”让全局供应链不再是分段孤岛，同时DRL能动态应对最后一公里的取件不确定性。建议从业者在订单履约中尝试端到端联合建模，用SCOPE的思路替代传统分步优化，先在模拟环境中对比效益。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +71,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination">SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +84,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">9 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Policy Decomposition Framework for Dynamic Order Fulfillment Operations">A Policy Decomposition Framework for Dynamic Order Fulfillment Operations</span></li><li><span class="dpr-home-dashboard-paper-title" title="Stigmergic Graph Memory: An Environment-Aware Approach for Many-to-Many Multi-Agent Pickup and Delivery">Stigmergic Graph Memory: An Environment-Aware Approach for Many-to-Many Multi-Agent Pickup and Delivery</span></li><li><span class="dpr-home-dashboard-paper-title" title="Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation">Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Integrated Order Dispatching and Routing for Last-Mile Pickup via Deep Reinforcement Learning">Integrated Order Dispatching and Routing for Last-Mile Pickup via Deep Reinforcement Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Learning to Optimize: Joint Routing and Flow Allocation on Sparse Non-Euclidean Networks">Learning to Optimize: Joint Routing and Flow Allocation on Sparse Non-Euclidean Networks</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>9</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>2</strong></span></div>
 </section>
 </div>
 

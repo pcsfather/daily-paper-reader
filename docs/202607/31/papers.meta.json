@@ -1,0 +1,54 @@
+{
+  "label": "2026-07-31",
+  "date": "2026-07-31",
+  "generated_at": "2026-07-31T21:25:53",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202607/31/2607.28488v1-scope-supply-chain-operations-through-coupled-policies-for-end-to-end-coordination",
+      "section": "deep",
+      "title_en": "SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination",
+      "authors": "Yunhao Liang, Xianqi Cao, Pujun Zhang, Yuan Qu, Yongzhi Qi, Ningxuan Kang, Max Z. J. Shen",
+      "date": "2026-07-30",
+      "pdf": "https://arxiv.org/pdf/2607.28488v1",
+      "score": "8.0",
+      "evidence": "涉及各仓库所存产品、补货频率和路径规划等核心仓库布局与运营决策",
+      "tldr": "供应链补货决策通常由不同部门各自优化，导致品类、来源、频率和路线等环节脱节，引发缺货和运力浪费。SCOPE框架通过将实体映射为共享运营表征的token，并耦合各阶段决策，实现端到端协调。在城市生鲜补货场景中，基于叮咚和京东实际数据的实验显示，SCOPE显著超越各阶段独立优化及实践基线。结果表明，学习并协调跨部门运营耦合能带来更高效的整体供应链决策，减少库存压力与不必要的运输成本。",
+      "tags": "query:wo",
+      "abstract_en": "Can supply-chain AI move beyond isolated decision modules toward unified operational planning? A complete replenishment plan specifies which products each location carries, which upstream facility supplies it, how often it is replenished, and how deliveries are routed. These decisions are operationally coupled: the selected assortment changes the demand and load passed to later stages; source assignment and replenishment frequency reshape the delivery requests; and route feasibility and cost, in turn, determine the system value of the earlier choices. Yet in modern supply chains, these decisions are often handled by separate departments and optimized through separate systems, which can lead to stockouts, inventory exposure, and avoidable transportation. We propose SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination, a composite policy model that represents supply-chain entities as tokens, contextualizes them through a shared operational representation, and maps each token type to the corresponding decision interface. Each decision builds on the partial plan formed by earlier decisions while the completed plan is evaluated using a shared system-level utility. We instantiate this framework in urban fresh-retail replenishment, where service frequency, assortment, capacity pressure, and road-network routing interact strongly, and evaluate it on real operational data from Dingdong and JD.com, two large-scale supply chains operating at different replenishment echelons. Across both settings, SCOPE consistently outperforms methods that optimize each decision stage separately, as well as practice-oriented baselines commonly used in supply-chain operations. These results show that learning and coordinating cross-department operational couplings lead to more effective end-to-end supply-chain decisions.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/31/2607.22356v1-integrated-order-dispatching-and-routing-for-last-mile-pickup-via-deep-reinforcement-learning",
+      "section": "quick",
+      "title_en": "Integrated Order Dispatching and Routing for Last-Mile Pickup via Deep Reinforcement Learning",
+      "authors": "Yida Xu, Zhaofang Mao, Yuheng Miao, Jiaxin Zhang, Yiting Sun",
+      "date": "2026-07-24",
+      "pdf": "https://arxiv.org/pdf/2607.22356v1",
+      "score": "7.0",
+      "evidence": "集成订单派发与路径规划的深度强化学习方法，可应用于仓库拣货路径优化",
+      "tldr": "针对最后一公里取件中订单分配与路径规划紧密耦合的挑战，提出集成深度强化学习的优化框架。通过动态残差图注意力网络编码器和前瞻性快递员个性化解码器构建路径规划oracle，并设计oracle指导的分配启发式与局部搜索。在菜鸟物流真实数据集上，离线评估和在线滚动视界模拟均表明方法在解质量与求解时间上优于基准，可有效支持实时大规模取件调度。",
+      "tags": "query:wo",
+      "abstract_en": "In recent years, the growing complexity of last-mile pickup operations has increased the need for fast and accurate decision-making on logistics platforms. This challenge is fundamentally driven by two key and tightly coupled decision-making processes: order dispatching and routing. Solving them separately overlooks their interdependence, while fully end-to-end learning can be unstable and costly on large, variable-scale instances due to sparse rewards. To solve this problem, we propose an integrated optimization framework which couples a learned routing oracle with real-time dispatching heuristics. For the routing subproblem, we develop a Dynamic-Residual Graph Attention Network encoder with a Look-Ahead Courier-Personalized decoder. For the dispatching subproblem, we develop a routing-oracle-guided dispatching heuristic with local search, where the oracle provides near-optimal solutions to select candidate couriers while retaining real-time scalability. Extensive experiments on real-world datasets from Cainiao Logistics are used to test the performance of our approach, including an offline evaluation and an online rolling-horizon simulation. The experimental results show that our approach outperforms other benchmarks regarding solution quality and solving time, indicating it can effectively support logistics companies in solving real-time and large-scale last-mile pickup problems.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/31/2607.23467v1-learning-to-optimize-joint-routing-and-flow-allocation-on-sparse-non-euclidean-networks",
+      "section": "quick",
+      "title_en": "Learning to Optimize: Joint Routing and Flow Allocation on Sparse Non-Euclidean Networks",
+      "authors": "Haomiao Sun, Fang He, Congyuan Ji, Xindi Tang",
+      "date": "2026-07-26",
+      "pdf": "https://arxiv.org/pdf/2607.23467v1",
+      "score": "6.0",
+      "evidence": "使用图注意力和强化学习的联合路径与流量分配优化，可潜在应用于仓库拣货路径优化",
+      "tldr": "针对稀疏非欧网络（如集装箱班轮运输网络）中的取送货一体化问题，需联合优化船舶航次路径、货物流分配及跨航次转运服务，形成紧密耦合的离散-连续混合决策，可行域高度受限。传统精确算法面临组合爆炸，启发式解质量不稳定。提出双通道图注意力（DCGA）端到端强化学习框架，将网络可达性与需求服务逻辑分离到不同图通道，利用模拟器耦合的约束知情解码器构建有效路径。在LinerLib基准上，DCGA实现秒级推理，在超过特定规模的问题上取得最优解质量，并随问题增大优势持续扩大；广泛消融与稳定性分析证实其有效性。该结构感知学习范式为实时路径-流量协同优化提供了高效引擎。",
+      "tags": "query:wo",
+      "abstract_en": "We study an integrated pickup-and-delivery problem on sparse, non-Euclidean networks that jointly optimizes cyclic routing, cargo flow allocation, and cross-cycle service. The tight coupling of these operational constraints creates a complex discrete-continuous decision space with highly restricted feasible regions. To overcome these computational challenges, we propose Double-Channel Graph Attention (DCGA), an end-to-end reinforcement learning framework. DCGA isolates network reachability and demand-service logic into separate graph channels and constructs valid routes using a simulator-coupled, constraint-informed decoder. Experiments on LinerLib benchmarks demonstrate that DCGA achieves seconds-level inference and delivers state-of-the-art solution quality on instances beyond a specific scale, with its advantage over existing baselines widening significantly as problem size increases. Supported by extensive stability and ablation analyses, our results demonstrate that this structure-aware learning approach provides an effective, low-latency engine for realistic routing-and-flow optimization.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
