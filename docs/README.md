@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-07-30</span>
+      <span class="dpr-home-dashboard-kicker">2026-07-02 ~ 2026-07-31</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 9 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>9</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-07-30 21:39:03 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-07-31 06:44:19 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读库存优化新论文，发现可分解次模订货成本能用简洁近似算法高效求解复杂供应链问题。</p>
-<p>最值得关注：次模函数分解技术让难解的库存模型获得了接近理论最优的算法保证，实用性突出。</p>
-<p>建议从业者关注这类将复杂成本拆分为简单组件再组合优化的思路，或可直接改造现有补货系统。</p>
+<p>今日速读了3篇满分物流与运筹优化论文，聚焦动态订单履行、多智能体取送货与大模型选模。</p>
+<p>最值得关注：策略分解框架能灵活应对订单履行波动，而信息素图记忆让多搬运智能体学会利用环境线索高效协作。</p>
+<p>建议读者从LLM辅助建模和群体智能两个方向，追踪仓储物流的智能化升级路径。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs">Approximation Algorithms for Inventory Problems with Decomposable Submodular Ordering Costs</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>1</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">9 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SpecAHD: Localize to Specialize for Automated Heuristic Design in Large-Scale Routing Problems">SpecAHD: Localize to Specialize for Automated Heuristic Design in Large-Scale Routing Problems</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Quantitative Framework for Comparing Classical and Quantum Algorithms for the Traveling Salesman Problem">A Quantitative Framework for Comparing Classical and Quantum Algorithms for the Traveling Salesman Problem</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Policy Decomposition Framework for Dynamic Order Fulfillment Operations">A Policy Decomposition Framework for Dynamic Order Fulfillment Operations</span></li><li><span class="dpr-home-dashboard-paper-title" title="Stigmergic Graph Memory: An Environment-Aware Approach for Many-to-Many Multi-Agent Pickup and Delivery">Stigmergic Graph Memory: An Environment-Aware Approach for Many-to-Many Multi-Agent Pickup and Delivery</span></li><li><span class="dpr-home-dashboard-paper-title" title="Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation">Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>9</strong></span></div>
 </section>
 </div>
 

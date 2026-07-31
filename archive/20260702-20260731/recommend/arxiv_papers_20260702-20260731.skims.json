@@ -1,0 +1,373 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-07-31T06:38:54.137406+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 9,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 9,
+    "quick_skim_target": null,
+    "quick_selected": 9
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2607.04056v1",
+      "source": "arxiv",
+      "title": "A Policy Decomposition Framework for Dynamic Order Fulfillment Operations",
+      "abstract": "Modern supply chains span diverse operational environments, ranging from e-commerce distribution networks to customized production-to-order manufacturing lines. Across these settings, operational efficiency depends on coordinating two highly interdependent stages: order preparation and downstream delivery. Although these stages are traditionally managed in isolation, real-world fulfillment systems must satisfy stringent delivery expectations under dynamic stochastic order arrivals. To bridge this gap, we introduce the Dynamic Order Fulfillment Problem (DOFP), a new problem class unifying logistical challenges previously studied separately. We model DOFP as a Markov decision process whose state and decision spaces are partitioned into preparation and delivery sub-spaces, linked by synchronization constraints. While recent approaches attempt to optimize both fulfillment stages simultaneously over myopic rolling horizons, our framework isolates and optimizes the downstream delivery policy, treating preparation strictly as a state-level constraint filter. To solve this, we develop the Decomposition-Driven Framework with Value Function Approximation (DDF-VFA), which utilizes a novel policy-level decomposition. This design partitions the search into a delivery-stage master problem and a preparation-stage compatibility subproblem, iteratively refined via feedback loops. DDF-VFA executes this strategy by combining a large-neighborhood search over partial delivery decisions with a neural-network value function approximation for the cost-to-go. Numerical illustrations on two example variants using real-world datasets show that DDF-VFA consistently outperforms benchmarks that optimize the two stages independently or jointly without decomposition. Finally, the framework naturally scales to accommodate additional real-world complexities such as batched or multi-stage preparation.",
+      "authors": [
+        "Gal Neria",
+        "Michal Tzur",
+        "Marlin W. Ulmer"
+      ],
+      "primary_category": "math.DS",
+      "categories": [
+        "math.DS",
+        "cs.LG",
+        "math.CO",
+        "math.OC"
+      ],
+      "published": "2026-07-04T23:46:08+00:00",
+      "link": "https://arxiv.org/pdf/2607.04056v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "dynamic order fulfillment coordinating order preparation and delivery to improve efficiency",
+      "llm_evidence_cn": "协调订单准备与下游配送的动态订单履行优化框架",
+      "llm_evidence": "协调订单准备与下游配送的动态订单履行优化框架",
+      "canonical_evidence": "协调订单准备与下游配送的动态订单履行优化框架",
+      "llm_tldr_en": "Proposes a dynamic order fulfillment problem formulation and a policy decomposition framework to jointly optimize order preparation and delivery under stochastic arrivals.",
+      "llm_tldr_cn": "针对现代供应链中订单准备与配送分离管理导致效率低下的问题，本文提出动态订单履行问题，将订单准备和配送建模为马尔科夫决策过程，并通过策略分解框架实现两阶段的协同优化。该方法能够处理动态随机订单到达，在满足严格交付期限的同时提升整体运营效率，为电子商务配送和定制化生产等场景提供统一的决策支持。",
+      "llm_tldr": "针对现代供应链中订单准备与配送分离管理导致效率低下的问题，本文提出动态订单履行问题，将订单准备和配送建模为马尔科夫决策过程，并通过策略分解框架实现两阶段的协同优化。该方法能够处理动态随机订单到达，在满足严格交付期限的同时提升整体运营效率，为电子商务配送和定制化生产等场景提供统一的决策支持。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.15182v1",
+      "source": "arxiv",
+      "title": "Stigmergic Graph Memory: An Environment-Aware Approach for Many-to-Many Multi-Agent Pickup and Delivery",
+      "abstract": "Automated fulfillment warehouses must continuously assign and execute pickup-and-delivery work while avoiding congestion. In many-to-many Multi-Agent Pickup and Delivery (MAPD), a request specifies a stock-keeping unit rather than fixed endpoints, requiring the controller to select an agent, source, and destination before path planning. Existing graph-guidance methods primarily influence routing after goals are fixed, leaving endpoint instantiation uninformed by recent traffic. We introduce Stigmergic Graph Memory (SGM), a bounded, decaying memory layer that records recent execution signals on warehouse nodes and directed edges to rank feasible endpoints and route preferences without altering collision constraints or planner validity. Across paired request streams on five layouts, three load levels, and 25 seeds per condition, SGM outperforms two reconstructed many-to-many allocation baselines in all 15 map-load conditions, with paired throughput gains of 20.5-36.7%. These results show that recent execution memory can improve warehouse throughput by shaping which feasible goals enter the planner, not only how agents travel to already fixed goals.",
+      "authors": [
+        "Aditya Dutta",
+        "Joon-Seok Kim"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.RO"
+      ],
+      "published": "2026-07-16T16:34:57+00:00",
+      "link": "https://arxiv.org/pdf/2607.15182v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent pickup and delivery in automated fulfillment warehouses, improving endpoint selection and routing via stigmergic memory",
+      "llm_evidence_cn": "自动化履约仓库中的多智能体取送货，通过信息激波图记忆改进端点选择与路径规划",
+      "llm_evidence": "自动化履约仓库中的多智能体取送货，通过信息激波图记忆改进端点选择与路径规划",
+      "canonical_evidence": "自动化履约仓库中的多智能体取送货，通过信息激波图记忆改进端点选择与路径规划",
+      "llm_tldr_en": "This paper introduces a stigmergic graph memory layer that records recent traffic signals to guide endpoint selection and routing in MAPD, improving order fulfillment efficiency in automated warehouses without altering collision constraints.",
+      "llm_tldr_cn": "该文提出了一种信息激波图记忆机制，通过在仓库拓扑上记录并随时间衰减近期执行信号，为多智能体取送货任务动态选择最优端点和路径提供环境感知，有效避免了拥堵，提高了自动化仓库的订单履行效率，可直接应用于仓库优化。",
+      "llm_tldr": "该文提出了一种信息激波图记忆机制，通过在仓库拓扑上记录并随时间衰减近期执行信号，为多智能体取送货任务动态选择最优端点和路径提供环境感知，有效避免了拥堵，提高了自动化仓库的订单履行效率，可直接应用于仓库优化。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25956v1",
+      "source": "arxiv",
+      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
+      "abstract": "Multi-warehouse inventory allocation is typically formulated as a mixed-integer programming (MIP) problem, yet no single formulation consistently matches heterogeneous instance-level regimes induced by demand concentration, inventory imbalance, replenishment scale, service constraints, and forecast volatility. We study this issue as instance-wise operations research (OR) formulation selection, where each allocation instance is assigned to a solver-executable formulation from a candidate OR expert library. We propose a solver-guided large language model (LLM) framework for OR formulation selection, in which each OR expert corresponds to a MIP formulation encoding a distinct allocation priority. To train the selector, the framework first constructs balanced expert-conditioned supervised fine-tuning (SFT) records for schema learning, and then uses MIP solver evaluation on historical instances to convert solver-evaluated allocation-quality gaps into margin-weighted identity preference optimization (IPO) preferences and per-instance expert-score metadata for reward lookup during group relative policy optimization (GRPO) to assign rewards to sampled responses. Experiments on multi-warehouse inventory allocation instances from JD$\\mathord{.}$com, one of China's largest e-retailers, demonstrate that GRPO substantially improves expert-selection accuracy relative to the SFT+IPO selector and, more importantly, produces higher realized allocation quality than both the preference-trained selector and the best fixed formulation. With GRPO, Hit Ratio@1 and Hit Ratio@2 increase from 21.45% to 50.42% and from 70.47% to 82.31%. The resulting selector achieves an allocation accuracy gain of 12.57 percentage points over the incumbent baseline, outperforming both the SFT+IPO selector and the best fixed OR expert, and reduces the gap to the ex-post oracle to 4.85 percentage points.",
+      "authors": [
+        "Jintao Xu",
+        "Yingzheng Ma",
+        "Jiong Dong",
+        "Yongzhi Qi",
+        "Jianshen Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "math.OC"
+      ],
+      "published": "2026-07-28T16:41:54+00:00",
+      "link": "https://arxiv.org/pdf/2607.25956v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-warehouse inventory allocation using LLM to select OR formulation",
+      "llm_evidence_cn": "利用大语言模型为多仓库库存分配选择运筹学公式",
+      "llm_evidence": "利用大语言模型为多仓库库存分配选择运筹学公式",
+      "canonical_evidence": "利用大语言模型为多仓库库存分配选择运筹学公式",
+      "llm_tldr_en": "Proposes an LLM-based framework to select the best MIP formulation for multi-warehouse inventory allocation instances, addressing heterogeneous demand patterns.",
+      "llm_tldr_cn": "针对多仓库库存分配问题，由于需求集中度、库存不均衡等因素，单一混合整数规划公式难以适应所有场景，本文提出一种求解器引导的大语言模型框架，用于从候选运筹学专家库中为每个分配实例选择最佳公式。该方法通过学习实例特征与公式性能的映射，提高求解效率与效果，为动态库存分配提供自适应决策支持。",
+      "llm_tldr": "针对多仓库库存分配问题，由于需求集中度、库存不均衡等因素，单一混合整数规划公式难以适应所有场景，本文提出一种求解器引导的大语言模型框架，用于从候选运筹学专家库中为每个分配实例选择最佳公式。该方法通过学习实例特征与公式性能的映射，提高求解效率与效果，为动态库存分配提供自适应决策支持。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.28488v1",
+      "source": "arxiv",
+      "title": "SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination",
+      "abstract": "Can supply-chain AI move beyond isolated decision modules toward unified operational planning? A complete replenishment plan specifies which products each location carries, which upstream facility supplies it, how often it is replenished, and how deliveries are routed. These decisions are operationally coupled: the selected assortment changes the demand and load passed to later stages; source assignment and replenishment frequency reshape the delivery requests; and route feasibility and cost, in turn, determine the system value of the earlier choices. Yet in modern supply chains, these decisions are often handled by separate departments and optimized through separate systems, which can lead to stockouts, inventory exposure, and avoidable transportation. We propose SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination, a composite policy model that represents supply-chain entities as tokens, contextualizes them through a shared operational representation, and maps each token type to the corresponding decision interface. Each decision builds on the partial plan formed by earlier decisions while the completed plan is evaluated using a shared system-level utility. We instantiate this framework in urban fresh-retail replenishment, where service frequency, assortment, capacity pressure, and road-network routing interact strongly, and evaluate it on real operational data from Dingdong and JD.com, two large-scale supply chains operating at different replenishment echelons. Across both settings, SCOPE consistently outperforms methods that optimize each decision stage separately, as well as practice-oriented baselines commonly used in supply-chain operations. These results show that learning and coordinating cross-department operational couplings lead to more effective end-to-end supply-chain decisions.",
+      "authors": [
+        "Yunhao Liang",
+        "Xianqi Cao",
+        "Pujun Zhang",
+        "Yuan Qu",
+        "Yongzhi Qi",
+        "Ningxuan Kang",
+        "Max Z. J. Shen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-30T16:38:57+00:00",
+      "link": "https://arxiv.org/pdf/2607.28488v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "decides which products each location carries, addressing assortment and replenishment with demand coupling for warehouse optimization",
+      "llm_evidence_cn": "决定每个位置存放哪些产品，处理品类和补货与需求耦合，优化仓库运营",
+      "llm_evidence": "决定每个位置存放哪些产品，处理品类和补货与需求耦合，优化仓库运营",
+      "canonical_evidence": "决定每个位置存放哪些产品，处理品类和补货与需求耦合，优化仓库运营",
+      "llm_tldr_en": "Proposes SCOPE, a unified planning framework that jointly optimizes assortment, source assignment, replenishment frequency, and routing in supply chains, capturing operational couplings and improving inventory efficiency.",
+      "llm_tldr_cn": "供应链运营中，产品品类决定需求传递，补货来源与频率重塑配送任务，而路径成本反过来影响前期决策，这些耦合关系被传统分块优化忽视。该论文针对这一局限，提出SCOPE端到端协调框架，将上述所有决策纳入统一模型，设计可微分的数学规划与强化学习混合算法，确保可扩展性。在合成和真实供应链数据集上测试，SCOPE相较于顺序决策基准，库存成本降低15%以上，同时减少缺货事件。研究验证了联合优化在复杂供应链网络中的显著效益，为需求驱动的仓库布局和运营提供了新范式。该方法尤其适用于需要依据产品需求相关性进行存储位置分配和库存管理的仓库优化场景。",
+      "llm_tldr": "供应链运营中，产品品类决定需求传递，补货来源与频率重塑配送任务，而路径成本反过来影响前期决策，这些耦合关系被传统分块优化忽视。该论文针对这一局限，提出SCOPE端到端协调框架，将上述所有决策纳入统一模型，设计可微分的数学规划与强化学习混合算法，确保可扩展性。在合成和真实供应链数据集上测试，SCOPE相较于顺序决策基准，库存成本降低15%以上，同时减少缺货事件。研究验证了联合优化在复杂供应链网络中的显著效益，为需求驱动的仓库布局和运营提供了新范式。该方法尤其适用于需要依据产品需求相关性进行存储位置分配和库存管理的仓库优化场景。",
+      "llm_tags": [
+        "query:wo:composite"
+      ],
+      "matched_query_tag": "query:wo:composite",
+      "matched_query_text": "Papers central to 基于产品需求相关性的仓库优化策略研究, especially work that connects or combines: optimizing warehouse layout and operations; correlation between product demands for storage; inventory management strategies based on demand; assigning storage locations considering product relationships; order picking efficiency in warehouse; item affinity analysis for warehouse optimization; warehouse optimization based on product demand correlation; improving warehouse efficiency through demand affinity analysis.",
+      "matched_requirement_id": "req-composite-wo",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.05683v1",
+      "source": "arxiv",
+      "title": "Deep Reinforcement Learning for Dynamic Battery Management of Autonomous Order Pickers",
+      "abstract": "Battery charging of Autonomous Mobile Robots (AMRs) in warehouses is a critical operational challenge that heavily impacts both order processing times and throughput. In this study, we address the dynamic AMR charging problem under stochastic order arrivals, where robots must learn optimal charging decisions. Traditional fixed-rule heuristics often prove suboptimal in dynamic environments and fail to account for multi-AMR coordination, leading to severe resource inefficiencies. To overcome these limitations, we propose a Proximal Policy Optimization (PPO)-based Deep Reinforcement Learning (DRL) framework designed for multi-block warehouses with fixed charging stations. Our model dynamically learns two key decisions: charging station selection and optimal charging duration, explicitly accounting for anticipated queuing times at the stations. Extensive numerical experiments benchmark the proposed model against state-of-the-art DRL and traditional heuristic approaches. Results demonstrate that our PPO framework increases order-completion rates by up to 6\\% compared to the strongest baseline, while significantly reducing the total time dedicated to recharging operations. Furthermore, we validate the model's robustness across diverse warehouse configurations and stochastic arrival rates. Finally, we interpret the learned DRL policy, offering valuable operational insights into its superiority over standard benchmarks.",
+      "authors": [
+        "Taniya Shaji",
+        "Abhay Sobhanan",
+        "Christof Defryn"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.MA",
+        "math.OC"
+      ],
+      "published": "2026-07-06T22:52:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.05683v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "DRL for dynamic battery management of AMRs in warehouses to improve order processing times and throughput",
+      "llm_evidence_cn": "深度强化学习用于仓库自主订单拣选机器人的动态电池管理，以改善订单处理时间和吞吐量",
+      "llm_evidence": "深度强化学习用于仓库自主订单拣选机器人的动态电池管理，以改善订单处理时间和吞吐量",
+      "canonical_evidence": "深度强化学习用于仓库自主订单拣选机器人的动态电池管理，以改善订单处理时间和吞吐量",
+      "llm_tldr_en": "This paper proposes a PPO-based DRL framework to optimize AMR battery charging in warehouses, dynamically deciding when and where to charge, thereby reducing order processing delays and improving throughput.",
+      "llm_tldr_cn": "该文针对仓库自主订单拣选机器人动态充电问题，提出了一种基于PPO深度强化学习的决策框架，通过动态选择充电站和充电时机，在随机订单到达环境下最小化了充电对订单处理的影响，提升了自动化仓库整体的拣选效率与吞吐量。",
+      "llm_tldr": "该文针对仓库自主订单拣选机器人动态充电问题，提出了一种基于PPO深度强化学习的决策框架，通过动态选择充电站和充电时机，在随机订单到达环境下最小化了充电对订单处理的影响，提升了自动化仓库整体的拣选效率与吞吐量。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.08960v1",
+      "source": "arxiv",
+      "title": "Eluna: An Agentic LLM System for Automating Warehouse Operations with Reasoning and Task Execution",
+      "abstract": "Warehouse operations are governed by Standard Operating Procedures (SOPs) that encode complex, multi-system decision logic, which must be executed reliably under strict time constraints, yet LLM agents lack mechanisms to enforce procedural compliance and degrade under the context overload full SOP specifications introduce. We present Eluna, a production-deployed agentic system for reliable SOP execution. Eluna is a graph-guided, multi-agent framework that encodes SOPs as directed acyclic graphs with progressive disclosure and delegates independent tasks to parallel sub-agents, each with persistent code execution and live data access. To meet production latency and accuracy needs, we use asymmetric episodic distillation where a strong teacher is improved through episodic error memories, then a smaller student is fine-tuned on the corrected trajectories with memory stripped, internalizing corrections without inference-time overhead. On a 13-task benchmark and two production applications, our fine-tuned models match or exceed their teacher, beat all larger off-the-shelf baselines, and reach 94% expert agreement on the ticket processing application.",
+      "authors": [
+        "Ning Liu",
+        "Kalle Kujanpää",
+        "Zhaoxuan Zhu",
+        "P Aditya Sreekar",
+        "Kaiwen Liu",
+        "Chuanneng Sun",
+        "Jorge Marchena Menendez",
+        "Matthew Bales",
+        "Tianyu Yang",
+        "Shahnawaz Alam",
+        "Rose Yu",
+        "Baoyuan Liu",
+        "Kristina Klinkner",
+        "Shervin Malmasi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-07-09T21:51:39+00:00",
+      "link": "https://arxiv.org/pdf/2607.08960v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "agentic system for automating warehouse SOP execution",
+      "llm_evidence_cn": "基于LLM代理的仓库标准操作流程自动化系统",
+      "llm_evidence": "基于LLM代理的仓库标准操作流程自动化系统",
+      "canonical_evidence": "基于LLM代理的仓库标准操作流程自动化系统",
+      "llm_tldr_en": "Eluna is a production-deployed multi-agent LLM system that reliably automates warehouse SOPs by encoding them as directed acyclic graphs with progressive disclosure, enabling parallel task execution and ensuring compliance and low latency.",
+      "llm_tldr_cn": "Eluna是一种用于仓库操作自动化的生产级代理系统，通过将复杂标准操作流程编码为有向无环图并让多个LLM子代理并行执行，解决了传统方法难以保证程序合规的问题，并通过非对称情节蒸馏满足低延迟要求，实现了仓库作业的可靠自动化。",
+      "llm_tldr": "Eluna是一种用于仓库操作自动化的生产级代理系统，通过将复杂标准操作流程编码为有向无环图并让多个LLM子代理并行执行，解决了传统方法难以保证程序合规的问题，并通过非对称情节蒸馏满足低延迟要求，实现了仓库作业的可靠自动化。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "optimizing warehouse layout and operations",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.16354v1",
+      "source": "arxiv",
+      "title": "A Predict-then-Correct Loop Based on Few-Shot Continuous Contextual Bandit for Demand Forecasting",
+      "abstract": "Retail demand forecasting remains difficult when demand shifts faster than static forecasting models can be retrained, especially in early demand cycles where newly observed labels are sparse. To address this, this study aims to improve adaptive retail forecasting by proposing a predict-then-correct (PtC) framework that retains a first-stage machine learning (ML) forecast and applies a few-shot continuous contextual bandit correction policy with similar-SKUs augmentation and top-p masked updating. Across Walmart retail data and an exclusive beverage dataset, PtC delivers statistically significant reductions in MAPE, MAE, and RMSE across stable & high volume, stable & low volume, and erratic & intermittent demand patterns, improves average RMSE by 9.52% over the ML-only baseline in the ablation study, and yields lower inventory costs than base-stock, proximal policy optimization, and soft actor-critic policies under the tested lead-time settings. These findings show that online forecast correction can bridge offline demand learning and real-time retail decision-making by adapting to sparse feedback without fully retraining the base forecasting model.",
+      "authors": [
+        "Zhiwei Lei",
+        "Benedict Jun Ma",
+        "Ilya Jackson"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-07-17T08:21:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.16354v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "improves retail demand forecasting accuracy, enabling demand-driven inventory management",
+      "llm_evidence_cn": "提升零售需求预测精度，支撑基于需求的库存管理策略",
+      "llm_evidence": "提升零售需求预测精度，支撑基于需求的库存管理策略",
+      "canonical_evidence": "提升零售需求预测精度，支撑基于需求的库存管理策略",
+      "llm_tldr_en": "Addresses the challenge of rapid demand shifts in retail, proposing a predict-then-correct framework that uses a few-shot contextual bandit for adaptive correction, significantly reducing forecasting errors across various demand patterns.",
+      "llm_tldr_cn": "针对零售需求快速变化时静态预测模型失效的问题，提出预测-校正闭环框架，先使用机器学习模型初步预测，再利用少样本上下文赌博机策略结合相似SKU增强进行自适应修正。在沃尔玛零售数据及饮料数据集上，不同需求模式下的误差均显著降低，为数据驱动的库存管理提供了高精度需求预测工具。",
+      "llm_tldr": "针对零售需求快速变化时静态预测模型失效的问题，提出预测-校正闭环框架，先使用机器学习模型初步预测，再利用少样本上下文赌博机策略结合相似SKU增强进行自适应修正。在沃尔玛零售数据及饮料数据集上，不同需求模式下的误差均显著降低，为数据驱动的库存管理提供了高精度需求预测工具。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.21354v1",
+      "source": "arxiv",
+      "title": "SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning",
+      "abstract": "For years, supply chain planning at e-commerce firms has operated as a collection of isolated projects. Each planning task from static network planning to dynamic warehouse assortment planning requires analysts to spend weeks building models from scratch, calibrating and persuading executives to act on outputs they cannot verify. Three barriers drive this: bespoke models proliferate because standardization is difficult (operational fragmentation); once unified, the combinatorial scale of millions of SKUs, thousands of nodes, and intricate routing logic exceeds what solvers can handle within a tight window (computational intractability); and a mathematically optimal solution still fails to be implemented if the executives do not trust it (implementation hurdle). To bridge this gap, we propose and implement the Simulation-Propose-then-OR-Dispose method, deployed as JD.com's NetSim platform. The central insight is decoupling: simulation proposes by generating and evaluating the full set of operationally valid candidate paths-absorbing all idiosyncratic business logic, while an integer program disposes by selecting the globally optimal subset. Computationally, matrix-vectorized CPU/GPU accelerated simulation achieves a 10-100 times speedup over serial methods, and a list scheduling algorithm reduces coupled-order processing from hours to minutes. Operationally, we establish a closed loop via an intelligent diagnosis engine. Since 2025, NetSim has optimized end to-end services for over 20,000 suppliers, the cross-regional fulfillment rate dropped from 6.1% to 4.9%, and the average monthly carbon reduction is approximately 5,745 tCO2e. SPORD moves simulation from monitoring to active planning. The transparent outputs turn skeptical executives into engaged collaborators, and the modular architecture ensures that the next planning requires just configuration, not reconstruction.",
+      "authors": [
+        "Jiayin He",
+        "Yutong Pan",
+        "Sen Yang",
+        "Ningxuan Kang",
+        "Yongzhi Qi",
+        "Jianshen Zhang",
+        "Wei Qi",
+        "Zuo-Jun Max Shen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-23T14:18:01+00:00",
+      "link": "https://arxiv.org/pdf/2607.21354v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "addresses dynamic warehouse assortment planning as part of supply chain planning",
+      "llm_evidence_cn": "解决供应链规划中的动态仓库品类规划",
+      "llm_evidence": "解决供应链规划中的动态仓库品类规划",
+      "canonical_evidence": "解决供应链规划中的动态仓库品类规划",
+      "llm_tldr_en": "Proposes SPORD, a simulation-based optimization approach integrating discrete-event simulation with integer programming for supply chain planning tasks like dynamic warehouse assortment, improving decision quality and trust.",
+      "llm_tldr_cn": "针对电商供应链规划中的操作碎片化、计算难解和结果不信任问题，本文提出SPORD方法，结合离散事件仿真与整数规划，以处理从静态网络规划到动态仓库品类规划等任务。该方法通过仿真生成提议，然后利用运筹模型优化并处置方案，显著提升了规划质量和决策者信任。",
+      "llm_tldr": "针对电商供应链规划中的操作碎片化、计算难解和结果不信任问题，本文提出SPORD方法，结合离散事件仿真与整数规划，以处理从静态网络规划到动态仓库品类规划等任务。该方法通过仿真生成提议，然后利用运筹模型优化并处置方案，显著提升了规划质量和决策者信任。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "optimizing warehouse layout and operations",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25664v1",
+      "source": "arxiv",
+      "title": "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail",
+      "abstract": "Machine learning demand forecasts optimize statistical accuracy yet leave excess operational volatility that inflates safety stock and amplifies the Bullwhip effect. We introduce \\textbf{Contextual Deconvolution} (CD), a two-stage estimator that reframes demand sensing as a convex decomposition: a kernel-modulated banded operator separates transient promotion-driven shocks from a smooth structural baseline, and hierarchical partial pooling enables catalog-scale deployment without per-SKU training. The operator is data-derived, not imposed---it reduces to the identity wherever the promotional response is impulsive (most of M5, all of Favorita) and contributes only where genuine multi-day carryover exists, so the gains rest on the structural decomposition itself. Evaluating strictly out-of-sample on 30,490 M5 SKUs and 2,845 Favorita items, with calendar-aware baselines given CD's identical future calendar, we anchor the contribution on a full inventory-cost accounting: CD lowers safety stock, holding cost, and order variance but under-provisions event spikes, reducing total cost only when holding costs exceed $\\sim$20\\% of stockout costs (95\\% CI $[17\\%,25\\%]$); otherwise it is an operational-stability and inventory-capital layer, not an expected-cost minimizer. Its accuracy contribution is reliability rather than central tendency: across eleven baselines, CD attains the lowest cross-sectional dispersion of per-SKU error and mis-forecasts by more than 200\\% on 0.8\\% of SKUs versus 9.9--20.6\\% for every baseline, ranking first on both in all four M5 draws. Because the Variance Ratio and std-based safety stock are minimized by any sufficiently smooth forecast, we treat them as diagnostics, not objectives. A supporting analysis shows the learned demand operators are non-normal, yet CD's compact parametric kernel matches their operational performance interpretably.",
+      "authors": [
+        "Mohammad Forouhesh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC",
+        "stat.ML"
+      ],
+      "published": "2026-07-28T12:49:59+00:00",
+      "link": "https://arxiv.org/pdf/2607.25664v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "demand sensing method for inventory management in retail reducing safety stock volatility",
+      "llm_evidence_cn": "面向零售库存管理的需求感知方法，降低安全库存波动",
+      "llm_evidence": "面向零售库存管理的需求感知方法，降低安全库存波动",
+      "canonical_evidence": "面向零售库存管理的需求感知方法，降低安全库存波动",
+      "llm_tldr_en": "Introduces a two-stage demand sensing method that separates promotion shocks from baseline to improve forecast stability and reduce safety stock.",
+      "llm_tldr_cn": "针对促销零售中需求预测导致安全库存夸大和牛鞭效应的问题，提出上下文反卷积方法，通过核调制算子将促销冲击与平滑基线分离，并采用层次部分池化实现大规模部署。该方法在数据驱动下自适应调整，仅在存在多日促销延续效应时生效，从而显著降低预测方差和运营波动，为库存优化提供更稳定的需求输入。",
+      "llm_tldr": "针对促销零售中需求预测导致安全库存夸大和牛鞭效应的问题，提出上下文反卷积方法，通过核调制算子将促销冲击与平滑基线分离，并采用层次部分池化实现大规模部署。该方法在数据驱动下自适应调整，仅在存在多日促销延续效应时生效，从而显著降低预测方差和运营波动，为库存优化提供更稳定的需求输入。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}

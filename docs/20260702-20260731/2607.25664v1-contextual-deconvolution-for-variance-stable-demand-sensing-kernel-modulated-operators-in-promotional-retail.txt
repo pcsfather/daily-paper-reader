@@ -1,0 +1,1575 @@
+Title: Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail
+
+URL Source: https://arxiv.org/pdf/2607.25664v1
+
+Published Time: Wed, 29 Jul 2026 01:06:51 GMT
+
+Number of Pages: 46
+
+Markdown Content:
+# Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail 
+
+Mohammad Forouhesh 
+
+mforouhesh@aut.ac.ir Amirkabir University of Technology, Tehran, Iran 
+
+# Abstract 
+
+Machine learning forecasts optimize statistical accuracy yet leave excess operational volatil-ity, inflating safety stock and amplifying the Bullwhip effect. In promotional retail, autore-gressive models conflate transient demand shocks with structural shifts, propagating un-smoothed noise upstream. We introduce Contextual Deconvolution (CD), a two-stage estimator that reframes demand sensing as a convex decomposition of transfer-function dy-namics: a kernel-modulated banded operator encodes promotional carryover, separating transient shocks from structural baselines without per-SKU training, and hierarchical par-tial pooling regularizes kernels across SKUs for catalog-scale deployment. The operator is data-derived, not imposed: it reduces to the identity wherever the promotional response is impulsive (most of M5, all of Favorita) and contributes only where genuine multi-day carryover exists (e.g. the Hobbies category), so the operational gains rest on the structural decomposition itself, with the kernel an adaptive refinement. We evaluate strictly out-of-sample on 30,490 M5 SKUs and 2,845 Favorita items, giving every calendar-aware baseline the same known future promotional and SNAP calendar CD uses. The load-bearing re-sult is a full inventory-cost accounting: CD’s smoothing lowers safety stock, holding cost, and order variance but under-provisions event-driven spikes, so it reduces total inventory cost only when holding costs exceed ∼20% of stockout costs (95% CI [17% , 25%] ), and is otherwise an operational-stability and inventory-capital layer rather than an expected-cost minimizer. The operational signature is a sharply lower Variance Ratio (median 0.0007 ver-sus 0.0135 for Tuned XGBoost on M5, 0.0072 versus 0.0395 on Favorita) and substantially less safety stock ( 0.16 × Tuned XGBoost’s on M5, 0.38 × on Favorita) at matched nominal service level—though, consistent with the cost accounting, this lower buffer coincides with higher stockout rates on promotional spikes. Accuracy gains are modest at the median but substantial in the tail: across eleven methods spanning boosted, structural and intermittent families, CD attains the lowest cross-sectional dispersion of per-SKU error (SD 0.23 ± 0.02 
+
+versus 1.11–4.51) and mis-forecasts by more than 200% on 0.8% ± 0.1 of SKUs against 9.9– 20.6% for every baseline, ranking first on both measures in all four independent 2,000-SKU M5 draws. Because the Variance Ratio and std-based safety stock are both minimized by any sufficiently smooth forecast, we treat them as diagnostics rather than objectives. Asupporting operator-theoretic analysis shows the learned demand operators are non-normal, and that CD’s compact parametric kernel matches their operational performance while re-maining interpretable. 
+
+# 1 Introduction 
+
+Enterprise supply chains rely on data-driven capacity planning. ML models, gradient-boosted trees and tem-poral transformers, optimize point-wise accuracy (RMSE), leaving excess operational volatility in FMCG environments. Unsmoothed transients propagate upstream into replenishment, inflating safety stock and 1arXiv:2607.25664v1 [cs.LG] 28 Jul 2026 Figure 1: The statistical-operational tradeoff. Standard ML forecasts (red, dashed) optimize point-wise accuracy but leave operational volatility in replenishment signals. Our method (green, solid) separates transients from the smooth baseline, yielding more stable planning signals. order variance. This creates a statistical-operational tradeoff: lower RMSE can coincide with higher opera-tional instability where delayed exogenous shocks (promotions, SNAP) project into endogenous demand. Volatility is driven by discrete exogenous events (promotions, SNAP) with complex temporal responses: a deep promotion generates an immediate surge followed by delayed carryover, while post-promotion dips are often masked at the category level (Hendel & Nevo 2006). Standard ML models lack structural constraints to map delayed effects back to source events, internalizing them as structural collapses. We reframe demand sensing as an inverse problem : recovering latent structural and transient components from observed signals. Classical decomposition assumes an identity forward operator ( A = I), treating anomalies as instantaneous, a simplification that fails for multi-day promotional footprints. Hawkes processes and distributed lag models capture delayed dynamics but are computationally prohibitive at scale. We introduce a scalable two-stage estimator that combines distributed lag regression with a convex smoothness-plus-sparsity decomposition, enabled by hierarchical partial pooling for catalog-scale deployment. We call this framework Contextual Deconvolution (CD). It replaces the classical identity operator with a kernel-modulated banded matrix encoding promotional carryover, with a signed surge-and-vacuum extension as an optional inductive bias, separating transient shocks from structural demand without per-SKU training. CD regularizes and scales transfer-function estimation, trading expressiveness for interpretability, scalability, and operational stability. 
+
+Contributions. 
+
+1. A Context-Modulated Banded Operator for Promotional Dynamics. We introduce a struc-tured operator Aspec (θ) that encodes promotional carryover directly into a convex inverse problem, with an optional signed Difference-of-Exponentials extension as an inductive bias for post-promotion dips. The operator is a lower-triangular banded matrix from a causal kernel; non-zero at lag zero, it 2is invertible, and combined with the smoothness-plus-sparsity regularization yields a well-posed re-covery of latent shocks from observed demand. This replaces the classical identity mapping ( A = I)with a physically-motivated operator that enforces delayed carryover structure. We are careful about what the operator does and does not buy: an ablation (§4.3, Finding 4c) shows the opera-tional gains over gradient boosting come from the structural decomposition (smooth baseline plus sparse, calendar-driven shocks), and that the kernel is a data-derived component which reduces to an impulse where promotions are impulsive (all of Favorita and most of M5, where it matches an 
+
+Aspec = I baseline) yet adds measurable accuracy and stability where genuine multi-day carry-over exists (the M5 hobbies category). It generalizes the decomposition to carryover-heavy regimes without degrading the impulsive case. The signed Difference-of-Exponentials extension is likewise optional rather than load-bearing: on M5 the post-promotion vacuum is not empirically separable from pure exponential decay (Appendix T), so we report it as an inductive bias we test and find inessential, not a required component. 2. A Two-Stage Estimation Pipeline with Stability Analysis. We introduce a scalable two-stage pipeline (Robust Huber Detrending + Distributed Lag Regression) that decouples baseline estimation from kernel recovery. Stage-2 kernel recovery is a standard ridge regression; stability analysis ensures kernel estimates degrade gracefully with bounded detrending error, confirming the two-stage separation is a stability mechanism, not merely a speed approximation (Appendix B). 3. Hierarchical Partial Pooling for Enterprise Scalability. We introduce a partial pooling mech-anism that regularizes per-SKU kernel estimates toward category-level and global medians. This makes the method deployable for SKUs with sparse event histories, common in enterprise retail, without per-SKU tuning or large historical samples. The full pipeline runs on CPU in under 40 minutes for 30,000 SKUs. 4. Empirical Validation at Scale, with an Honest Cost Accounting. On 30,490 M5 SKUs and 2,845 Favorita items—strictly out-of-sample, with every calendar-aware baseline given the same future calendar—CD reduces operational variance (median Variance Ratio 0.0007 on M5, 0.0072 on Favorita, and well under half the safety stock of Tuned XGBoost— 0.16 × on M5, 0.38 × on Favorita) and wins the paired VR comparison on ∼74% of SKUs (§4.3). Its accuracy contribution is one of 
+
+reliability rather than central tendency: against eleven methods spanning boosted, structural and intermittent families, CD attains the lowest cross-sectional dispersion of per-SKU error and an order-of-magnitude lower catastrophic-failure rate ( 0.8% of SKUs beyond 200% error, versus 9.9–20 .6% ), ranking first on both measures in all four independent 2,000-SKU draws. Because the Variance Ratio is minimized by any sufficiently smooth forecast, we treat it as a diagnostic and anchor the contribution on a full inventory-cost analysis: CD lowers total cost only when the holding-to-stockout ratio h/p ≳ 0.20 (95% CI [0 .17 , 0.25] ), and is otherwise a stability and inventory-capital layer rather than a cost minimizer. We further validate robustness via calendar corruption, kernel misspecification, and timing-shift tests. 5. An Interpretability Diagnostic via Operator Theory. As a diagnostic—not a performance driver—we show that unconstrained Koopman/EDMD operators learned from retail demand are highly non-normal (transient growth 7–12 × above spectral prediction on M5, up to 45.9 × on Fa-vorita), yet attain operational performance indistinguishable from CD’s compact parametric kernel. This supports our modeling choice: a compact, interpretable operator loses nothing operationally against a diffuse learned one. The full analysis is deferred to Appendix V. 
+
+Scope and positioning. CD is not a replacement for existing forecasting pipelines but an operational decision-support layer that runs alongside them; it reduces total inventory cost only in holding-dominated regimes ( h/p ≳ 0.20 ), and otherwise trades expected cost for operational stability and lower inventory capital. It is a conditional framework: it requires knowledge of future promotional and SNAP calendars, and reverts to baseline-only forecasting when they are unknown. 32 Related Work 
+
+Our framework sits at the intersection of predictive machine learning, econometric structural models, and convex signal decomposition. We explicitly position Contextual Deconvolution within the classical literature it builds upon. 
+
+2.1 Machine Learning and the Bullwhip Effect 
+
+Modern retail forecasting is dominated by gradient-boosted decision trees (Chen & Guestrin, 2016) and deep autoregressive models (Salinas et al., 2020; Wen et al., 2023). As demonstrated in the M5 Forecasting Competition, these models excel at minimizing point-wise statistical errors (RMSE) over massive, hierarchical datasets. However, supply chain operations are highly sensitive to demand volatility propagation, where unsmoothed forecasts inflate upstream safety stock and order variance (Lee et al., 1997; Macdonald & Waller, 2003; Fransoo & Wouters, 2000). Standard autoregressive models leave more volatility in the forecast than necessary because they map raw features directly to targets without structural constraints, conflating transient shocks with structural shifts. 
+
+2.2 Inventory-Aware and Newsvendor-Aware Learning 
+
+A growing body of work integrates inventory costs directly into the learning objective rather than treating them as a post-forecast operational step. Oroojlooy et al. (2020) train deep reinforcement-learning agents to minimize lost sales and holding costs end-to-end, bypassing explicit forecasting. Bertsimas & Kallus (2020) formulate the newsvendor problem with features and show that cost-sensitive learning can outperform two-stage predict-then-optimize pipelines. Recent work at the intersection of ML and operations research learns quantile forecasts or directly optimizes for inventory cost surrogates (Ban & Rudin, 2019). These methods target the decision layer; CD targets the decomposition layer, providing an interpretable structural baseline and sparse shock vector that feeds into any downstream inventory optimizer. The two approaches are complementary: CD reduces the input volatility that inventory-aware methods must handle. 
+
+2.3 Structural Time Series and Transfer Function Models 
+
+The transfer-function formulation we adopt (Eq. (1), §3) is not new. Transfer function models (Box & Jenkins, 1970; Box et al., 2016) and dynamic linear models (DLMs) (Harvey, 1990; Durbin & Koopman, 2012) have long represented endogenous variables as convolutions of exogenous shocks with parametric impulse responses. ARIMAX and ETS with regressors (Hyndman & Khandakar, 2008) are standard tools for incorporating covariates. Distributed lag models (Lütkepohl, 2005; Shumway & Stoffer, 2017) explicitly model delayed effects via lagged exogenous variables. What classical methods lack is (1) a principled regularization mechanism separating transient shocks from smooth baselines at scale, and (2) a hierarchical pooling mechanism making per-SKU deployment feasible for sparse event histories. CD is a regularized, scalable implementation of the transfer function framework: ridge shrinkage in the distributed lag regression, plus a smoothness-plus-sparsity convex decomposition replacing the classical residual-with-ARMA structure. 
+
+2.4 Supply-Chain-Native Forecasting 
+
+In intermittent-demand settings, Croston’s method (Croston, 1972) and the SBA correction (Syntetos et al., 2005) are the standard baselines for separating demand size from inter-arrival intervals. These methods are designed for sporadic, lumpy demand, not for the frequent but transient promotional surges characteristic of FMCG. They do not model delayed carryover or cannibalization effects. CD complements these methods by targeting the opposite regime: high-frequency, event-driven demand with structured temporal dynamics. 42.5 Convex Signal Decomposition and Trend Filtering 
+
+Decomposing a time series into structural and transient components is a canonical problem in signal process-ing. Foundational methods like the Hodrick-Prescott filter, ℓ1 Trend Filtering (Kim et al., 2009; Tibshirani, 2014), and Robust PCA (Candès et al., 2011; Chandrasekaran et al., 2011) separate data into low-rank (baseline) and sparse (anomalous) matrices. Classical decomposition assumes an identity forward operator (A = I), treating anomalies as instantaneous, which fails for multi-day promotional footprints. Econometric DLMs and Hawkes processes capture delayed dynamics but suffer multicollinearity and prohibitive likelihood estimation at enterprise scale. 
+
+2.6 Scalable Time-Series Decomposition and Industrial Forecasting 
+
+Amazon’s DeepAR (Salinas et al., 2020) trains global probabilistic models on millions of SKUs. Uber’s Orbit (Ng et al., 2020) implements Bayesian exponential smoothing at scale with hierarchical pool-ing. Decomposition-based transformers—Autoformer (Wu et al., 2021), FEDformer (Zhou et al., 2022), TimeMixer (Wang et al., 2024)—use learned neural modules to separate trend and seasonality, and N-BEATS /N-HiTS (Oreshkin et al., 2019; Challu et al., 2023) model hierarchical seasonality via basis expan-sions. These methods achieve strong statistical accuracy but require GPU clusters, stochastic training, and dedicated ML infrastructure. CD occupies a different point in the design space. Rather than replacing classical econometrics with deep learning, we regularize and scale it: distributed lag regression with ridge shrinkage plus a convex smoothness-plus-sparsity decomposition makes transfer-function estimation feasible on tens of thousands of SKUs without per-SKU training or GPU resources. The decomposition is explicit, not latent: the recovered baseline and shock vectors are directly interpretable, and the kernel parameters have physical meaning (surge rate, vacuum rate, decay). This positions CD as an interpretable, CPU-runnable alternative to deep learning at scale. 
+
+2.7 Promotion-Effect Decomposition in Marketing Science 
+
+The decomposition of retail demand into a smooth baseline plus promotional uplift with carryover and post-promotion dips is standard in marketing science and commercial demand-planning systems. van Heerde et al. (2000) estimate pre- and post-promotion dips from store-level scanner data using distributed-lag models with explicit baseline and event components. Hendel & Nevo (2006) document the "post-promotion dip puzzle"— the dip is often masked by other dynamic effects in aggregate data. Neslin & van Heerde (2008) provide a comprehensive review of sales promotion models including base-lift decomposition with carryover. These methods typically rely on explicit model specification with ARMA residuals, and they do not incorporate the convex regularization and hierarchical pooling that CD introduces. Our contribution is not the decomposition itself but a regularized, poolable, CPU-scale implementation that makes the classical base-lift architecture feasible for catalogs with tens of thousands of SKUs. 
+
+# 3 Method: Contextual Deconvolution via Kernel-Modulated Operators 
+
+We formulate demand sensing not as predictive regression over raw observations, but as an inverse problem 
+
+in which we recover latent demand components from observed signals. This framing explicitly separates stable demand from transient shocks. 
+
+3.1 Inverse Problem Formulation 
+
+Let the observed demand signal be b ∈ RT . We model b as a superposition of two latent trajectories mapped through forward operators: 
+
+b = Abase xbase + Aspec (θ)xspec + ε, ε ∼ N (0, σ 2I), (1) where xbase ∈ RT is a smooth structural baseline, xspec ∈ RT is a sparse transient signal, and Aspec (θ) is a context-modulated operator parameterized by kernel hyperparameters θ. We fix Abase = I to preserve interpretability. 5We recover regularized estimates of the latent trajectories by solving the convex optimization problem:     
+
+> min
+> xbase ,xspec
+> ∥b−(xbase +Aspec xspec )∥22
+
+︸ ︷︷ ︸ 
+
+> Fidelity
+> +λsmooth ∥Lxbase ∥22
+
+︸ ︷︷ ︸ 
+
+> Smoothness
+> +λsparse ∥xspec ∥1
+
+︸ ︷︷ ︸ 
+
+> Sparsity
+> .(2)
+
+Identifiability. The decomposition is not strictly identifiable without regularization: infinitely many pairs (xbase , xspec ) explain the observations. However, under a mutual incoherence condition on the event calendar—requiring that no individual event’s impulse-response pattern be well-approximated by a smooth signal—the smoothness-plus-sparsity prior yields support identification (no false inclusions, and sign re-covery under a minimum-signal condition) and a baseline error decomposing into smoothing bias, kernel propagation, and a noise floor (Theorem 1, Appendix D). The smoothness and sparsity penalties 1 select a regularized estimate that is stable for downstream planning. We stress that these guarantees characterize an idealized regime—Theorem 1’s mutual-incoherence and minimum-signal conditions are demanding and certify recovery only of shocks large relative to the seasonal residual—and our empirical conclusions do not depend on them holding exactly. Each theorem instead has a measured proxy we report: recovered shock sparsity (Theorem 1; median 1.4–1.9 non-zeros), the structural-stream Variance Ratio (Theorem 2), and the near-identical category- vs. global-pooled results at full catalog scale (Theorem 3, Table 4). 
+
+3.2 Structural Baseline and Derivative-Based Smoothness 
+
+The smoothing operator L is a stacked finite-difference operator penalizing discrete derivatives. Crucially, 
+
+L explicitly omits the identity matrix I, avoiding ridge shrinkage bias that would pull the baseline toward zero regardless of true demand level. 
+
+3.3 Context-Modulated Banded Operators 
+
+Classical decomposition assumes A = I (instantaneous shocks) or a Toeplitz matrix (constant impulse response). In FMCG, neither holds: a Black Friday promotion has a different temporal footprint than a quiet Tuesday promotion. One might therefore learn the operator directly from data. However, operator-theoretic analysis reveals a structural obstacle. 
+
+The non-normality problem. EDMD-learned Koopman operators on promotional demand are spectrally stable ( ρ < 1) but highly non-normal: the ϵ = 10 −1 pseudospectral contour crosses the unit circle, and the numerical abscissa ω(K) exceeds the spectral abscissa α(K) by up to 1.40 (Appendix V). This non-normality induces transient growth 7–12 × above the spectral prediction on M5 (up to 45.9 × in the most extreme Favorita category, 10.2 × globally), diffusing the impulse response across lags into a flat, less in-terpretable pattern. This is not an artifact of the degree-2 lifting: across linear, quadratic, full-quadratic, and cubic observable dictionaries the operator remains strongly non-normal, with the transient-growth fac-tor increasing monotonically with basis richness (from 2.4 under a linear basis to 12 .7 under the quadratic basis; Appendix V, Table 20). The degree-2 value we use is thus conservative, and the non-modal transient response is a property of the underlying promotional-demand dynamics. 
+
+Parametric family as an interpretable inductive bias. Rather than learning an unconstrained opera-tor, we restrict the forward map to a low-dimensional parametric family that avoids the non-normal diffusion, yielding a compact, physically interpretable form. The family must capture (i) an immediate demand surge at the event day, (ii) gradual carryover over subsequent days, and (iii) optional post-promotion cannibalization. These requirements motivate the surge-and-vacuum Difference-of-Exponentials (DoE) kernel. 
+
+Supply-Chain Kernel Families. 
+
+The DoE kernel enforces α > β > 0 and τ1 < τ 2, guaranteeing an immediate positive surge at k = 0 followed by a slower negative tail at larger k. Because the kernel itself is signed, a positive latent shock can generate negative observed demand at future lags, modeling post-promo cannibalization without manual “demand dip” features. Empirical validation. On real M5 data, category-level empirical kernels do not exhibit a negative region (Appendix T); the post-promotion dip is not detectable without controls for feature and 
+
+> 1Median non-zeros range from 1.4 on low-eventfulness SKUs (Appendix L) to 1.9 for the two-stage estimator overall, versus 95.6 under joint optimization (Appendix R.4) across the evaluated sample.
+
+6Table 1: Supply-Chain Kernel Families 
+
+# Event Dynamics Kernel Family Formula ( k ≥ 0) Parameters Instantaneous shock Impulse ϕ(k) = I[k = 0] None Gradual carryover Exponential decay ϕ(k; τ ) = e−k/τ τ > 0
+
+# Surge-and-vacuum Diff. of Exponentials αe −k/τ 1 − βe −k/τ 2 α > β ≥ 0, τ 1 < τ 2
+
+Table 2: Data-driven kernel bandwidth on M5. The empirical promotional impulse response is estimated to lag 28 (median across SKUs); the default n = 14 captures ≥ 94% of its energy in every category and exceeds the longest actionable-carryover lag.                              
+
+> Category SKUs IR energy by n=14 Carryover >10% peak Foods 249 0.999 lag ≤1(impulsive) Household 157 0.983 lag ≤1(impulsive) Hobbies 94 0.944 lag 10
+> Global 500 0.995 lag ≤1(impulsive)
+
+display effects, consistent with Hendel and Nevo’s masking argument. The vacuum component is therefore an inductive bias that regularizes the tail to zero, not an empirically recovered feature. A pure exponential decay (always positive) yields comparable sparsity (Appendix R.3), confirming the operational benefits come from smoothness and carryover decay. 
+
+Bandwidth selection. The kernel lag n is not tuned to a downstream metric. Estimating the empirical promotional impulse response on 500 M5 SKUs out to 28 lags—twice the default—shows the response is dominated by the event day plus a short carryover: the median impulse response exceeds 10% of the event-day peak only up to lag 10 (hobbies; foods, household, and the global pool are near-impulsive, falling below 10% 
+
+immediately after the event day), while a 14 -lag window already captures ≥ 94% of the impulse-response energy in every category ( 99 .5% globally; Table 2). The default n = 14 (a two-week horizon) thus sits comfortably above the longest actionable carryover. The residual is a low-level flat tail—below 10% of peak but persistent—that the parametric kernel deliberately omits by decaying to zero (Appendix T) and that the smooth baseline absorbs. Because the response is estimated over a 28 -lag window rather than 14 , the analysis does not assume its own conclusion; it is reproducible via run_bandwidth_analysis.py .With the parametric family fixed, we construct Aspec (θ) as a context-modulated banded matrix where each sub-diagonal is modulated by exogenous features. For each event type m ∈ M with binary indicator 
+
+fm and causal kernel ϕm(k; θm):
+
+Aspec (θ) = ∑
+
+> m∈M
+> n
+
+∑
+
+> k=0
+
+ϕm(k; θm) Sk diag( fm), (3) where Sk is the causal shift matrix with 1s on the k-th sub-diagonal. 
+
+Source-Modulated Propagation. Equation (3) reveals that the contribution arriving at day t from lag k
+
+is modulated by the feature value at the source time t − k, not the receiver time t. This aligns with supply chain dynamics: a Tuesday promotion carries over differently because Tuesday’s consumer behavior differs from Friday’s. The parametric DoE kernel achieves operational performance indistinguishable from the data-driven EDMD operator on the same 200-SKU evaluation subset (median VR 0.0006 for both on M5) while offering inter-pretable parameters and low non-normality by construction. Specifically, its bandedness confines the impulse response to the kernel support, whereas EDMD’s dense non-parametric estimation spreads energy across all lags (see Appendix V for the Henrici-number analysis). 73.4 Why This Is an Inverse Problem, Not Additive Regression 
+
+The distinction from additive regression is structural: the forward map is xspec 7 → Aspec xspec , a causal convolution, not the identity. A single shock propagates through Aspec to influence future timesteps; delayed dynamics are a consequence of the same shock, not separate features. Because Aspec is lower-triangular with non-zero diagonal, the forward map is invertible. For fixed Aspec and λsmooth > 0, Problem (2) is convex (Appendix A) and the regularized recovery is well-posed; the ℓ1 sparsity prior selects a minimal-norm representative from the solution set. The operator Aspec can be viewed as a compact, interpretable approximation to the Koopman operator governing promotional demand. Theorem 2 (Appendix D) bounds the baseline recovery error under operator perturbation; the non-normality of the data-driven Koopman operator (Appendix V) motivates preferring a compact parametric family on interpretability grounds. 
+
+What CD optimizes that ARIMAX cannot. ARIMAX estimates a single predictive model: it regresses demand on lagged endogenous terms and exogenous dummies, producing a forecast but not a decomposed baseline-plus-shock representation. The ARIMAX forecast is a single trajectory; there is no separate sparse shock vector to inform event-specific safety stock, and no smooth baseline for stable capacity planning. CD’s convex decomposition (Problem (2)) jointly enforces smoothness on the baseline and sparsity on the shocks, recovering two interpretable streams. Theorem 1 guarantees that under a mutual incoherence condition, the shock support is recovered exactly—something ARIMAX, which lacks an ℓ1 sparsity prior, does not naturally provide. This is not merely a modeling convenience: the decomposed streams are directly actionable for downstream S&OP and safety-stock optimization, whereas ARIMAX outputs a single forecast that must be post-processed. Data-driven alternatives like Cross-Correlation Function (CCF) fail because multi-day promo blocks convolve with their own autocorrelation, blurring lag signatures, and because CCF requires a residual r = b − xbase ,creating a circular dependency when Aspec = I forces all carryover into the event day. On synthetic data with a known DoE kernel, our two-stage method achieves 6.5× lower recovery error than CCF (Appendix Q). We resolve this through a two-stage estimation procedure :
+
+Stage 1: Robust Detrending. Extract a robust trend ˆμ by solving 
+
+min 
+
+> μ
+> T
+
+∑
+
+> t=1
+
+ρHuber (b[t] − μ[t]) + λsmooth ∥Lμ∥22, (4) where ρHuber downweights extreme observations. The detrended residual is r = b − ˆμ.
+
+Stage 2: Distributed Lag Regression. Construct an augmented design matrix Φ ∈ RT ×K(n+1) contain-ing all event features and their causal lags up to n days. Estimate kernel coefficients via ridge regression: 
+
+min  
+
+> ϕ
+
+∥r − Φϕ∥22 + λkernel ∥ϕ∥22. (5) For parametric families, fit θm by nonlinear least squares against the empirical ˆϕm(k). The estimated kernels are then fixed to construct Aspec , and the convex decomposition (Problem (2)) is solved once. Note: The two-stage pipeline is a heuristic approximation. While the final decomposition is convex for fixed Aspec , the joint optimization of kernels and decomposition is not convex. We trade global optimality for scalability and interpretability. Theorem 2 (Appendix D) bounds the baseline recovery error and controls the temporal Variance Ratio of the structural stream through explicitly bounded estimation error. 
+
+3.5 Hierarchical Kernel Estimation via Partial Pooling 
+
+Per-SKU kernel estimation is statistically fragile: many SKUs have fewer than three promotional events in their history, making the empirical shock distribution too noisy to estimate a reliable kernel. In enterprise retail, this is the norm, not the exception. A catalog of 10,000 SKUs may contain thousands of items with sparse or zero event histories. 8We address this through partial pooling (hierarchical estimation): kernel parameters are estimated at multiple levels of aggregation and regularized toward a shared prior. For a category C containing SKUs 
+
+s ∈ C :1. Per-SKU estimation. For each SKU, estimate ˆϕs(k) via Stage 2. 2. Category pooling. Compute the category-level kernel as the median (or trimmed mean) across SKUs: ˆϕC (k) = median s∈C { ˆϕs(k)}.3. Global pooling. Compute the global kernel as the median across all SKUs: ˆϕglobal (k) =
+
+median s{ ˆϕs(k)}.4. Adaptive deployment. For SKUs with rich event histories ( nevents ≥ 10 ), use the per-SKU kernel with category shrinkage. For SKUs with moderate histories ( 3 ≤ nevents < 10 ), use the category-pooled kernel. For SKUs with sparse histories ( nevents < 3), use the global-pooled kernel. The median is chosen over the mean because it is robust to outlier SKUs whose individual kernels are corrupted by noise or idiosyncratic demand patterns. This design makes the method scalable to catalogs with tens of thousands of SKUs, many of which have sparse event histories, without requiring per-SKU tuning. Theorem 3 (Appendix D) proves that the pooled kernel concentrates around the category median up to the local heterogeneity scale, with failure probability decaying exponentially in |C| , and that pooling is beneficial when category heterogeneity is small relative to per-SKU estimation noise. 
+
+Why this matters. In experiments (§4.9), category-pooled and global-pooled kernels yield nearly identical reconstruction to per-SKU, with slightly improved RMSE from regularizing noisy individual estimates. Me-dian sparsity is zero for all three strategies, confirming the sparse prior is robust to pooling. The hierarchical design is a core requirement for enterprise deployment, not an afterthought. 
+
+3.6 Two-Stream Forecasting Architecture 
+
+Once decomposed, we forecast via two streams: Stream A extrapolates the smooth baseline (e.g., Holt-Winters); Stream B deterministically injects known future events via the fixed kernel. The final forecast is their superposition ˆbfuture = ˆ xfuture base + Afuture spec ˆxfuture spec . The baseline provides stable demand for capacity plan-ning; the transient stream enables operational staging for volatile events. Figure 4 (Appendix P) illustrates the architecture. 
+
+# 4 Experiments 
+
+4.1 Experimental Setup 
+
+We evaluate on three data regimes: (1) synthetic stratified data with known ground truth for falsification, (2) the M5 Forecasting Dataset (Walmart, 2011–2016) (Makridakis et al., 2022), and (3) the Favorita Grocery Sales Forecasting dataset (Kaggle, 2018). All evaluations use a strict temporal split: the last 28 days of each series are held out as test, and all model fitting, hyperparameter selection, and kernel estimation use only the preceding training period. On M5 this held-out window is the official validation horizon (days 1914 –1941 ); we source the training days ( 1–1913 ) from sales_train_validation.csv and take the test targets only from 
+
+sales_train_evaluation.csv , so the held-out days cannot enter any training computation by construction. Crucially, all forecasts are strictly out-of-sample: the convex decomposition is fit on the training window alone, and every baseline produces a genuine multi-step forecast (recursive for the gradient-boosted and distributed-lag models), so no method—CD included—observes any test-window demand. The only future information used at forecast time is the exogenous promotional and SNAP calendar, which is published in advance. 
+
+Information parity. To ensure the comparison isolates structural decomposition rather than access to exogenous information, every feature-based baseline—Tuned and Vanilla XGBoost, LightGBM, Prophet-like, 9Table 3: Evaluation protocol: which claim is supported by which dataset, sample size, and baselines. “AR-only” marks autoregressive baselines that do not receive the future calendar (see Information parity, and the Finding 4a caveat). 
+
+Claim / result Dataset N (SKUs) Baselines CD quality at catalog scale (Finding 1, Tab. 4) M5 30,490 — (CD, pooled kernel) CD vs. XGBoost VR/safety stock (Findings 1, 4a) M5 2,000 Tuned XGB, Vanilla XGB Full head-to-head accuracy (Tab. 5) M5 200 all 8 methods Paired VR vs. transformer (Finding 4a) M5 1,000 PatchTST (AR-only) Inventory cost & h/p crossover (Finding 4b) M5 100 Tuned XGB Cross-dataset generalization (Tab. 7) Favorita 2,845 Tuned XGB, ARIMAX Promo-density sensitivity (Tab. 11) M5 2,000 Tuned XGB 
+
+the distributed-lag ridge, and ARIMAX—receives the identical known future promotional/SNAP calendar that CD injects into its structural stream: the promo and SNAP indicators at each forecast day enter as covariates exactly as they do in CD. The flagship head-to-head (CD vs. Tuned XGBoost) therefore differs only in structural assumptions, not information. The deep sequence baselines (PatchTST, N-BEATS, DeepAR) are autoregressive by construction and consume only past demand; where CD outperforms them, part of the gap reflects CD’s use of the future calendar, and we flag those comparisons (Finding 4a) accordingly. 
+
+Baselines. Tuned and Vanilla XGBoost, XGBoost-DistributedLag (14 lags), LightGBM, PatchTST, Prophet-like, STL+ARIMA, ARIMAX, ETS, and ablations: Identity ( Aspec = I) and Non-Causal. In-termittent methods (Croston, SBA) are in Appendix. PatchTST on 1000 SKUs; deep learning baselines in Appendix H. 
+
+Metrics. wMAPE (ratio where 1.0 = 100% error), MASE ( <1 beats naive seasonal), RMSSE (M5-style), Variance Ratio (Bullwhip inflation), Order Variance ( Var(orders) /Var(actual) − 1 under base-stock), RMSE, and Safety Stock. All reported metrics are median across SKUs unless otherwise noted; means are mean ±
+
+std. Significance is assessed via Wilcoxon signed-rank tests with Bonferroni correction. Because different claims are supported at different catalog scales, Table 3 maps each result to its dataset, sample size, and the baselines it is compared against. Sample sizes vary by cost: the full 30,490-SKU sweep validates that CD’s own quality holds at catalog scale (kernel pooling, no per-SKU tuning), while the compute-heavy head-to-head baselines (trained per SKU) are run on representative subsets large enough for the paired significance tests reported below. 
+
+Reproducibility. All datasets, splits, and random subsets are seeded (seed 42), and every table and figure in this paper is regenerable from the released code 2 via a single command ( run_paper.py ), CPU-only. 
+
+4.2 Falsification Tests 
+
+Falsification tests on synthetic data (known ground truth, well-separated events) confirm that the kernel-modulated operator reduces the number of non-zero shocks by 70% versus the identity operator, VR stays below 1.0, and recovered baseline smoothness exceeds raw signal by 96%. Full parametric recovery is sensitive to event sparsity at small sample sizes; on real M5 data, per-category empirical kernels show sharp initial decay plus a persistent flat tail (Appendix T). 
+
+4.3 Scale Validation: CD on Full M5 (30,490 SKUs) 
+
+To eliminate cherry-picking concerns, we evaluate CD on the entire M5 catalog (30,490 SKUs) with a category-pooled kernel (one kernel per category: foods, household, hobbies). Kernel estimation is performed once on a representative subset of 500 SKUs, and the category kernel is applied to all SKUs in that category. Per-SKU evaluation (convex decomposition only, with pre-computed kernel) takes ∼0.13  
+
+> 2Anonymized repository: https://github.com/MohammadForouhesh/contextual-deconvolution .
+
+10 Table 4: CD Scale Validation on M5 
+
+# Dataset Statistic wMAPE Variance Ratio Safety Stock Full M5 (category pooled) Mean ± SD 1.04 ± 0.24 0.008 ± 0.13 0.038 ± 0.09 
+
+# Median 1.01 0.0007 0.016 
+
+# Full M5 (global pooled) Mean ± SD 1.04 ± 0.24 0.008 ± 0.12 0.038 ± 0.09 
+
+# Median 1.01 0.0007 0.016 
+
+Table 5: Baseline Comparison on M5 (200 SKUs, median). Intermittent-demand methods (Croston, SBA) produce near-constant forecasts by design, which drives the Variance Ratio to its degenerate minimum of 
+
+0 (zero forecast variance); they are omitted from the main comparison as they target a different demand regime.                                              
+
+> Method wMAPE MASE RMSSE VR Ord. Var ARIMAX 1.16 0.85 0.74 0.0016 −0.47 ETS 1.18 0.86 0.74 0.014 −0.47 Prophet-like 1.18 0.88 0.76 0.012 −0.50 DL-Ridge 1.21 0.88 0.76 0.035 −0.49 LightGBM 1.20 0.87 0.75 0.013 −0.51 Tuned XGBoost 1.20 0.88 0.76 0.015 −0.50 PatchTST 1.22 0.85 0.75 0.058 −0.53 CD 1.01 0.77 0.86 0.0005 −1.00
+
+seconds, yielding a total runtime of ∼40 minutes for the full catalog on a 16-core workstation ( 10 × speedup over per-SKU kernel estimation). Table 4 reports CD performance under two pooling strategies on the full 30,490-SKU catalog. The near-identical results (median wMAPE 1.01 and VR 0.0007 under both strategies) confirm that hierarchical pooling does not degrade quality: a category-level kernel estimated from 500 SKUs performs as well as a global kernel across the full catalog of 30,490 SKUs. This is the central scalability result: enterprises do not need per-SKU historical data to deploy the method. 
+
+Finding 1: Bullwhip Reduction at Scale. Across the full 30,490-SKU catalog ( 29 ,678 with a defined variance ratio, after excluding all-zero test windows), CD achieves median VR 0.0007 (mean 0.008 ± 0.13 ); the median is the relevant statistic because the mean is inflated by a tail of high-variance SKUs. The vanilla XGBoost baseline has median VR 0.36 (over two orders of magnitude higher), confirming that feature engineering alone is insufficient without structural decomposition. On a strictly out-of-sample 2,000-SKU subset, Tuned XGBoost achieves median wMAPE 1.14 and median VR 0.0135 (21 × higher than CD’s 
+
+0.0006 ); CD attains lower VR on 86 .1% of SKUs and lower safety stock on 90 .0% , confirming the operational gap persists at scale (Appendix I). 
+
+4.4 Comparison with Comprehensive Baselines 
+
+To benchmark against all baselines on a single, comparable population, we evaluate all methods on the same stratified subset of 200 M5 SKUs. Table 5 reports the results. 
+
+Finding 2: Reliability, not central tendency, is where structural decomposition pays. CD achieves the best wMAPE (1.02) and MASE (0.77) among all baselines evaluated on the 200-SKU sub-set (Table 5), including gradient-boosted and Transformer models. That median advantage is, by itself, unremarkable: the gap to the boosted and Transformer baselines is 1.02 versus 1.16 –1.21 at an operating point where every method exceeds 100% error, and we do not claim a large accuracy improvement from it. The substantive difference appears in the dispersion of per-SKU error rather than its centre. Across four independent draws of 2,000 M5 SKUs under the clean protocol (Table 6), the eleven methods differ by only 11 Table 6: Cross-sectional reliability on M5: the distribution of per-SKU wMAPE, not its centre. Mean ±
+
+SD over four independent draws of 2,000 SKUs (seeds 1, 2, 3, 42) under the clean protocol; the seed selects which SKUs are drawn from the 30,490-SKU catalog. “Blowups” are SKUs forecast with wMAPE > 2.0
+
+(> 200% error). Median accuracy is similar across methods; dispersion and catastrophic-failure rate are not. CD ranks first on both SD and blowup rate in every draw. Ordered by mean SD.                                                                                                                                                       
+
+> Method Family Median SD p99 Blowups (%)
+> CD —1.010 ±0.001 0.23 ±0.02 1.80 ±0.08 0.80 ±0.11
+> ARIMAX structural 1.114 ±0.017 1.11 ±0.32 4.75 ±0.36 9.94 ±0.39
+> ETS +cov. structural 1.111 ±0.014 1.17 ±0.28 4.78 ±0.38 10 .26 ±0.28
+> SBA intermittent 1.120 ±0.018 2.18 ±1.12 4.92 ±0.31 10 .08 ±0.65
+> STL +ARIMA structural 1.279 ±0.019 2.20 ±0.24 9.11 ±1.56 20 .60 ±0.90
+> Croston intermittent 1.130 ±0.020 2.30 ±1.18 5.13 ±0.33 10 .73 ±0.60
+> DL-Ridge structural 1.126 ±0.018 2.40 ±0.65 5.10 ±0.30 11 .60 ±0.57
+> LightGBM boosted 1.120 ±0.012 2.53 ±1.21 5.46 ±0.65 11 .51 ±0.78
+> Vanilla XGBoost boosted 1.230 ±0.023 2.60 ±0.84 7.87 ±0.17 20 .04 ±1.13
+> Tuned XGBoost boosted 1.123 ±0.013 3.11 ±1.87 5.35 ±0.48 11 .05 ±0.71
+> Prophet-like structural 1.127 ±0.015 4.51 ±1.32 5.58 ±0.19 12 .42 ±0.69
+
+0.10 –0.27 in median wMAPE, but by up to a factor of twenty in standard deviation ( 0.23 ±0.02 for CD versus 
+
+1.11 –4.51 ) and by an order of magnitude in catastrophic-failure rate: CD mis-forecasts by more than 200% 
+
+on 0.80% ± 0.11 of SKUs, against 9.9% –20 .6% for every baseline, in every method family. CD ranks first on both dispersion and blowup rate in all four draws. The nearest competitors are the well-specified structural models (ARIMAX, ETS), which are still 4.7× wider in dispersion and mis-forecast 12 × as often; gradient boosting is 11 –13 × wider. A properly specified SARIMAX—stationarity-tested differencing, AIC-selected orders, weekly seasonality—does not close this gap either (Appendix G). We also note that “structural” is not a coherent family on this axis: ARIMAX and ETS are the tightest baselines (SD 1.11 –1.17 ) while Prophet-like is the least reliable method tested (SD 4.51 ). CD is additionally the most seed-stable method—here each “seed” is an independent 2,000-SKU draw from the catalog, not a model initialization (CD is deterministic), so this measures robustness to which slice of the catalog the method meets: CD’s median varies by ±0.001 
+
+and its blowup rate by ±0.11 across draws, against ±1.87 SD-of-SD for Tuned XGBoost—so the dispersion of a learned model depends heavily on which slice of the catalog it meets, whereas CD’s does not. The smoothness-plus-sparsity prior bounds how badly the forecast can behave on any individual series; a learned model with no such prior can and does fail without limit on the difficult tail of the catalog. For a planner, a method that is never catastrophically wrong is worth more than one that is marginally better at the median. Absolute SKU-level errors remain high for all methods (wMAPE > 100% ), reflecting the inherent difficulty of daily SKU-level FMCG forecasting with intermittent promotions and short histories; the paired win-rate confirms the central-tendency gap is real but small (CD attains lower wMAPE on 58% of the clean 2,000-SKU subset—a common-language effect size of 0.58 ; at n = 2 ,000 the Wilcoxon p ≈ 3 × 10 −36 certifies only the direction of this gap, not a large magnitude). Two distinct tails. The reliability result above concerns the cross-sectional tail—how badly a method can fail on the worst SKUs—and CD wins it. CD simultane-ously loses the temporal tail, the spike days within each series: on RMSSE it scores 0.84 against 0.74 –0.76 
+
+for LightGBM, DL-Ridge and Prophet-like, and 0.73 –0.74 for Croston/SBA. Squared-error scaling punishes exactly the promotional-spike under-coverage that produces CD’s stockout losses (Finding 4b). Both effects follow from the same smoothing: it bounds the damage across series while systematically under-covering events within a series. This is the sharper statement of the accuracy–stability trade-off, and it dictates where the method belongs—catalog-wide planning stability, not high-revenue spike coverage. CD achieves the lowest Order Variance ( −0.99): replenishment orders from CD forecasts have 99% less variance than ac-tual demand. Croston and SBA achieve competitive MASE/RMSSE (0.73–0.86) but produce near-constant forecasts whose VR collapses to the degenerate minimum of 0, trivially suppressing variance by ignoring event structure. Excluding those degenerate cases, CD attains the lowest VR ( 0.0005 )—below ARIMAX (0.0016 ), the tightest structural model—together with the best wMAPE ( 1.01 ) and Order Variance ( −0.99 ). CD thus leads every non-degenerate baseline on three of the four axes (wMAPE, VR, order variance) while conceding the fourth, RMSSE, to the same spike under-coverage described above: its smoothing is the only one that minimizes variance without collapsing to a near-constant forecast, but it does so at the cost of 12 temporal spike accuracy. It is therefore not Pareto-optimal—ARIMAX and the boosted models dominate it on RMSSE—but it is the single best choice whenever cross-sectional stability and order variance are the objective. The consistent pattern: maximal smoothing reduces variance but increases under-coverage of sharp spikes. 
+
+Finding 3: Statistical-Operational Tradeoff. On a clean, strictly out-of-sample 2,000-SKU subset, Tuned XGBoost achieves median wMAPE 1.14 and VR 0.0135 (21 × higher than CD) despite receiving the identical future calendar. On 200 SKUs, PatchTST (autoregressive; no future calendar) achieves median wMAPE 1.21 and median VR 0.052 —roughly 140 × CD’s 0.0004 on the same subset (CD median wMAPE 
+
+1.01 ; Appendix H). These results confirm operational overfitting is not specific to gradient boosting; even a state-of-the-art Transformer produces inflated-variance forecasts. Structural decomposition, not the ML paradigm, suppresses variance inflation. On the 200-SKU paired subset, CD achieves both better wMAPE and lower VR than every structural model (e.g. ARIMAX: VR 0.0016 , wMAPE 1.16 , versus CD’s 0.0005 
+
+and 1.01 ). The safety stock dimension favors CD decisively (Finding 4b). 
+
+Finding 4a: Paired VR Analysis. On the strictly out-of-sample 2,000-SKU subset (a fixed random sample, seed 42; the same subset underlies all 2,000-SKU comparisons in this section), CD attains lower VR than Tuned XGBoost on 86 .1% of SKUs, with median paired difference −0.013 (Wilcoxon signed-rank 
+
+p < 10 −100 ); negative values indicate lower VR (less Bullwhip inflation). Because both methods receive the identical future calendar (see Information parity above), this gap reflects structural decomposition rather than access to exogenous information. We do not report a paired VR comparison against the deep sequence baselines: they are autoregressive and do not consume the future calendar (Finding 3), so any VR gap would be uninformative about the decomposition. 
+
+Finding 4b: Operational Stability and the Smoothing Trade-Off. Under a simulated daily base-stock policy (lead time = 7 days, stockout cost p = $10 /unit), CD carries less safety stock (lower on 91% of SKUs; median 0.016 vs. 0.097 for Tuned XGBoost) and lower holding cost (lower on 97% ), but its aggressive smoothing under-provisions promotional spikes, yielding roughly 2.9× the stockout cost (CD’s stockout cost is lower on only 4% of SKUs; Table 15). The higher stockout cost and the lowest Order Variance ( −0.99 )are the same phenomenon: minimal order variance and under-coverage during promotions are two faces of the same smoothing. Whether the trade-off is favorable therefore depends on the holding-to-stockout ratio h/p . On 1,000 SKUs, Figure 2 sweeps median average daily cost per SKU: below the crossover Tuned XGBoost is cheaper (at h/p = 0 .1, $4.82 vs. $4.01—CD 20% higher ; at h/p = 0 .15 , $5.88 vs. $5.49), and CD becomes cost-optimal above it (at h/p = 0 .2, $6.92 vs. $6.89; at h/p = 0 .3, $8.93 vs. $9.56). A SKU-level bootstrap places the crossover at h/p = 0 .20 (95% CI [0 .17 , 0.25] , B = 2000 ; a crossover exists in every resample). In typical grocery retail, where stockouts are costly relative to holding ( h/p small), CD does not minimize expected total cost; its operational value is variance stability and reduced inventory capital, not cost reduction. This is an honest, strictly out-of-sample assessment (§4.6): neither CD nor the baseline observes test-window demand. 
+
+Finding 4c: What the carryover kernel contributes. A sharp ablation replaces the learned kernel with an impulse operator ( Aspec = I): the identical two-stream forecaster (smooth baseline plus deterministic calendar injection), but shocks are placed only on the event day, with no carryover. On the full 2,000-SKU M5 sample the two are operationally indistinguishable (median VR 0.0006 learned vs. 0.0007 impulse; median wMAPE 1.010 for both), because the M5 global promotional response is itself near-impulsive (estimated kernel [1 , 0.08 , −0.01 , . . . ]; Table 2). This localizes CD’s operational advantage over gradient boosting to the structural decomposition —a smooth baseline plus sparse, calendar-driven shocks—rather than to the specific carryover shape. The kernel is not idle, however. On the hobbies category, whose empirical response carries 23 .5% of its energy beyond the event day (kernel [1 , 0.49 , 0.24 , 0.11 , . . . ]), the category kernel beats the impulse operator on VR (median 0.0014 vs. 0.0018 ; lower on 66 .8% of 748 SKUs), wMAPE ( 1.060 
+
+vs. 1.072 ; lower on 72 .3% ), and safety stock ( 0.028 vs. 0.032 ). The same pattern holds on Favorita: the estimated on-promotion kernel is near-impulse ( [1 , 0.13 , −0.01 , . . . ], carryover energy 0.02 ), so the operator has little to contribute beyond the structural decomposition (CD median VR 0.0072 , wMAPE 0.931 )— Favorita’s daily promotional response carries little multi-day footprint. The kernel is thus a data-derived 
+
+component that reduces to an impulse wherever the empirical response is impulsive (all of Favorita, and the foods/household majority of M5) and adds measurable accuracy and stability where genuine multi-day 13 Figure 2: Cost-ratio sweep on 1,000 M5 SKUs (strictly out-of-sample): median average daily cost per SKU (holding + stockout) versus holding-to-stockout cost ratio h/p (stockout cost fixed at $10/unit, holding cost varied). Tuned XGBoost is cheaper below the crossover h/p ≈ 0.20 (95% bootstrap CI [0 .17 , 0.25] , shaded); CD is cost-optimal above it, i.e., when inventory-carrying costs exceed ∼20% of stockout costs. Below this threshold CD’s smoothing raises total cost by under-provisioning promotional spikes. carryover is present (the M5 hobbies category, above). The operator is therefore genuinely data-derived : it reduces to an impulse where promotions are impulsive (all of Favorita, and the foods/household majority of M5), and improves accuracy, variance, and safety stock together where carryover exists (M5 hobbies), never degrading the impulsive case. CD’s operational advantage over gradient boosting is, throughout, carried by the structural decomposition rather than by the specific carryover shape (full ablation in Appendix T.1). 
+
+4.5 Large-Scale Evaluation on Favorita (2,845 Items) 
+
+Table 7: 28-Day Forecast Performance and Bullwhip Mitigation on Favorita (2,669 paired items, global pooled kernel; mean ± std, VR and safety stock as median) 
+
+Method wMAPE RMSE VR (median) Safety Stock (median) Tuned XGBoost (2,669 items) 1.07 ± 2.33 4.76 ± 11 .28 0.0395 0.540 
+
+CD (2,681 items) 0.95 ± 0.34 6.35 ± 12 .90 0.0072 0.206 
+
+Mean vs. median. Tuned XGBoost’s mean wMAPE ( 1.07 ±2.33 ) sits above its median ( 0.806 ), because near-zero-demand items inflate the relative-error metric. CD’s mean and median are much closer ( 0.95 vs. 0.931 ), as structural decomposition stabilizes low-volume forecasts. VR is reported as median only; of the 2,845 items with sufficient history, those with test-period variance below 0.5 are excluded, leaving 2,681 CD and 2,669 paired items. 
+
+Finding 5: Cross-Dataset Consistency. On 2,845 Favorita items, CD achieves median VR 0.0072 . On a paired subset, Tuned XGBoost achieves slightly better median wMAPE ( 0.806 vs. 0.931 ) but dramatically higher VR ( 0.0395 vs. 0.0072 , 5.5×). CD wins on VR for 74 .5% of items (matched-pairs rank-biserial rrb =0.61 ; the Wilcoxon p = 4 .4 × 10 −165 certifies the direction of the gap at this sample size, not its magnitude). 14 Tuned XGBoost achieves competitive wMAPE because Favorita’s promotion and holiday calendar is less structured than M5’s, making the fixed kernel less adaptive than gradient boosting. Its VR is also higher on Favorita than on M5 ( 0.0395 vs. 0.0135 ): the promotion signal drives larger swings that a reactive forecast tracks and inflates, whereas CD’s smoothing absorbs them. The 5.5× VR gap confirms structural decomposition yields superior operational stability regardless of which method wins on statistical accuracy (Figure 6, Appendix R). Against structural baselines on a 90-item Favorita subset (Appendix S), ARIMAX with promotional dummy regressors achieves the best accuracy—median wMAPE 0.708 versus CD’s 0.874 —reflecting that well-spaced predictable events are well-captured by simple structural models. On the operational metrics CD leads: it attains the lowest median Variance Ratio ( 0.0050 , below ARIMAX’s 0.0074 and far below ETS’s 0.121 and Prophet-like’s 0.153 ) and the lowest median safety stock ( 0.497 ), carrying less stock than ARIMAX on 87 .8% 
+
+of items, than ETS on 96 .7% , and than Prophet-like on 87 .8% . CD remains the only method that maintains low VR across both the dense promotional calendar of M5 and the holiday calendar of Favorita without per-SKU tuning or GPU resources. 
+
+4.6 Variance Ratio: Definition, Justification, and Limitations 
+
+VR = Var(forecast) /Var(actual) measures scale-invariant operational volatility ( ρ = 0 .692 with safety stock): VR < 1 indicates the forecast damps demand variability (less Bullwhip), VR > 1 indicates amplification, and a flat forecast trivially attains VR → 0. (This differs from Order Variance, Var(orders) /Var(actual) −1, which is the corresponding order -level quantity.) Because VR is minimized by a degenerate constant forecast, we always report it alongside wMAPE and exclude near-zero-variance items; see Appendix U for full justification. 
+
+4.7 Failure Case Analysis 
+
+No method is universally superior. On 200 M5 SKUs, CD loses to Tuned XGBoost on VR for 3 SKUs (1.5%) where the event signal is too weak for the sparse shock model to activate. On Favorita, no items exhibit this failure mode, likely because the holiday calendar provides stronger event signals. 
+
+4.8 Robustness and Structural Validation 
+
+CD’s baseline forecast tolerates 25% calendar corruption, though the recovered shock vector degrades under corruption (Appendix O); the ±3-day timing-shift test is uninformative on these low-eventfulness SKUs, where the shock stream is nearly inert (Appendix L). On real M5 data (denser, less-separable events) the kernel-modulated operator reduces the number of non-zero shocks by 27% versus the identity operator (Appendix M); the smaller reduction than on synthetic data reflects the harder real-world event structure. On synthetic data, misspecified gamma kernels fail to capture post-event dips, but on real M5 data the dip is not detectable at category level and pure exponential decay suffices (Appendix T). A purely data-driven Koopman operator (EDMD) recovers spectrally stable but highly non-normal dynamics (transient growth 7–12 × above the spectral prediction on M5, up to 45.9 × on Favorita); the parametric DoE kernel matches its operational variance while avoiding this diffusion by construction, yielding a compact, planner-interpretable form (Appendix V). Across 30–70% calendar corruption, CD’s wMAPE stays flat ( 1.02 –1.04 ) and its VR near zero (Figure 3), while feature-based baselines remain orders of magnitude less stable. Stratifying 2,000 SKUs into density tertiles, CD’s variance-ratio (win-rate 80 –91% ), safety-stock ( 83 –95% ), and accuracy ( 60 –
+
+65% ) advantages over Tuned XGBoost hold in every stratum, including the densest; the residual trade-off is inventory cost under a low holding-to-stockout ratio, governed by the h/p ≈ 0.20 crossover (Appendix J). 
+
+4.9 Partial Pooling: Empirical Validation 
+
+Per-SKU kernel estimation is statistically fragile for sparse-event SKUs (§3). We empirically validate the hierarchical design on 200 M5 SKUs, comparing Per-SKU, Category-Pooled, and Global-Pooled strategies. Category-pooled and global-pooled kernels yield nearly identical results to per-SKU (wMAPE 1.086 vs. 1.053 ,a 3% relative increase; VR unchanged; full table in Appendix R.7). This means the pipeline does not require per-SKU historical data: a single kernel per category (or even global) suffices. 15 Figure 3: Left: Gamma kernel (always positive) fails to capture the post-event dip on synthetic signed ground-truth data. Right: Calendar corruption on 50 M5 SKUs (95% CI): CD wMAPE stays flat ( 1.019 →
+
+1.039 across 0–50% corruption), VR near zero ( 0.002 –0.008 ); Vanilla XGBoost, by contrast, has median VR two orders of magnitude higher even with the uncorrupted calendar (Finding 1). 
+
+Scalability and Systems. The full pipeline runs at ∼2.0 seconds per SKU on one CPU core, dropping to ∼0.13 seconds with a pre-computed pooled kernel (§4.3). Memory footprint is lightweight: the Stage 2 design matrix ( T ×K(n+1) , 1.2 MB per SKU for T = 1 ,941 , K = 5 , n = 14 ) keeps peak memory under 4 GB with 16 parallel workers. GPU acceleration is unnecessary: all stages use sparse linear algebra, tridiagonal solving, and ridge regression efficiently vectorized on CPU. 
+
+Integration into existing pipelines. CD is a drop-in post-processor: from a SKU-level series plus a locked future calendar it returns a smooth baseline ˆxbase (feeding MRP/S&OP planning), a sparse shock vector ˆxspec (enabling event-specific safety stock), and the fixed kernel Aspec . The API is stateless—kernel estimation runs once per category and per-SKU decomposition is a pure function of the series and shared kernel—so CD slots into existing ETL via nightly batch jobs with no per-SKU training state to persist. Ablation studies confirm that removing the kernel structure degrades sparsity by 27%, non-causal operators are structurally prohibited to prevent future-peeking, pure exponential decay yields sparsity comparable to the signed DoE kernel, and joint optimization produces dense, uninterpretable shocks (95.6 non-zeros vs. 1.9 for two-stage) despite marginally better VR (Appendix R.4). 
+
+# 5 Conclusion and Future Work 
+
+In this paper, we demonstrated that on supply chain datasets with strong delayed exogenous shocks, stan-dard autoregressive ML models exhibit higher operational variance than forecast accuracy suggests. We introduced Contextual Deconvolution , a framework that reframes demand sensing as a scalable con-vex decomposition of transfer-function dynamics with kernel-modulated operators. By separating transient shocks from structural demand through an operator-based decomposition, we reduce forecast and order variance without requiring a new forecasting model per SKU. Empirical evaluation on 30,490 M5 SKUs and 2,845 Favorita items showed that CD achieves the lowest order variance and competitive accuracy among methods with near-zero variance across both promotional and holiday calendars. On M5, CD attains the best median wMAPE, the lowest order variance, and— among non-degenerate methods—the lowest Variance Ratio (below ARIMAX and every boosted baseline on the 200-SKU comparison), though its accuracy advantage is modest in absolute terms (a 58% paired win-rate at an operating point where every method exceeds 100% error). On Favorita (holiday-driven), Tuned XGBoost achieves slightly better wMAPE but CD still achieves substantially lower order variance, 16 confirming operational stability gains are robust even where the fixed kernel is less adaptive than gradient boosting. ARIMAX with promotional dummy regressors achieves lower wMAPE on Favorita’s well-spaced holiday calendar—though CD retains marginally lower Variance Ratio and lower safety stock—confirming that simple structural models remain competitive on accuracy when events are predictable. The pattern is conditional on environments with delayed exogenous shocks, and the trade-off is explicit: CD’s smoothing reduces safety stock, holding cost, and order variance but under-provisions event-driven demand spikes, so total cost depends on the holding-to-stockout ratio. In a strictly out-of-sample evaluation on 1,000 SKUs, CD minimizes total cost only when h/p ≳ 0.20 (95% bootstrap CI [0 .17 , 0.25] ; Figure 2); in the more common stockout-dominated regime its value is order stability and reduced inventory capital, not cost reduction. Appendix V shows that promotional demand exhibits non-normal Koopman dynamics; the parametric kernel provides a compact, interpretable alternative that avoids this diffusion. 
+
+Broader Impact. Lower safety stock reduces the capital tied up in inventory, but CD minimizes total cost only when holding costs exceed ∼20% of stockout costs (the h/p ≈ 0.20 crossover of Figure 2); in the more common regime where stockouts dominate, the penalty from CD’s under-provisioning outweighs the holding savings. CD should therefore be deployed where operational stability and inventory-capital efficiency are the objective, not as an expected-cost minimizer. We leave direct measurement of waste and emissions reduction to future industrial deployment. 
+
+Limitations. CD is a conditional forecasting framework: it requires knowledge of future promotional and SNAP calendars (tolerating up to 25% noise). When calendars are unknown, it reverts to baseline-only forecasting. This is not a limitation but a defining scope: CD is designed for operational planning where future events are known, not for general-purpose forecasting. It is best viewed as an operational decision-support layer that runs alongside existing systems, not a replacement. The method is strictly per-SKU: cross-SKU cannibalization and demand substitution are not modeled and remain future work. Industrial validation, measuring operational impact or integration into ERP systems, is beyond the scope of this benchmark study and remains critical future work. 
+
+Future Work. Future work includes context-dependent kernels (varying with promotional depth or in-ventory levels) and cross-SKU coupling via sparse tensor formulations. 
+
+# References 
+
+Gah-Yi Ban and Cynthia Rudin. The big data newsvendor: Practical insights from machine learning. 
+
+Operations Research , 67(1):90–108, 2019. Amir Beck and Marc Teboulle. A fast iterative shrinkage-thresholding algorithm for linear inverse problems. 
+
+SIAM Journal on Imaging Sciences , 2(1):183–202, 2009. Dimitris Bertsimas and Nathan Kallus. From predictive to prescriptive analytics. Management Science , 66 (3):1025–1044, 2020. Stéphane Boucheron, Gábor Lugosi, and Pascal Massart. Concentration Inequalities: A Nonasymptotic Theory of Independence . Oxford University Press, Oxford, UK, 2013. George E P Box and Gwilym M Jenkins. Time Series Analysis: Forecasting and Control . Holden-Day, San Francisco, 1970. George E P Box, Gwilym M Jenkins, Gregory C Reinsel, and Greta M Ljung. Time Series Analysis: Forecasting and Control . Wiley, Hoboken, NJ, 5th edition, 2016. Emmanuel J Candès, Xiaodong Li, Yi Ma, and John Wright. Robust principal component analysis? Journal of the ACM , 58(3):1–37, 2011. Cristian Challu, Kin G Olivares, Max Winkler, Tian Wang, Federico Garza, Tim Mergenthaler, and Tian Woen. N-HiTS: Neural hierarchical interpolation for time series forecasting. Proceedings of the AAAI Conference on Artificial Intelligence , 37(6):6989–6997, 2023. 17 Venkat Chandrasekaran, Sujay Sanghavi, Pablo A Parrilo, and Alan S Willsky. Rank-sparsity incoherence for matrix decomposition. SIAM Journal on Optimization , 21(2):572–596, 2011. Tianqi Chen and Carlos Guestrin. XGBoost: A scalable tree boosting system. In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining , pp. 785–794, New York, NY, 2016. ACM. John D Croston. Forecasting and stock control for intermittent demands. Operational Research Quarterly ,23(3):289–303, 1972. James Durbin and Siem Jan Koopman. Time Series Analysis by State Space Methods . Oxford University Press, Oxford, UK, 2nd edition, 2012. Jan C Fransoo and Marc J Wouters. Measuring the bullwhip effect in the supply chain. Supply Chain Management: An International Journal , 5(2):78–89, 2000. Peter J. Green and Bernard W. Silverman. Nonparametric Regression and Generalized Linear Models: A Roughness Penalty Approach . Chapman and Hall, London, UK, 1994. Andrew C Harvey. Forecasting, Structural Time Series Models and the Kalman Filter . Cambridge University Press, Cambridge, UK, 1990. Igal Hendel and Aviv Nevo. Measuring the implications of sales and consumer inventory behavior. Econo-metrica , 74(6):1637–1673, 2006. Wassily Hoeffding. Probability inequalities for sums of bounded random variables. Journal of the American Statistical Association , 58(301):13–30, 1963. Rob J Hyndman and Yeasmin Khandakar. Automatic time series forecasting: The forecast package for R. 
+
+Journal of Statistical Software , 26(3):1–22, 2008. Kaggle. Corporación favorita grocery sales forecasting. https://www.kaggle.com/c/ favorita-grocery-sales-forecasting , 2018. Seung-Jean Kim, Kwangmoo Koh, Stephen Boyd, and Dimitry Gorinevsky. 
+
+ell 1 trend filtering. SIAM Review , 51(2):339–360, 2009. Hau L Lee, V Padmanabhan, and Seungjin Whang. The bullwhip effect in supply chains. Sloan Management Review , 38(3):93–102, 1997. Helmut Lütkepohl. New Introduction to Multiple Time Series Analysis . Springer, Berlin, 2005. John R Macdonald and Matt A Waller. Supply chain dynamics in the uk grocery sector: The role of information sharing. International Journal of Logistics Management , 14(2):37–48, 2003. Spyros Makridakis, Evangelos Spiliotis, and Vassilios Assimakopoulos. The M5 competition: Background, organization and implementation. International Journal of Forecasting , 38(4):1325–1336, 2022. Scott A Neslin and Harald J van Heerde. Sales promotion models. In Berend Wierenga (ed.), Handbook of Marketing Decision Models , pp. 107–162. Springer, Boston, MA, 2008. Edwin Ng, Zhishi Wang, Huigang Chen, Steve Yang, and Slawek Smyl. Orbit: Probabilistic forecast with exponential smoothing. arXiv preprint arXiv:2004.08492 , abs/2004.08492:1–12, 2020. Yuqi Nie, Nam H Nguyen, Phanwadee Sinthong, and Jayant Kalagnanam. A time series is worth 64 words: Long-term forecasting with transformers. arXiv preprint arXiv:2211.14730 , 2022. Boris N Oreshkin, Dmitri Carpov, Nicolas Chapados, and Yoshua Bengio. N-BEATS: Neural basis expansion analysis for interpretable time series forecasting. arXiv preprint arXiv:1905.10437 , 2019. Afshin Oroojlooy, Lawrence Snyder, and Martin Takác. Applying deep learning to the newsvendor problem. 
+
+IISE Transactions , 52(4):444–463, 2020. 18 David Salinas, Valentin Flunkert, Jan Gasthaus, and Tim Januschowski. DeepAR: Probabilistic forecasting with autoregressive recurrent networks. International Journal of Forecasting , 36(3):1181–1191, 2020. Robert H Shumway and David S Stoffer. Time Series Analysis and Its Applications: With R Examples .Springer, New York, NY, 4th edition, 2017. Aris A Syntetos, John E Boylan, and John D Croston. On the categorization of demand patterns. Journal of the Operational Research Society , 56(5):495–503, 2005. Ryan J Tibshirani. Adaptive piecewise polynomial estimation via trend filtering. The Annals of Statistics ,42(1):285–323, 2014. Lloyd N. Trefethen and Mark Embree. Spectra and Pseudospectra: The Behavior of Nonnormal Matrices and Operators . Princeton University Press, Princeton, NJ, 2005. Harald J van Heerde, Peter S H Leeflang, and Dick R Wittink. The estimation of pre- and postpromotion dips with store-level scanner data. Journal of Marketing Research , 37(3):383–395, 2000. Martin J. Wainwright. High-Dimensional Statistics: A Non-Asymptotic Viewpoint . Cambridge Series in Statistical and Probabilistic Mathematics. Cambridge University Press, Cambridge, UK, 2019. Shiyu Wang, Haixu Wu, Xiaoming Shi, Tengge Hu, Huakun Luo, Lintao Ma, James Ma, Jun Zhang, et al. Timemixer: Decomposable multiscale mixing for time series forecasting. In Proceedings of the 12th Inter-national Conference on Learning Representations , Virtual, 2024. OpenReview.net. Qingsong Wen, Tian Zhou, Chaoli Zhang, et al. Transformers in time series: A survey. In Proceedings of the Twenty-Ninth International Joint Conference on Artificial Intelligence , pp. 1–8, 2023. Haixu Wu, Jiehui Xu, Jianmin Wang, and Mingsheng Long. Autoformer: Decomposition transformers with auto-correlation for long-term series forecasting. Advances in Neural Information Processing Systems , 34: 22419–22430, 2021. Tian Zhou, Ziqing Ma, Qingsong Wen, Xue Wang, Liang Sun, and Tao Jin. FEDformer: Frequency en-hanced decomposed transformer for long-term series forecasting. In Proceedings of the 39th International Conference on Machine Learning , pp. 27268–27286, Baltimore, MD, 2022. PMLR. 
+
+# A Proof of Convexity 
+
+The convexity of Problem (2) in the main text follows from standard results in convex analysis. We walk through the argument carefully because the interaction between the smoothness term and the kernel-modulated operator creates subtleties that a casual inspection might miss. 
+
+Proposition 1 (Convexity) . For any fixed, causal convolution operator Aspec ∈ RT ×T with finite bandwidth 
+
+n, the objective 
+
+J(xbase , xspec ) = ∥b − (xbase + Aspec xspec )∥22
+
++ λsmooth ∥Lxbase ∥22 + λsparse ∥xspec ∥1
+
+(6) 
+
+is convex in (xbase , xspec ).Proof. Decompose J = f + g where 
+
+f (xbase , xspec ) = ∥b − xbase − Aspec xspec ∥22 + λsmooth ∥Lxbase ∥22,g(xspec ) = λsparse ∥xspec ∥1.
+
+Step 1: f is convex. The squared Euclidean norm ∥ · ∥ 22 is convex. Composing it with an affine map preserves convexity. The map (xbase , xspec ) 7 → b − xbase − Aspec xspec is affine in (xbase , xspec ). Therefore 19 ∥b − xbase − Aspec xspec ∥22 is convex. Similarly, ∥Lxbase ∥22 is convex because L is linear and the squared norm is convex. The sum of convex functions is convex, so f is convex. For completeness, the Hessian of f with respect to (xbase , xspec ) is the symmetric block matrix 
+
+H =
+
+[I + λsmooth L⊤L Aspec 
+
+A⊤ 
+
+> spec
+
+A⊤
+
+> spec
+
+Aspec 
+
+]
+
+. (7) To verify H ⪰ 0 directly, note that the upper-left block A = I + λsmooth L⊤L is positive definite. The Schur complement of A in H is 
+
+S = A⊤
+
+> spec
+
+Aspec − A⊤
+
+> spec
+
+(I + λsmooth L⊤L)−1Aspec . (8) Since A = I + λsmooth L⊤L ⪰ I, we have A−1 ⪯ I, which implies 
+
+A⊤
+
+> spec
+
+A−1Aspec ⪯ A⊤
+
+> spec
+
+Aspec . (9) Thus S ⪰ 0. Because A ≻ 0 and S ⪰ 0, the block matrix H is positive semidefinite. 
+
+Step 2: g is convex. The ℓ1 norm is convex on RT . Scaling by λsparse > 0 preserves convexity. 
+
+Step 3: Sum of convex functions. The sum of convex functions is convex. Therefore J = f + g is convex in (xbase , xspec ).
+
+Non-uniqueness. The objective is not strictly convex because the smoothness term ∥Lxbase ∥22 has a one-dimensional nullspace (the constant vector), and the ℓ1 term is flat along directions of constant sign. In practice, the solution is unique up to an additive constant in xbase (which is absorbed by the baseline level), and the ℓ1 sparsity prior selects a minimal-norm representative from the solution set. The practical significance is that the two-stage estimator (which fixes Aspec after Stage 2 and then optimizes xbase , xspec in Stage 3) is guaranteed to converge to the global optimum of the convex subproblem. There are no spurious local minima that could trap gradient-based solvers. 
+
+Relation to strict convexity. One could enforce strict convexity by adding a small ridge penalty 
+
+λridge ∥xbase ∥22 with λridge > 0. This would make H positive definite at the cost of introducing shrink-age bias toward zero in the baseline level. We deliberately omit this term (§3) to preserve interpretability: the baseline should not be pulled toward zero by regularization. 
+
+# B Computational Complexity 
+
+Proposition 2. Let T be the time series length and n the maximum kernel lag. The per-SKU computational complexity of the full contextual deconvolution pipeline is O(T · n · K), where K is the number of event types. Proof. We bound each stage independently and then sum the dominant terms. 
+
+Stage 1: Robust detrending. Each IRLS iteration reweights the observations by the Huber function and solves a weighted least-squares problem. The standard formulation stacks the weighted data and the regularization term into a (2 T − 1) × T least-squares system, which costs O(T 3) per iteration via dense QR factorization. However, the first-order difference operator L1 is tridiagonal, so the normal-equations matrix 
+
+W + λL ⊤ 
+
+> 1
+
+L1 is symmetric tridiagonal (Appendix C). The Thomas algorithm solves tridiagonal systems in 
+
+O(T ) time. With Idetrend iterations, the total cost is O(T ·Idetrend ). In practice, Idetrend ≤ 30 and convergence is typically achieved in 10–15 iterations. 
+
+Stage 2: Distributed lag regression. The design matrix Φ ∈ RT ×K(n+1) has K(n + 1) columns, each representing a lagged event indicator convolved with a polynomial basis. Ridge regression via the normal equations costs O(T · K2n2 + K3n3). Since K and n are small constants fixed by application design ( K ≤ 5
+
+event types, n ≤ 14 lags), this term is O(T ) in the regime T ≫ Kn that characterizes retail demand series (typically T = 1 ,000 –2,000 days). 20 Stage 3: Convex decomposition. We support two solvers: 
+
+• CVXPY/OSQP: The KKT system of the quadratic program has a banded structure with bandwidth 
+
+max( n, 2) . Modern sparse factorization routines exploit this structure, yielding practical complexity 
+
+O(T ·n2). The worst-case dense factorization is O(T 3), but this is never observed in practice because the constraint matrix is highly sparse. 
+
+• ISTA: Each iteration performs two sparse matrix-vector products ( Aspec xspec and A⊤
+
+> spec
+
+b) at O(T ·n)
+
+each, plus O(T ) for the smoothness gradient. With IISTA iterations, the cost is O(T · n · IISTA ). The Lipschitz constant of the smooth part is bounded by λmax (H) ≤ 1 + λsmooth ∥L∥22 + ∥Aspec ∥22, which is O(1) for bounded n and λsmooth . Empirically, ISTA converges in 50 –100 iterations to tolerance 
+
+10 −6.
+
+Stage 4: Two-stream forecasting. Construction of Afuture spec from the known future calendar and the recombination ˆbfuture = ˆxbase future + Afuture spec ˆxspec future are both O(Tfut · n), where Tfut is the forecast horizon (typically 28 days). 
+
+Total complexity. Summing the dominant terms and treating Idetrend , IISTA , K, and n as bounded constants, the total per-SKU complexity is O(T · n). For typical parameters ( T = 1 ,941 , n = 14 ), the full pipeline runtime is approximately 2 seconds per SKU on a single CPU core. Because the pipeline is embarrassingly parallel across SKUs, a 30,490-SKU catalog completes in under 40 minutes on a 16-core workstation, with linear scaling up to the number of physical cores. 
+
+# C Convergence Rates of the Two-Stage Estimator 
+
+We analyze the convergence of each stage independently. The two-stage pipeline is deterministic: no stochas-tic gradients, no random initializations, and no neural network training. This makes convergence both predictable and reproducible. 
+
+Stage 1: Robust Huber Detrending (IRLS). Let ρHuber be the Huber loss with parameter δ > 0,and let f1(μ) = ∑Tt=1 ρHuber (bt − μt) + λsmooth ∥Lμ∥22. The IRLS algorithm reweights residuals at each iteration and solves the resulting weighted least-squares problem. Because f1 is strongly convex on the subspace orthogonal to the constant vector (with strong convexity parameter λsmooth · λmin (L⊤L) > 0 on this subspace) and the reweighting is a majorization-minimization step, standard IRLS theory guarantees linear convergence in the objective: f1(μ(k)) − f ∗ 
+
+> 1
+
+≤ c · rk for some r ∈ (0 , 1) and constant c, where f ∗ 
+
+> 1
+
+is the optimal value. Empirically, with auto-estimated δ from the MAD, convergence to 10 −6 relative tolerance is achieved in 10 –15 iterations on the M5 data ( T = 1 ,941 ), and never exceeds 30 iterations across all evaluated SKUs. 
+
+Stage 2: Distributed Lag Regression (Ridge). This stage is a closed-form linear solve. For design matrix Φ ∈ RT ×K(n+1) and ridge penalty λkernel , the estimator is ˆϕ = (Φ ⊤Φ + λkernel I)−1Φ⊤r. No iteration is required; the solution is exact up to floating-point precision. The Cholesky factorization of the K(n + 1) ×
+
+K(n + 1) normal-equations matrix costs O(K3n3), which is negligible for K ≤ 5 and n ≤ 14 .
+
+Stage 3: Convex Decomposition (ISTA/OSQP). For fixed Aspec , the objective J(xbase , xspec ) from Appendix A is convex with a smooth part (quadratic fidelity + smoothness) and a non-smooth part ( ℓ1
+
+sparsity). The smooth part has a Lipschitz-continuous gradient with constant Lsmooth = λmax (H) ≤ 1 + 
+
+λsmooth ∥L∥22 +∥Aspec ∥22, which is O(1) for bounded n and bounded kernel parameters. Under these conditions, ISTA converges at rate O(1 /k ) in the objective value for composite convex problems (Beck & Teboulle, 2009). FISTA (Nesterov-accelerated ISTA) achieves O(1 /k 2). Empirically, with warm-start from the previous SKU’s solution, both ISTA and OSQP converge to 10 −6 tolerance in 50 –100 iterations. The absence of local minima (guaranteed by convexity, Appendix A) means the solver cannot get stuck in spurious suboptima regardless of initialization. 21 Remark 1 (End-to-end stability) . Because Stage 2 is exact, the only approximation errors are from Stage 1 (detrending, bounded by the Huber robustness parameter) and Stage 3 (convex decomposition, bounded by the solver tolerance). The error does not compound across stages in an uncontrolled way: Stage 2’s ridge regression is stable with condition number bounded by 1 + λ−1
+
+> kernel
+
+∥Φ∥22, and Stage 3’s convexity guarantees that the decomposition converges to the global optimum for the fixed Aspec produced by Stage 2. There is no training loop, no hyperparameter search, and no randomness: repeated runs on identical data produce identical outputs. The standard IRLS formulation for Huber-smoothed detrending solves, at each iteration, a weighted least-squares problem with regularization. Writing the stacked system compactly as min μ ∥ ˜Aμ − ˜b∥22, where ˜A
+
+concatenates the weighted data matrix and the regularization term, the system is (2 T − 1) × T and costs 
+
+O(T 3) per iteration via dense QR factorization. This becomes prohibitive for T > 1,000 .We reformulate using the normal equations. For a least-squares problem with design matrix A and target 
+
+b, the normal equations are A⊤Ax = A⊤b. Applied to the stacked system, this yields the compact form below. 
+
+(W + λL ⊤ 
+
+> 1
+
+L1)μ = W b. (10) The matrix M = W + λL ⊤ 
+
+> 1
+
+L1 is symmetric tridiagonal because W is diagonal and L⊤ 
+
+> 1
+
+L1 is tridiagonal. The explicit entries are: 
+
+M1,1 = w1 + λ, (11) 
+
+Mi,i = wi + 2 λ for i = 2 , . . . , T − 1, (12) 
+
+MT,T = wT + λ, (13) 
+
+Mi,i +1 = Mi+1 ,i = −λ for i = 1 , . . . , T − 1. (14) Solving M μ = W b via the Thomas algorithm (tridiagonal elimination) requires: 
+
+• Forward elimination: O(T ) operations to eliminate the subdiagonal. 
+
+• Back substitution: O(T ) operations to solve the resulting upper triangular system. The total cost is O(T ) per iteration, yielding a 500 –1000 × speedup over dense QR for T = 2 ,000 . This optimization is essential for making the full pipeline runnable on a single CPU for large catalogs. 
+
+# D Theoretical Guarantees 
+
+This section establishes three results: (i) support recovery for the sparse–plus–smooth decomposition under incoherence and margin conditions, with an explicit error decomposition for the recovered baseline; (ii) an error bound for the two-stage estimator that propagates kernel estimation error into the temporal Variance Ratio measured in §4; and (iii) a concentration bound for median-based hierarchical pooling. Constants are explicit but not optimized. 
+
+D.1 Notation and the profiled problem 
+
+Recall the forward model 
+
+b = x∗ 
+
+> base
+
++ A x∗ 
+
+> spec
+
++ ε, ε ∼ N (0 , σ 2I), (15) where A ∈ RT ×T is the causal banded operator built from the calendar and a kernel ϕ, x∗ 
+
+> spec
+
+is s-sparse with support S = supp( x∗
+
+> spec
+
+), and L is the (second-)difference operator. Write 
+
+Sλ = ( I + λsL⊤L)−1, P = I − Sλ, M = P 1/2A. (16) Since Sλ is a function of L⊤L, the matrices Sλ, P , and L⊤L commute; 0 ⪯ P ⪯ I.22 Lemma 1 (Exact profiling) . For fixed xspec , the minimizer of (2) over xbase is xbase (xspec ) = Sλ(b−Axspec ),and the partially minimized objective equals 
+
+∥∥P 1/2b − M xspec 
+
+∥∥22 + λ1∥xspec ∥1. (17) 
+
+Proof. Let r = b − Axspec . The inner problem min x ∥r − x∥22 + λs∥Lx∥22 has solution x = Sλr with value 
+
+r⊤[(I − Sλ)2 + λsSλL⊤LS λ
+
+]r. From Sλ(I + λsL⊤L) = I we get λsSλL⊤L = I − Sλ, hence λsSλL⊤LS λ =(I − Sλ)Sλ and (I − Sλ)2 + ( I − Sλ)Sλ = I − Sλ = P . The value is therefore r⊤P r = ∥P 1/2r∥22.Thus the estimator solves the Lasso (17) with design M , effective response y = P 1/2b = M x∗ 
+
+> spec
+
++ w, and effective noise 
+
+w = P 1/2ε︸ ︷︷ ︸ 
+
+> =: ˜ ε
+
++ P 1/2x∗
+
+> base
+
+︸ ︷︷ ︸ 
+
+> =: h
+
+. (18) The vector h is the smoothing bias : it vanishes iff x∗ 
+
+> base
+
+∈ null( L).
+
+D.2 Theorem 1: Support recovery and baseline error 
+
+We begin by collecting the regularity conditions needed for the profiled Lasso to recover the correct shock support. These conditions are standard in the sparse-recovery literature; we state them in Assumption 1 so that the theorem itself is self-contained. 
+
+Assumption 1. The following five conditions govern the profiled Lasso (17) and ensure that the design 
+
+M = P 1/2A has the right geometry for sparse recovery. (A1) Approximate smoothness. ∥Lx∗
+
+> base
+
+∥2 ≤ εL.(A2) Column normalization. max j ∥Mj ∥2 ≤ 1. Since ∥Mj ∥2 = ∥P 1/2Aej ∥2 ≤ ∥ Aej ∥2 ≤ ∥ ϕ∥2 (the 
+
+j-th column of A is the kernel placed at day j, scaled by the binary indicator), (A2) holds whenever the kernel is normalized with ∥ϕ∥2 ≤ 1 and event types do not coincide on the same day; otherwise all constants below scale by max j ∥Mj ∥2.(A3) Mutual incoherence. max j / ∈S
+
+∥∥(M ⊤ 
+
+> S
+
+MS )−1M ⊤ 
+
+> S
+
+Mj
+
+∥∥1 ≤ 1 − γ for some γ ∈ (0 , 1] .(A4) Restricted eigenvalue on the support. λmin (M ⊤ 
+
+> S
+
+MS ) ≥ κ > 0.(A5) Regularization level. λ1 ≥ 4
+
+γ
+
+(
+
+2σ√log T + √λs εL
+
+)
+
+.
+
+Theorem 1 (Support recovery and baseline error) . Under Assumption 1, with probability at least 1 − 3/T :(a) No false inclusion. The Lasso solution ˆxspec of (17) is unique and supp(ˆ xspec ) ⊆ S.(b) Estimation on the support. ∥ˆxS − x∗ 
+
+> S
+
+∥2 ≤ 2λ1
+
+√sκ .
+
+(c) Sign recovery. If additionally min j∈S |x∗ 
+
+> spec ,j
+
+| > 2λ1
+
+√s/κ (β-min condition), then sign(ˆ xspec ) = sign( x∗
+
+> spec
+
+).(d) Baseline error decomposition. With ρA := ∥A∥2 ≤ ∥ ϕ∥1 and deff := tr( S2
+
+> λ
+
+),
+
+∥ˆxbase − x∗
+
+> base
+
+∥2 ≤ √λs εL
+
+︸ ︷︷ ︸
+
+> smoothing bias
+
++ ρA
+
+2λ1
+
+√sκ︸ ︷︷ ︸
+
+> shock propagation
+
++ σ(√ deff + √2 log T )︸ ︷︷ ︸
+
+> noise floor
+
+.
+
+(19) 23 Proof. Step 1 (smoothing bias). Write the spectral decomposition 
+
+L⊤L = U diag( μ1, . . . , μ T ) U ⊤, μj ≥ 0,
+
+and set c = U ⊤x∗
+
+> base
+
+. The eigenvalues of P are λsμj /(1 + λsμj ) ≤ min(1 , λ sμj ), hence 
+
+∥h∥22 = x∗⊤ 
+
+> base
+
+P x∗ 
+
+> base
+
+= ∑
+
+> j
+
+λsμj
+
+1 + λsμj
+
+c2 
+
+> j
+
+≤ λs
+
+∑
+
+> j
+
+μj c2
+
+> j
+
+= λs ∥Lx∗
+
+> base
+
+∥22 ≤ λsε2
+
+> L
+
+. (20) (Also ∥h∥2 ≤ ∥ x∗
+
+> base
+
+∥2 since P ⪯ I.) 
+
+Step 2 (effective-noise correlation bound). For each column j, M ⊤ 
+
+> j
+
+˜ε = ( P 1/2Mj )⊤ε ∼ N (0, σ 2∥P 1/2Mj ∥22
+
+)
+
+with ∥P 1/2Mj ∥2 ≤ ∥ Mj ∥2 ≤ 1 by (A2). A union bound over T columns with threshold 2σ√log T gives 
+
+P(∥M ⊤ ˜ε∥∞ > 2σ√log T ) ≤ 2T e −2 log T = 2 /T . For the deterministic part, Cauchy–Schwarz and (20) give 
+
+|M ⊤ 
+
+> j
+
+h| ≤ ∥ h∥2 ≤ √λsεL. On the complement event E1 (probability ≥ 1 − 2/T ), 
+
+∥M ⊤w∥∞ ≤ 2σ√log T + √λsεL ≤ γλ 1
+
+4 , (21) where the last inequality is (A5). 
+
+Step 3 (primal–dual witness). We verify the witness conditions directly (following the construction of Wain-wright, 2019, §7.5; we do not import constants because our objective omits the 1/(2 n) scaling used there). Let ˆxS solve the S-restricted problem min u ∥y − MS u∥22 + λ1∥u∥1 and pad with zeros off S. Its stationarity condition is 
+
+2M ⊤
+
+> S
+
+(MS ˆxS − y) + λ1ˆzS = 0 , ˆzS ∈ ∂∥ˆxS ∥1, ∥ˆzS ∥∞ ≤ 1. (22) Writing ∆ = ˆ xS − x∗ 
+
+> S
+
+and y = MS x∗ 
+
+> S
+
++ w, (22) gives ∆ = ( M ⊤ 
+
+> S
+
+MS )−1[M ⊤ 
+
+> S
+
+w − λ1 
+
+> 2
+
+ˆzS
+
+]. For j / ∈ S, the dual variable of the padded vector is 2M ⊤ 
+
+> j
+
+(MS ∆ − w); with aj := ( M ⊤ 
+
+> S
+
+MS )−1M ⊤ 
+
+> S
+
+Mj (so ∥aj ∥1 ≤ 1 − γ by (A3)), 
+
+∣∣2M ⊤ 
+
+> j
+
+(MS ∆ − w)∣∣ ≤ 2∥aj ∥1
+
+(
+
+∥M ⊤w∥∞ + λ1
+
+> 2
+
+)
+
++ 2 ∥M ⊤w∥∞
+
+≤ 2(2 − γ) ∥M ⊤w∥∞ + (1 − γ)λ1 (23) 
+
+≤ λ1
+
+(
+
+1 − γ2
+
+> 2
+
+)
+
+< λ 1, (24) using (21) in the last step. Strict dual feasibility off S, together with κ > 0 from (A4), implies that the padded vector is the unique solution of the full Lasso (17) and supp(ˆ xspec ) ⊆ S on E1, proving (a). For (b), from (22) and (A4), 
+
+κ ∥ˆxS − x∗ 
+
+> S
+
+∥2 ≤
+
+∥∥∥M ⊤ 
+
+> S
+
+w − λ1 
+
+> 2
+
+ˆzS
+
+∥∥∥2
+
+≤ √s
+
+(
+
+∥M ⊤w∥∞ + λ1
+
+> 2
+
+)
+
+≤ √s
+
+( γλ 1 
+
+> 4
+
++ λ1
+
+> 2
+
+)
+
+≤ 34 λ1
+
+√s ≤ 2λ1
+
+√s, (25) giving (b) (the stated constant 2 is deliberately conservative); (c) follows since ∥ · ∥ ∞ ≤ ∥ · ∥ 2.
+
+Step 4 (baseline). By Lemma 1, ˆxbase = Sλ(b − Aˆxspec ). Writing ∆ = x∗ 
+
+> spec
+
+− ˆxspec (supported on S by (a)), 
+
+ˆxbase − x∗ 
+
+> base
+
+= −(I − Sλ)x∗ 
+
+> base
+
++ SλA∆ + Sλε. (26) The first term: ∥(I − Sλ)x∗
+
+> base
+
+∥2 = ∥P x∗
+
+> base
+
+∥2 ≤ ∥ P 1/2∥2 ∥P 1/2x∗
+
+> base
+
+∥2 ≤ √λsεL by (20). The second: 
+
+∥SλA∆∥2 ≤ ρA∥∆∥2 ≤ ρA · 2λ1
+
+√s/κ by (b) and ∥Sλ∥2 ≤ 1; the operator-norm bound ρA ≤ ∥ ϕ∥1 holds because A is a sum of terms ϕk Sk diag( f ), each of spectral norm at most |ϕk|. The third: the map ε 7 →∥Sλε∥2 is 1-Lipschitz with E∥Sλε∥2 ≤ σ√tr( S2
+
+> λ
+
+) = σ√deff , so Gaussian concentration for Lipschitz functions (Boucheron et al., 2013, Thm. 5.6) gives ∥Sλε∥2 ≤ σ√deff +σ√2 log T on an event E2 of probability ≥ 1−1/T .Intersecting E1 ∩ E 2 yields (19) with probability ≥ 1 − 3/T .24 Remark 2 (Effective degrees of freedom) . For the second-difference penalty on an equispaced grid, the nonzero eigenvalues of L⊤L satisfy μj ≍ (j/T )4 for j ≪ T (the closed form 16 sin 4(jπ/ 2T ) is exact for the periodic variant of L; the free-boundary operator used here has the same asymptotic order, though not the same constants at the lowest modes), and null( L) is two-dimensional (constant and linear trends). Hence 
+
+deff = ∑ 
+
+> j
+
+(1 + λsμj )−2 = 2 + Θ (T λ −1/4
+
+> s
+
+): the nullspace contributes 2, and the remaining modes contribute the classical smoothing-spline scaling (Green & Silverman, 1994). The noise floor σ√deff is therefore far below the naive σ√T for the operating regime λs = 10 , T ≈ 1,900 .
+
+Remark 3 (Interpretation) . Theorem 1 replaces the informal statement that the decomposition is “not strictly identifiable” with sufficient conditions under which the shock support is recovered exactly: inco-herence (no event’s smoothed impulse response is well approximated by combinations of other events’), a restricted eigenvalue, and a β-min condition (shocks large enough to clear the regularization level). The base-line error decomposes into three interpretable terms: a smoothing bias proportional to the true baseline’s roughness, a shock-propagation term controlled by the Lasso error, and a noise floor set by the smoother’s effective degrees of freedom. 
+
+Remark 4 (Operating regime of the εL term) . For baselines with material seasonality, εL = ∥Lx∗
+
+> base
+
+∥2
+
+grows with the seasonal amplitude and with √T , so the √λs εL term dominates (A5) and the implied β-min threshold is demanding. Theorem 1 therefore certifies recovery of shocks that are large relative to the smoothed seasonal residual, not shocks at the scale of seasonal curvature — which is the operational setting: CD isolates promotional shocks that are large against the local baseline. This is also the behavior observed empirically: large event-day shocks are recovered, while weak event signals fall below the regularization level and are absorbed into the baseline (the failure mode documented in §4.7). 
+
+D.3 Theorem 2: Two-stage error propagation and temporal Variance-Ratio control 
+
+We first bound the Stage-2 kernel error, then propagate it through Stage 3, and finally control the temporal 
+
+Variance Ratio — the same quantity measured empirically in §4. 
+
+Proposition 3 (Ridge kernel estimation) . Let the detrended residual satisfy r = Φ ϕ∗ + ηdet + ε, where 
+
+Φ ∈ RT ×(n+1) has entries in [0 , 1] , ∥ηdet ∥2 ≤ B√T collects the detrending residual and the misspecification of the parametric family, and the noise satisfies: each linear functional Φ⊤ 
+
+> j
+
+ε is mean-zero σ√T -sub-Gaussian. (This holds when ε = Gξ for standard Gaussian ξ and any ∥G∥2 ≤ σ; in particular it covers the residual noise (I − H)ε0 left by any linear detrender with ∥I − H∥2 ≤ 1 — independence of entries is not required.) Assume λmin (Φ ⊤Φ) /T ≥ μ0 > 0. Then, for the ridge estimator with penalty λk ≥ 0 and any δ ∈ (0 , 1) , with probability at least 1 − δ,
+
+∥ ˆϕ − ϕ∗∥2 ≤ σμ0
+
+√
+
+2( n+1) log 2( n+1) 
+
+> δ
+
+T +
+
+√n+1 Bμ0
+
++ λk∥ϕ∗∥2
+
+T μ 0 + λk
+
+. (27) 
+
+Proof. ˆϕ−ϕ∗ = (Φ ⊤Φ+ λkI)−1(Φ⊤(ηdet +ε)−λkϕ∗) and ∥(Φ ⊤Φ+ λkI)−1∥2 ≤ (T μ 0 +λk)−1. Deterministic part: ∥Φ⊤ηdet ∥2 ≤ ∥ Φ∥2∥ηdet ∥2 ≤ √T (n+1) · B√T = T B √n+1 , and dividing by T μ 0 + λk ≥ T μ 0 gives the middle term. Stochastic part: each Φ⊤ 
+
+> j
+
+ε is σ√T -sub-Gaussian by assumption; a union bound over n+1 
+
+coordinates gives, with probability 1 − δ, ∥Φ⊤ε∥2 ≤ σ
+
+√
+
+2T (n+1) log 2( n+1)  
+
+> δ
+
+, yielding the first term. The ridge shrinkage term is immediate. 
+
+Remark 5 (The bias does not average away) . The stochastic term in (27) decays as O(1 /√T ) (equivalently 
+
+O(1 /√N ) when μ0 scales with the number of events N ), but the misspecification term √n+1 B/μ 0 is constant in T : systematic deviation of the true impulse response from the parametric family is not removed by more data. This is precisely the behavior observed on real M5 kernels (Appendix R), where the parametric fit captures the initial decay but persistently misses the flat tail regardless of sample size. One idealization: the Stage-1 Huber–IRLS detrender is nonlinear; the proposition covers its linear-smoother idealization, with any residual effect of the nonlinearity absorbed into ηdet .
+
+Theorem 2 (Error propagation with an estimated kernel) . Let ˆA = A( ˆϕ) and ∆A = ˆA − A(ϕ∗), so that 
+
+∥∆A∥2 ≤ ∥ ˆϕ − ϕ∗∥1 ≤ √K(n+1) ∥ ˆϕ − ϕ∗∥2 =: εϕ, and define εA := εϕ
+
+√s ∥x∗
+
+> spec
+
+∥∞. Suppose Assumption 
+
+25 1 holds for the computed design ˆM = P 1/2 ˆA (with constants γ, κ ), and strengthen (A5) to 
+
+λ1 ≥ 4
+
+γ
+
+(
+
+2σ√log T + √λs εL + εA
+
+)
+
+. (28) 
+
+Then, with probability at least 1 − 3/T , conclusions (a)–(c) of Theorem 1 hold, and 
+
+∥ˆxbase − x∗
+
+> base
+
+∥2 ≤ √λs εL + εA + ˆ ρA
+
+2λ1
+
+√sκ + σ(√ deff + √2 log T ) =: E, (29) 
+
+where ˆρA = ∥ ˆA∥2 ≤ ∥ ˆϕ∥1.Proof. Rewrite the model in terms of the computed operator: b = x∗ 
+
+> base
+
++ ˆAx∗ 
+
+> spec
+
++ ∆ A x∗ 
+
+> spec
+
++ ε, where the middle perturbation has norm ∥∆A x∗
+
+> spec
+
+∥2 ≤ ∥ ∆A∥2
+
+√s ∥x∗
+
+> spec
+
+∥∞ = εA. The profiled problem is then a Lasso in design ˆM with effective noise w′ = ˜ ε + h + P 1/2∆A x∗
+
+> spec
+
+, and Step 2 of the previous proof gives 
+
+∥ ˆM ⊤w′∥∞ ≤ 2σ√log T + √λsεL + εA ≤ γλ 1/4 under (28). Steps 3–4 proceed verbatim; in Step 4 the reconstruction identity becomes ˆxbase − x∗ 
+
+> base
+
+= −(I − Sλ)x∗ 
+
+> base
+
++ Sλ∆A x∗ 
+
+> spec
+
++ Sλ ˆA∆ + Sλε, whose four terms are bounded by the four terms of (29). We now control the Variance Ratio. Crucially, the empirical VR of §4 is a temporal variance ratio of one realized path, not an ensemble variance; the bound below is stated for exactly that object. For z ∈ RT
+
+define the centering projector Πc = I − 1 
+
+> T
+
+11 ⊤, the temporal standard deviation sd T (z) := T −1/2∥Πcz∥2, and ̂
+
+V (z) := sd T (z)2. Note sd T is a seminorm. 
+
+Corollary 1 (Temporal VR of the structural stream) . On the event of Theorem 2, for any series with ̂
+
+V (b) > 0,
+
+√1 + VR base ≤ r∗ + ET ,
+
+where r∗ := sd T (x∗
+
+> base
+
+)sd T (b) , ET := E
+
+√T sd T (b) , (30) 
+
+with E from (29) and VR base := ̂ V (ˆ xbase )/̂ V (b) − 1. In particular, if the true structural share satisfies 
+
+r∗ ≤ 1, then 
+
+VR base ≤ 2ET + E2 
+
+> T
+
+. (31) 
+
+Proof. sd T is a seminorm, so sd T (ˆ xbase ) ≤ sd T (x∗
+
+> base
+
+) + sd T (ˆ xbase − x∗
+
+> base
+
+) ≤ sd T (x∗
+
+> base
+
+) + T −1/2∥ˆxbase −
+
+x∗
+
+> base
+
+∥2, using ∥Πcv∥2 ≤ ∥ v∥2. Divide by sd T (b) and square. If r∗ ≤ 1, (r∗ + ET )2 − 1 ≤ (1 + ET )2 − 1 = 2ET + E2 
+
+> T
+
+.
+
+Remark 6 (Interpretation and scope) . Corollary 1 bounds variance inflation of the structural stream: the estimated baseline’s temporal variance exceeds the oracle structural share r∗2 only through the estimation error ET , which (29) decomposes into smoothing bias, kernel error (via εA and λ1), shock-propagation, and the noise floor. The condition r∗ ≤ 1 states that the true baseline is temporally no more variable than observed demand; it can fail only when the transient-plus-noise component is strongly negatively correlated in time with the baseline. The bound is stated for the same temporal VR reported in §4 (items with ̂ V (b)
+
+near zero are excluded there for the same reason they are excluded here). Stream B adds a deterministic, calendar-known component whose variance contribution is reported empirically; the theorem’s scope is the structural stream. 
+
+D.4 Theorem 3: Concentration of median pooling 
+
+Let a category C contain m = |C| SKUs with true kernels ϕ∗ 
+
+> s
+
+∈ RK(n+1) and per-SKU estimates ˆϕs = ϕ∗ 
+
+> s
+
++es,where the noise vectors es are independent across SKUs with mean-zero σk-sub-Gaussian coordinates. Let 
+
+ϕ∗C and ˆϕC denote coordinatewise medians of {ϕ∗ 
+
+> s
+
+} and { ˆϕs}, and BC := max s ∥ϕ∗ 
+
+> s
+
+− ϕ∗C ∥∞.26 Assumption 2 (Median margin) . There exist τ ∈ (0 , 12 ] and δ0 ≥ 0 such that, for every coordinate j,
+
+#{s : ϕ∗ 
+
+> s,j
+
+≤ ϕ∗C,j + δ0
+
+} ≥ ( 12 + τ )m and 
+
+#{s : ϕ∗ 
+
+> s,j
+
+≥ ϕ∗C,j − δ0
+
+} ≥ ( 12 + τ )m. (32) Assumption 2 always holds with δ0 = BC and τ = 12 (every SKU is within BC of the median by definition); it holds with δ0 ≪ BC whenever a majority of SKUs cluster near the category median, which is the empirical regime on M5 (Appendix P.7). Some margin condition is necessary : if exactly half the SKUs sit at each of two well-separated kernel values, arbitrarily small noise can move the sample median by a macroscopic amount, and no distribution-free O(σk/√m) bound can hold. 
+
+Theorem 3 (Pooling concentration and excess risk) . Under Assumption 2, with probability at least 1 −
+
+2K(n+1) e−mτ 2/2, ∥∥ ˆϕC − ϕ∗C
+
+∥∥∞ ≤ δ0 + σk
+
+√2 log(2 /τ ) =: ϵpool . (33) 
+
+If moreover each per-SKU risk Risk s(ϕ) is minimized at ϕ∗ 
+
+> s
+
+and has LR-Lipschitz gradient on the segment between ϕ∗ 
+
+> s
+
+and ˆϕC , then on the same event, for every s ∈ C ,
+
+Risk s( ˆϕC ) − Risk s(ϕ∗ 
+
+> s
+
+) ≤ LR
+
+(
+
+∥ϕ∗ 
+
+> s
+
+− ϕ∗C ∥22
+
+︸ ︷︷ ︸
+
+> pooling bias
+
++ K(n+1) ϵ2pool 
+
+︸ ︷︷ ︸
+
+> pooled estimation
+
+)
+
+. (34) 
+
+Proof. Concentration. Fix a coordinate j and consider the upper tail; set t∗ = σk
+
+√2 log(2 /τ ), so that the sub-Gaussian tail bound gives P(es,j > t ∗) ≤ e−t∗2/(2 σ2  
+
+> k)
+
+= τ / 2 for every s. Let u = ϕ∗C,j + δ0 + t∗ and let L
+
+be the set of SKUs with ϕ∗ 
+
+> s,j
+
+≤ ϕ∗C,j + δ0, so |L| ≥ ( 12 + τ )m by Assumption 2. For s ∈ L , ˆϕs,j > u implies 
+
+es,j > t ∗. Hence 
+
+#{s : ˆϕs,j > u } ≤ (m − |L| ) + Z, Z := ∑
+
+> s∈L
+
+1{es,j > t ∗}, (35) where Z is a sum of independent Bernoulli variables with EZ ≤ mτ / 2. By Hoeffding’s inequality (Hoeffding, 1963), P(Z ≥ mτ ) ≤ P(Z − EZ ≥ mτ / 2) ≤ e−mτ 2/2. On the complement, #{s : ˆϕs,j > u } < ( 12 − τ )m +
+
+τ m = m/ 2, so at least ⌈m/ 2⌉ samples lie at or below u and every standard median convention satisfies 
+
+ˆϕC,j ≤ u. The lower tail is symmetric. A union bound over the two tails and the K(n+1) coordinates gives (33). (Independence across SKUs is used in Hoeffding’s inequality; independence across coordinates is not required.) 
+
+Excess risk. Since ∇Risk s(ϕ∗ 
+
+> s
+
+) = 0 and the gradient is LR-Lipschitz on the segment, the descent lemma gives Risk s(ϕ) − Risk s(ϕ∗ 
+
+> s
+
+) ≤ LR 
+
+> 2
+
+∥ϕ − ϕ∗ 
+
+> s
+
+∥22. Apply it at ϕ = ˆϕC and use ∥ ˆϕC − ϕ∗ 
+
+> s
+
+∥2 ≤ ∥ ϕ∗ 
+
+> s
+
+− ϕ∗C ∥2 +
+
+√K(n+1) ∥ ˆϕC − ϕ∗C ∥∞ together with (a + b)2 ≤ 2a2 + 2 b2 and (33). 
+
+Remark 7 (Bias–variance reading, and when pooling wins) . Inequality (34) is the bias–variance tradeoff of hierarchical pooling in explicit form: the price of using the category kernel on SKU s is its squared distance to the category median (the pooling bias), plus an estimation term whose failure probability decays 
+
+exponentially in the category size m. By contrast, a per-SKU estimate from Ns events carries estimation error of order σ2 
+
+> k,s
+
+∝ 1/N s, which dominates for the sparse-event SKUs that motivate pooling ( Ns < 3, §3.5). Pooling is therefore provably beneficial exactly when within-category heterogeneity is small relative to per-SKU estimation noise — the regime confirmed empirically in Appendix P.7, where per-SKU, category-pooled, and global-pooled kernels perform nearly identically. 
+
+Remark 8 (Summary) . Theorems 1–3 establish that: (1) the sparse-plus-smooth decomposition recovers the shock support under interpretable incoherence and margin conditions, with a three-term baseline error decomposition; (2) the temporal Variance Ratio of the structural stream — the quantity measured in §4 — inflates above the oracle structural share only through explicitly bounded estimation error, with the kernel misspecification bias persisting (not averaging away) exactly as observed on real data; and (3) median pooling concentrates exponentially fast in category size up to the local heterogeneity scale, quantifying when category-level deployment is justified. 27 E Extended Synthetic Results 
+
+Table 8 reports full synthetic results across three strata (low, medium, high volume), where each stratum represents a different regime of mean daily demand. Table 8: Synthetic Results by Volume Stratum (mean over 30 series each)                      
+
+> Stratum Kernel Recovery Sparsity VR wMAPE Low Volume ( μ < 5)18.3% 12.4 0.08 0.42 Medium Volume ( 5≤μ < 20 )22.1% 15.7 0.12 0.38 High Volume ( μ≥20 )19.7% 14.2 0.09 0.35
+
+Interpretation. All three strata show consistent mean kernel recovery accuracy ( < 25% relative error averaged over surge, vacuum, and decay parameters), confirming that the Two-Stage estimator is robust to scale. The low-volume stratum achieves slightly better sparsity (12.4 vs. 15.7) because the signal-to-noise ratio is higher: with fewer units sold, the promotional lift is more pronounced relative to the baseline noise. The variance ratio remains below 0.15 across all strata, well below the 0.5 threshold that would indicate Bullwhip inflation. The wMAPE improves with volume (0.42 to 0.35) because the relative impact of Poisson noise diminishes as mean demand increases. 
+
+E.1 Falsification Tests 
+
+The following falsification tests were designed to refute our core claims. If a test passes, the claim survives; if it fails, the claim is invalidated. 1. Kernel Recovery (Synthetic): The two-stage estimator recovers the true surge-and-vacuum ker-nel parameters with relative error < 30% on synthetic data with known ground truth, confirming that the method can recover structured kernels when they exist. (Note: the vacuum decay param-eter exceeds this threshold at small sample sizes; on real M5 data the vacuum component is not empirically detectable at the category level, Appendix T.) 2. Sparsity Improvement: The kernel-modulated operator reduces sparsity ( ∥xspec ∥0) compared to the identity operator. 3. Variance Ratio: Two-stream forecast variance ratio is strictly below 1.0 (no Bullwhip inflation). 4. Causality is Structurally Enforced: Non-causal operators do not improve test RMSE on the evaluated sample, confirming that the causal constraint prevents future-peeking without empirical cost in this regime. 5. Baseline Smoothness: The recovered baseline has lower derivative norm than the raw signal. Three of five tests pass on the synthetic stratified dataset: sparsity improves by 70% , variance ratio stays below 1.0, and baseline smoothness exceeds raw signal by 96% . The kernel-recovery test exceeds the 30% 
+
+threshold on the vacuum decay parameter ( 66% error), indicating parameter recovery is sensitive to event sparsity at small sample sizes. The non-causal operator achieves test RMSE equivalent to the causal operator (6.057 vs. 6.057 ), confirming causality is structurally enforced without empirical cost. The core framework properties hold despite imperfect parameter recovery. 
+
+Real Kernel Recovery. On real M5 data, per-category empirical kernels (249 foods, 94 hobbies, 157 household) show sharp initial decay plus a persistent flat tail (Appendix T). The parametric fit captures the initial decay but misses the flat tail; the kernel is a structural regularization, not exact recovery. Crucially, the empirical kernels do not go negative: the post-promotion dip is not detectable at the category level without controls for feature and display effects. The initial decay is robust; the long-run persistence is underestimated. 28 F M5 and Favorita Data Preprocessing 
+
+M5 Forecasting Dataset. We use the “evaluation” split, which contains daily unit sales for 3,049 SKUs across 10 Walmart stores in three US states (California, Texas, Wisconsin) from 2011-01-29 to 2016-06-19 (T = 1 ,941 days). The data file is sales_train_evaluation.csv . Preprocessing steps: 1. Calendar alignment. We map calendar events (Super Bowl, Memorial Day, Labor Day, Thanks-giving, Christmas, etc.) from calendar.csv to binary event indicators. Each event is assigned a type (national, religious, cultural, sporting) and a binary flag for whether it is observed in the SKU’s state. 2. SNAP encoding. We extract state-specific SNAP benefit indicators for each SKU based on its store location. SNAP events are known to drive demand surges in grocery retail, and their calendar is published months in advance by the USDA. 3. Promotional depth. We compute relative discount depth from sell_prices.csv by comparing weekly sell prices to a 30-day rolling median baseline. A discount > 10% is flagged as a promotional event. 4. Missing value handling. Missing sell prices are forward-filled then backward-filled. Zero sales days are treated as genuine zeros (out-of-stock or true zero demand), not as missing values, because zero is a meaningful signal in retail demand forecasting. 
+
+Favorita Grocery Sales. We use the train.csv file (1.25 GB), containing daily sales for 4,036 items across 54 stores in Ecuador from 2013-01-01 to 2017-08-15. Preprocessing steps: 1. Chunked loading. The full CSV is read in 1M-row chunks to avoid memory exhaustion. Only the target item subset is retained in memory after filtering. 2. Holiday encoding. We merge holidays_events.csv to create binary holiday indicators per day. Ecuador has a rich calendar of local, regional, and national holidays that drive demand spikes. 3. Oil price alignment. Oil prices ( dcoilwtico ) are forward-filled from oil.csv . Oil price shocks correlate with consumer spending in oil-dependent Ecuador. 4. On-promotion flag. The onpromotion column is string-parsed to boolean (True/False/NaN →
+
+1/0/0). This flag indicates whether the item was on promotion on the given day, but does not encode promotional depth. 5. Reindexing. Each item-store pair is reindexed to a complete daily calendar with zero-fill for missing days. This ensures that the time series have uniform length and that calendar features align correctly. The implementation uses Python 3.9+ with NumPy, SciPy, CVXPY (OSQP/SCS solvers), scikit-learn, XG-Boost, statsmodels, pandas, and joblib. All code is available at https://github.com/MohammadForouhesh/ contextual-deconvolution (anonymized for review). 
+
+F.1 Hyperparameters 
+
+Default hyperparameters used for all experiments unless otherwise noted: 
+
+Provenance of these values. We state plainly how each was chosen, since a reviewer is entitled to ask whether the method was tuned more carefully than the baselines. The kernel bandwidth n = 14 is data-derived : the empirical promotional impulse response, estimated out to lag 28 (twice the default), retains 
+
+≥ 94% of its energy within 14 lags in every category (Table 2). The horizon, lead time, cost ratio and service level are conventions fixed a priori from the M5 competition and standard inventory practice, not fitted. 29 Table 9: Default Hyperparameters                             
+
+> Parameter Symbol Value Maximum kernel lag n14 days Pre-event window wpre 30 days Smoothness penalty λsmooth 10.0 Sparsity penalty λsparse 8.0 Forecast horizon h28 days Lead time (inventory) L7 days Holding cost h$1.0/unit Stockout cost p$10.0/unit Service level α0.95 Huber delta (detrending) δAuto-estimated from MAD IRLS max iterations Idetrend 30 ISTA max iterations IISTA 100 ISTA tolerance ϵ10 −6
+
+The remaining solver settings (Huber δ, iteration caps, tolerance) are convergence controls, not capacity parameters. The two regularization weights λsmooth = 10 and λsparse = 8 were never tuned : they are fixed defaults applied unchanged to every dataset and every experiment in this paper, and the released code contains no hyperparameter search for CD. To verify this is not a hidden advantage, we swept both on an inner validation split—the last 28 days of the training window, with the test window untouched—over λsmooth ∈ [1 , 100] and 
+
+λsparse ∈ [1 , 50] . The entire 5 × 5 surface spans validation wMAPE 1.0001 –1.0027 , a 0.26% range across two orders of magnitude in λsmooth ; the defaults are tied for best, and the validation-optimal pair is marginally 
+
+worse on test ( 1.0025 vs. 1.0020 ). CD is therefore insensitive to its regularization weights in this regime, and the reported results do not depend on their calibration. 
+
+# G A Properly Specified SARIMAX Baseline 
+
+The ARIMAX baseline returns the first converging order from a fixed list, applies no stationarity test, and includes no seasonal component—a real handicap on daily retail data with a dominant weekly cycle. To ensure the reliability result of Table 6 is not an artifact of an under-specified competitor, we implemented a fair-fight alternative: the differencing order d is chosen by ADF and KPSS tests, (p, q ) then (P, Q ) are selected by AIC, and the seasonal period is fixed at m = 7 , with the same exogenous calendar every other calendar-aware baseline receives. On 300 M5 SKUs the selection procedure is clearly active—a seasonal term is chosen for 85% of SKUs—yet the gap is unchanged: dispersion SD 0.647 versus 0.663 for the shipped ARIMAX (better on 52% of SKUs, Wilcoxon p = 0 .015 ), against 0.113 for CD on the same sample. Proper specification is worth doing, but it does not close a 5.7× dispersion gap or a 30 × blowup gap. We report this comparison at N = 300 rather than 2,000 because seasonal SARIMAX exhibits pathological convergence on intermittent series, making it roughly 40 × slower than the other baselines at catalog scale. 
+
+G.1 Reproducibility 
+
+All experiments are fully reproducible from the code repository. Random seeds are fixed at 42 for synthetic data generation and item sampling. The evaluation pipeline is deterministic given the same data and hyperparameters: there is no stochastic training phase, so repeated runs produce identical results. 
+
+# H Deep Learning Baselines 
+
+Deep learning forecasters (N-BEATS, PatchTST, DeepAR) incur high per-SKU training costs and typi-cally require GPU resources, which places them outside the operational scope of this work. We evaluate PatchTST (Nie et al., 2022) on a stratified subset of 200 M5 SKUs as an accuracy baseline. 30 PatchTST achieves wMAPE 1.31 ± 0.75 , worse than CD’s 1.01 ± 0.24 on this subset. We deliberately do not 
+
+interpret PatchTST’s higher Variance Ratio as evidence that deep models “overfit variance.” As configured— and like N-BEATS and DeepAR in our implementation—PatchTST is autoregressive and receives no future promotional/SNAP calendar, whereas CD and every feature-based baseline do (§4.3, Information parity). Its inflated forecast variance therefore partly reflects the absence of exogenous information rather than the choice of ML paradigm, so we treat the deep sequence models as accuracy baselines only and do not draw operational-variance conclusions from them. Equipping a covariate-aware deep model (e.g., the Temporal Fusion Transformer, or PatchTST with future exogenous inputs) with the identical calendar is a natural extension we leave to future work. 
+
+# I Sensitivity to Eventfulness 
+
+Table 10 reports performance stratified by “eventfulness,” which we proxy by Vanilla XGBoost’s Variance Ratio. SKUs with low eventfulness have few or weak promotions; SKUs with high eventfulness have frequent or deep promotions. Table 10: Sensitivity to Eventfulness (M5, 1,300 SKUs)                                 
+
+> Eventfulness Method VR (mean) VR (std) Count Low ( <0.2) CD 0.003 0.007 292 Vanilla XGBoost 0.134 0.115 292 Med (0.2–0.5) CD 0.004 0.005 469 Vanilla XGBoost 0.335 0.122 469 High (0.5–1.0) CD 0.019 0.111 327 Vanilla XGBoost 0.680 0.211 327 V. High ( >1.0) CD 0.007 0.018 212 Vanilla XGBoost 1.705 0.987 212
+
+The pattern is striking: CD maintains low variance ratio across all strata, with mean VR never exceeding 
+
+0.02 . Vanilla XGBoost, by contrast, degrades monotonically as eventfulness increases, from 0.13 in the low stratum to 1.71 in the very high stratum, a 13 × increase. The high variance in the “Very High” stratum for both methods reflects the extreme volatility of these SKUs. Notably, CD’s VR in the very high stratum (0.007 ) is lower than in the high stratum ( 0.019 ), which is an artifact of the stratification: the very high stratum contains SKUs with large but predictable events, where the kernel absorbs almost all variance, while the high stratum contains SKUs with more irregular event timing. 
+
+# J Sensitivity to Promotion Density 
+
+To test whether CD’s operational advantage depends on how frequently a SKU is promoted, we stratify 2,000 M5 SKUs by promotion density —the fraction of training days on which the item carries a price discount (derived from promo_depth ; the shared event calendar fpromo is identical across SKUs and therefore cannot stratify them). Table 11 reports median metrics for CD and Tuned XGBoost in each stratum. All comparisons are paired per-SKU and assessed with Wilcoxon signed-rank tests, Bonferroni-corrected across the 16 stratum–metric tests. 
+
+Findings. CD’s operational advantage is robust across the entire promotion-density spectrum. It attains lower variance ratio on 80 –91% of SKUs and lower safety stock on 83 –95% in every tertile, with median VR roughly an order of magnitude below Tuned XGBoost throughout. Unlike the pre-correction analysis, the accuracy advantage now holds in every stratum as well: CD wins wMAPE on 60 –65% of SKUs even in the densest tertile, where frequent promotions give the gradient-boosted model the most in-sample signal to exploit. The residual trade-off is inventory cost, not accuracy: under a low holding-to-stockout ratio CD’s smoothing under-provisions event spikes, the same effect quantified in §4.3 and governed by the cost-ratio crossover of Figure 2 ( h/p ≈ 0.20 ). The variance-ratio and safety-stock gains hold universally; the cost outcome depends on h/p .31 Table 11: Sensitivity to Promotion Density (M5, 2,000 SKUs; median VR and wMAPE, plus paired per-SKU win-rates for CD vs. Tuned XGBoost). SKUs are split into equal-count tertiles by promotion density (fraction of training days carrying a price discount). “CD wins” is the fraction of SKUs on which CD attains the lower metric; at n ≈ 650 per stratum every win-rate above is far beyond chance. 
+
+# Median VR Median wMAPE CD wins (%) Density tertile n CD XGB CD XGB VR Saf. Stock wMAPE Low 633 0.0007 0.0099 1.010 1.158 80.1 83.4 64.8 Medium 651 0.0005 0.0179 1.010 1.134 91.2 94.8 61.3 High 663 0.0009 0.0129 1.010 1.123 86.7 91.6 60.5 
+
+# K Calendar Degradation Curve 
+
+A practical concern is robustness to incomplete or noisy event calendars. In real deployments, promotional calendars may be missing events, or event labels may be incorrect. Table 12 measures how CD degrades as events are systematically removed from the calendar. Table 12: Calendar Degradation Curve (M5, 50 SKUs; mean ± std)                                             
+
+> Events Removed wMAPE Variance Ratio 0% (full calendar) 1.03 ±0.17 0.0043 ±0.012
+> 25% 1.05 ±0.24 0.0057 ±0.015
+> 50% 1.06 ±0.24 0.0083 ±0.027
+> 75% 1.09 ±0.31 0.0076 ±0.012
+> 100% (baseline-only) 1.24 ±0.59 0.013 ±0.017
+> Vanilla XGBoost (full calendar) 1.67 ±1.34 0.65 ±0.78
+> Tuned XGBoost (full calendar) 1.28 ±0.62 0.054 ±0.13
+
+CD degrades gracefully: removing 50% of events increases wMAPE by only 0.03 (from 1.03 to 1.06 ) and VR by 0.004 (from 0.0043 to 0.0083 ). Even with 100% of events removed (baseline-only forecasting), CD’s VR ( 0.013 ) remains two orders of magnitude below Vanilla XGBoost’s VR with the full calendar ( 0.65 ). This confirms that the smoothness prior alone provides substantial variance stabilization, and the kernel-modulated operator provides additional gains when the calendar is known. The slight non-monotonicity at 75% (VR decreases from 0.0083 to 0.0076 ) is within the standard error and reflects sampling variation across the 50-SKU subset. 
+
+# L Calendar Timing Shift Sensitivity 
+
+Event timing is often uncertain in practice: a promotion may be scheduled for Monday but executed on Tuesday, or a holiday may shift by a day. Table 13 measures how CD tolerates systematic timing shifts of 
+
+±1, ±2, and ±3 days on a subset of 50 M5 SKUs with low event density (median sparsity 1.4 non-zeros per SKU). The wMAPE is essentially unchanged across all shift levels ( 0.941 –0.943 ), but this result is not a robustness win: on these 50 SKUs, sparsity is only 1.4 (median), meaning the shock stream is nearly inert. When there are no meaningful shocks to misalign, timing shifts cannot degrade performance. The VR of −0.992 
+
+reflects the baseline-only regime, not operational stability. The honest conclusion is that on low-eventfulness SKUs, CD is timing-insensitive by construction because the shock stream is absent. The informative timing test is the adversarial misspecification panel (Figure 3, right), where the shock exists and misaligns: the kernel’s natural spread ( ±2–3 days) provides partial tolerance, but large shifts (5+ days) produce lagged 32 Table 13: Calendar Timing Shift Sensitivity (M5, 50 SKUs; mean ± std)                                           
+
+> Shift wMAPE Variance Ratio Sparsity
+> ±1day 0.943 ±0.066 −0.992 ±0.005 1.3±4.0
+> ±2days 0.942 ±0.064 −0.992 ±0.005 1.4±4.2
+> ±3days 0.941 ±0.064 −0.992 ±0.005 1.4±3.7
+> Clean (0%) 0.942 ±0.064 −0.992 ±0.005 1.4±4.3
+
+reconstructions. On SKUs with material sparsity ( > 5 non-zeros), timing shifts would degrade the shock reconstruction, but the baseline would remain smooth. 
+
+# M Decomposition Quality 
+
+Table 14 compares the kernel-modulated operator against the identity operator ( Aspec = I) on 20 M5 SKUs. The identity operator is the natural ablation: it removes all temporal structure, forcing the model to represent every day’s deviation from the baseline as an independent shock. Table 14: Decomposition Quality (M5, 20 SKUs)                      
+
+> Method Recon. RMSE Sparsity ( ∥xspec ∥0) Baseline Smoothness CD ( Aspec =I)2.31 ±1.84 42 .5±12 .318 .73 ±4.21
+> CD (Kernel-Modulated) 2.07 ±1.62 31 .2±9.715 .58 ±3.89
+
+The kernel-modulated operator reduces sparsity by 27% (from 42 .5 to 31 .2 non-zeros), improves reconstruc-tion RMSE by 10%, and produces a smoother baseline. This confirms that the learned temporal structure correctly absorbs carryover effects that would otherwise be spuriously assigned to xspec . Without the kernel, the model must encode every lagged effect as a separate shock, producing dense, uninterpretable results that defeat the purpose of the decomposition. 
+
+# N Adversarial Robustness on Synthetic Data 
+
+To test whether the operator formulation is merely fitting synthetic assumptions, we stress-test it under three adversarial conditions on synthetic data with known ground truth: (a) a missing event, (b) wrong event timing, and (c) a misspecified kernel family. Figure 3 (main text, §4.8) illustrates the three failure modes. 
+
+Missing event (panel a). When an event at day 150 is omitted from the calendar, the reconstruction cannot recover it. The baseline remains flat, and the spike is absorbed into the residual. This is expected: the convex solver cannot invent events that are not in the calendar. The important point is that the baseline does not overreact to the missing event; it does not create a spurious dip or spike to compensate. This confirms that the smoothness prior is stable under missing events. 
+
+Wrong timing (panel b). Shifting the event from day 150 to 155 in the calendar produces a lagged reconstruction. The kernel is applied at the wrong time, so the reconstructed peak is offset by 5 days. The baseline remains smooth, but the shock is misaligned. This is a limitation: the method is sensitive to timing errors, though the kernel’s natural spread ( ±2–3 days) provides partial tolerance (see Appendix L). 
+
+Wrong kernel family (panel c). On synthetic data with a ground-truth signed kernel, a gamma kernel (always positive) cannot capture the post-event dip, producing a reconstruction that remains elevated after the event. The DoE kernel correctly produces negative weights for lags ≥ 2, modeling the demand dip. On real M5 data, however, the post-promotion dip is not detectable at the category level (Appendix T), and a pure exponential decay yields comparable sparsity (Appendix R.3). The signed DoE is therefore an optional inductive bias, not a universal structural requirement. 33 O Real-Data Adversarial Test 
+
+Synthetic sanity checks are necessary but not sufficient. To validate real-world robustness, we corrupt the M5 promotional calendar on 50 SKUs by randomly removing 30%, 50%, and 70% of event labels, then measure how both CD and Vanilla XGBoost degrade under the same corruption. Figure 3 (main text, §4.8) shows the head-to-head comparison. Under calendar corruption, CD’s wMAPE stays flat ( 1.027 → 1.018 ) while Vanilla XGBoost’s wMAPE remains high and volatile. The critical difference is Variance Ratio: CD stays near zero ( 0.004 → 0.001 ), while Vanilla XGBoost stays at 0.5–0.6 regardless of corruption level, two orders of magnitude higher. A more important concern for CD is sparsity: under corruption, the mean sparsity rises from 1.9 to 54 .2
+
+non-zeros, with a wide confidence interval. This reveals that some SKUs hallucinate hundreds of false events while others correctly revert to zero. The mechanism is clear: when the true event is missing from the calendar, the model tries to explain the demand spike via other nearby events or noise, producing spurious non-zeros. However, the Variance Ratio remains stable regardless, confirming that the primary operational risk of missing calendars is unreliable event detection, not variance inflation. For practitioners, this means that missing calendars do not break the baseline forecast, but they do make the shock vector less trustworthy for event-specific planning. 
+
+# P Two-Stream Forecasting Architecture 
+
+Figure 4 illustrates the two-stream forecasting architecture. This section provides additional operational detail. 
+
+Figure 4: Two-Stream Forecasting Architecture. Stream A extrapolates the smooth structural baseline; Stream B deterministically injects known future transients via kernel-modulated operators. 
+
+Stream A: Baseline Extrapolation. Because the smoothness operator L has stripped high-frequency volatility, the recovered baseline xbase is slowly varying. We project it via lightweight methods (e.g., linear trend, Holt-Winters, or a simple seasonal naive model). A critical property is that a transient spike last month exerts zero influence on the projected structural trend: the baseline is decoupled from the shocks by construction. This is what makes the operational forecast stable. 
+
+Stream B: Deterministic Transient Injection. Sparse shocks cannot be reliably forecasted from en-dogenous history alone: if a promotion has never occurred before, there is no historical shock to extrapolate. 34 However, known future intents (scheduled promotions, SNAP calendars) provide exact future feature vec-tors fm, future . We construct Afuture spec from these known calendars and inject expected shock magnitudes, estimated from the empirical distribution of historically recovered shocks, conditioned on event type and promotional depth. This is not a prediction in the statistical sense; it is a deterministic injection of known future information. 
+
+Recombination. The final operational forecast is the superposition ˆbfuture = ˆ xfuture base + Afuture spec ˆxfuture spec . The baseline provides the smooth capacity plan; the shock vector provides the event-driven adjustment. The sum is variance-stable because the baseline is smooth and the shock vector is sparse and known in advance. 
+
+# Q CCF Benchmark: Why the Identity Operator Fails 
+
+All results in this appendix use synthetic data with a known ground-truth DoE kernel, providing a controlled setting where the true operator is available for comparison. 
+
+Figure 5: Synthetic kernel recovery benchmark. (a) Ground-truth DoE kernel. (b) CCF with identity operator recovers a smeared, sign-incorrect kernel (L2 error = 3.86). (c) Our two-stage method accurately recovers the surge-and-vacuum shape (L2 error = 0.60). (d) Error comparison: our method achieves 6.5×
+
+lower recovery error. Cross-correlation function (CCF) analysis is a standard tool for identifying impulse responses in time series. The standard approach computes the CCF between the observed signal and the event indicator, treating the event indicator as an exogenous impulse. However, this implicitly assumes that the operator is the identity (Aspec = I): each event on day t affects only day t.35 Figure 5 shows why this assumption fails. Panel (a) shows the ground-truth DoE kernel: a positive surge on days 0–1, followed by a negative vacuum on days 2–5, and gradual decay to zero. Panel (b) shows the CCF recovered under the identity assumption: the kernel is smeared across time, the sign is incorrect for lags ≥ 2, and the L2 recovery error is 3.86. Panel (c) shows our two-stage method: the surge, vacuum, and decay are all accurately recovered, with L2 error 0.60. The 6.5× improvement in recovery error translates directly to better decomposition quality, lower sparsity, and lower variance ratio in the operational forecast. 
+
+# R Extended Ablation Studies 
+
+R.1 Identity Operator 
+
+Removing the kernel structure ( Aspec = I) forces all temporal dynamics into the sparse shock vector xspec .As shown in Table 14 on 20 M5 SKUs, sparsity degrades from 31 .2 ± 9.7 to 42 .5 ± 12 .3 non-zeros, and the variance ratio rises to 0.15 ± 0.08 . The baseline smoothness also degrades (from 15 .58 to 18 .73 ), because without the kernel, the smoothness prior must absorb lagged effects that would otherwise be captured by the operator. This confirms that the kernel structure is not merely a convenience: it is essential for interpretable, low-variance decomposition. 
+
+R.2 Non-Causal Super-Diagonals 
+
+Allowing k < 0 (non-causal, future-dependent weights) does not improve training fit on the evaluated sample; training RMSE is comparable to the causal operator, and test RMSE is numerically equivalent (6.057 vs. 6.057 ). The mechanism is clear: non-causal operators can “peek” at future demand to explain current observations, which risks overfitting the training data. This is why causality is enforced as a hard constraint in the kernel family, even though the empirical degradation is small in this sample. 
+
+R.3 Kernel Misspecification: Pure Exponential Decay 
+
+When the kernel is constrained to pure exponential decay (no vacuum tail), decomposition sparsity remains comparable to the signed DoE kernel on the evaluated sample. Because the empirical M5 kernels do not exhibit a negative region (Appendix T), the model does not need to encode a post-promotion dip via additional shocks, and the smoothness prior dominates sparsity. The signed DoE family remains useful as a regularizer that decays to zero, but the vacuum component is an optional inductive bias, not a structural requirement. 
+
+R.4 Two-Stage vs. Joint Optimization 
+
+On 50 M5 SKUs, a block-coordinate-descent joint optimizer (alternating between updating Aspec and updat-ing xbase , xspec ) achieves lower VR ( 0.0003 vs. 0.0043 ) and slightly lower wMAPE ( 1.01 vs. 1.03 ). However, this comes at the cost of dramatically degraded sparsity ( 95 .6 vs. 1.9 non-zeros) and higher RMSE ( 1.55 
+
+vs. 1.36 ). The dense shocks are operationally unusable: 95 non-zeros per SKU defeats the purpose of the sparse shock representation. The two-stage design is therefore preferred because it produces interpretable, actionable results at the cost of marginally higher variance ratio. The trade-off is principled: we sacrifice a small amount of statistical optimality for a large gain in operational interpretability. 
+
+R.5 Favorita Variance Ratio Distribution R.6 Inventory Simulation Decomposition 
+
+Table 15 reports the full inventory simulation decomposition on 100 paired M5 SKUs. 
+
+R.7 Partial Pooling Validation 
+
+Table 16 reports the full pooling strategy comparison on 200 M5 SKUs. 36 Figure 6: Favorita Variance Ratio distribution (corrected live on-promotion and holiday channels), on the 2,669 paired items with a defined VR (finite Var[ ·] in the test window; a subset of the 2,681 CD-evaluated items in Table 7). Left: overlaid histograms (clipped at 1.0) with method medians. Right: per-method violins (clipped at 0.6 to show shape; black bars mark medians). CD wins on 74 .5% of paired items; median VR CD = 0 .0072 vs. Tuned XGBoost = 0 .0395 (5.5× higher). Only 8.4% of CD items exceed VR 0.1, versus 
+
+30 .9% for XGBoost, so CD’s advantage is a genuine distributional shift, not a median artifact. Table 15: Inventory Simulation Decomposition (M5, 100 SKUs; median), strictly out-of-sample. Cumulative cost (holding + stockout) summed over the 28-day test horizon at h/p = 0 .1: CD = $137 .7 per SKU, Tuned XGBoost = $103 .8 per SKU. CD’s lower holding is outweighed by roughly 2.9× the stockout cost. 
+
+Method Safety Stock Holding Cost Stockout Cost Event Fill Rate Event Stockout Rate CD 0.015 55 .1 82 .6 0.733 0.167 
+
+Tuned XGBoost 0.106 74 .8 29 .0 0.917 0.083 
+
+# S Structural Baselines on Favorita (90 Items) 
+
+Table 17 reports the full structural baseline comparison on 90 Favorita items, the same subset evaluated in the main text (§4.6). On Favorita’s holiday-driven calendar (Christmas, Easter), ARIMAX achieves the best accuracy : median wMAPE 0.708 against CD’s 0.874 (CD wins wMAPE on only 26 .7% of items), because the calendar consists of well-spaced, predictable events that ARIMA captures with simple dummy regressors. On operational stability the picture reverses. CD and ARIMAX are comparable on Variance Ratio—CD’s median ( 0.0050 )is marginally below ARIMAX’s ( 0.0074 ), with CD lower on 56 .7% of items—but CD dominates the remaining structural baselines, whose median VR is more than an order of magnitude higher (ETS 0.121 , Prophet-like 
+
+0.153 , distributed-lag 0.134 ). On safety stock CD leads decisively: median 0.497 against 0.68 –0.96 , carrying less stock than ARIMAX on 87 .8% of items, than ETS on 96 .7% , and than Prophet-like on 87 .8% . Even where the fixed surge-and-vacuum kernel is not the most accurate model, the structural decomposition yields the strongest operational stability, and CD is the only method that keeps VR low across both promotional and holiday calendars. 
+
+# T Real Kernel Recovery on M5 
+
+Figure 7 shows category-level empirical kernels estimated from 500 M5 SKUs (249 foods, 94 hobbies, 157 household), normalized to peak = 1 for comparison. The parametric surge-vacuum fit (red dashed) captures 37 Table 16: Pooling Strategy Comparison (M5, 200 SKUs; mean ± std) 
+
+# Strategy wMAPE RMSE Variance Ratio Safety Stock Per-SKU 1.021 ± 0.088 1 .635 ± 2.537 0.0051 ± 0.023 0.032 ± 0.065 
+
+# Category-Pooled 1.022 ± 0.089 1 .630 ± 2.488 0.0042 ± 0.017 0.032 ± 0.062 
+
+# Global-Pooled 1.022 ± 0.089 1 .630 ± 2.488 0.0042 ± 0.017 0.032 ± 0.062 
+
+Table 17: Structural Baselines on Favorita (90 items, global pooled kernel; mean ± std) 
+
+Method wMAPE RMSE Variance Ratio Safety Stock ARIMAX (promotional dummies) 0.866 ± 0.469 5.62 ± 13 .84 0.105 ± 0.464 1.45 ± 2.49 
+
+ETS (covariates) 0.926 ± 0.674 5.47 ± 11 .98 0.238 ± 0.353 1.85 ± 3.44 
+
+Prophet-like (event regressors) 1.074 ± 1.155 5.76 ± 11 .85 0.326 ± 0.555 1.36 ± 2.12 
+
+Distributed-Lag OLS (Ridge) 1.237 ± 2.463 5.86 ± 13 .01 0.621 ± 2.739 1.59 ± 2.79 
+
+CD (Global Pooled) 0.979 ± 0.586 6.52 ± 15 .46 0.017 ± 0.034 0.92 ± 1.53 
+
+the initial sharp decay but misses the persistent flat tail in the empirical mean (blue solid). The IQR bands (blue shaded) are wide, reflecting genuine heterogeneity across SKUs within each category. 
+
+The empirical kernels do not go negative. All category-level medians are strictly positive (foods min-imum: 0.0009, household: 0.0092, hobbies: 0.0833). The post-promotion dip, while theoretically motivated by marketing science (van Heerde et al. 2000; Hendel & Nevo 2006), is not detectable at the category level in this data without controls for feature and display effects—consistent with Hendel and Nevo’s masking argument. The signed Difference-of-Exponentials family remains useful as a regularizer that decays to zero rather than imposing a negative vacuum, but the vacuum component is not empirically supported on this data. A pure exponential decay (no negative region) yields comparable sparsity on the evaluated sample (Appendix R.3), confirming that the smoothness prior and carryover decay carry the operational benefits, not the signed vacuum specifically. This positions CD as a regularized estimator that trades perfect fidelity for scalability and interpretability. 
+
+Figure 7: Real kernel recovery on M5 (category-level empirical means with IQR bands). Blue solid: empirical mean; red dashed: parametric surge-vacuum fit; blue shaded: IQR across SKUs. The parametric fit captures the initial decay but misses the persistent flat tail. 
+
+Full results. The complete mean ±std statistics for the comprehensive baseline comparison are available in the supplementary CSV file m5_200_comprehensive_baselines.csv (included in the code repository). 38 T.1 Cross-Dataset Kernel Ablation: When the Carryover Operator Matters 
+
+To isolate what the carryover kernel contributes over a plain impulse operator ( Aspec = I: smooth baseline plus deterministic same-day calendar injection), we run the same strictly out-of-sample ablation across the carryover spectrum available in our two datasets (Table 18). The estimated kernel is genuinely data-derived: it is near-impulsive on M5 (global [1 , 0.08 , . . . ]) and near-impulse on Favorita (on-promotion channel, carryover 0.02 ), so in both cases the learned operator and Aspec = I are operationally near-identical. Where genuine carryover exists—the M5 hobbies category ( 23 .5% tail energy)—the category kernel improves VR, wMAPE, and safety stock together. The operational advantage of CD over gradient boosting is carried by the structural decomposition in every case; the kernel adapts the operator to whatever carryover the data actually contains, and reduces harmlessly to an impulse when there is none. Table 18: Kernel ablation: learned kernel vs. impulse operator ( Aspec = I), median metrics, strictly out-of-sample. Safety stock is in each dataset’s native demand units. “Carryover” is the fraction of kernel energy beyond lag 0.                                 
+
+> Dataset ( n)Operator Carryover VR wMAPE SS M5 full (2,000) learned (near-impulse) 0.01 0.0006 1.010 0.016
+> impulse ( Aspec =I)00.0007 1.010 0.016
+> M5 hobbies (748) category kernel 0.24 0.0014 1.060 0.028
+> impulse ( Aspec =I)00.0018 1.072 0.032
+> Favorita (2,845) learned (near-impulse) 0.02 0.0072 0.931 0.206
+
+# U Variance Ratio: Full Justification 
+
+VR = Var( forecast t)/Var( actual t). A value below 1 indicates the forecast damps demand variability (no Bullwhip inflation); values above 1 indicate amplified upstream variance, and a degenerate constant forecast attains VR = 0 . Normalizing by actual demand variance makes the metric scale-invariant across heteroge-neous SKUs. We validate VR by its strong correlation with safety stock ( ρ = 0 .692 ) and its independence from wMAPE for CD ( ρ = −0.021 ), confirming it measures operational volatility rather than forecast accu-racy. 
+
+Limitations. VR can be negative when forecast variance is lower than actual variance; in extreme cases, a constant forecast achieves VR = −1.0, which is forecast degeneracy, not operational stability. We mitigate this by reporting VR alongside wMAPE, excluding near-zero-variance items, and validating against safety stock ( ρ = 0 .692 ). CD achieves both low wMAPE and low VR, while the timing-shift test (Appendix L) shows that extreme negative VR under heavy corruption ( −0.992 ) is accompanied by unchanged wMAPE, confirming the baseline remains structurally sound. 
+
+# V EDMD Ablation: Parametric vs. Data-Driven Operator Comparison 
+
+To compare the parametric surge-and-vacuum kernel against a purely data-driven alternative, we run Ex-tended Dynamic Mode Decomposition with control (DMDc) on the same 500 M5 SKUs used in the real-kernel recovery experiment (Appendix T). We augment the observed demand state with quadratic observables 
+
+ψ(x) = [ x, x 2]⊤ and solve the least-squares problem [Ψ Y ] = [Ψ X , U ] · [K⊤, B ⊤]⊤ to learn a linear opera-tor K and input matrix B in the lifted space. Markov parameters hk = C⊤KkB are extracted for lags 
+
+k = 0 , . . . , 14 , with C projecting back to the current demand component (not the oldest lag, which would bias the recovery toward trivial dynamics). Crucially, we train EDMD at category level (foods, household, hobbies) and globally , pooling all SKUs within each category before fitting. This mirrors the parametric kernel pipeline (category-pooled estimation, applied per-SKU) and eliminates per-SKU overfitting. Each category operator is fit on hundreds of thousands of samples (e.g., foods: 249 SKUs × ∼ 1,900 time steps ≈ 473k samples). 39 Figure 8: EDMD vs. parametric kernel on 500 M5 SKUs. (a) Representative SKU: category-level EDMD (blue) and global EDMD (green) show a decay structure similar to the parametric DoE (red dashed), though with a slower decay at intermediate lags; empirical ridge (black dots) is noisy. (b) Category-level EDMD kernels (foods, household, hobbies) and global kernel all exhibit decay structure, though less sharply peaked than the parametric median ± IQR. (c) All operators stable: spectral radii well below 1.0 for all categories and global. (d) VR scatter on 200 SKUs: most points cluster near the diagonal, indicating comparable operational performance; parametric achieves slightly lower VR on average. 
+
+Stability. All learned operators are stable: category-level spectral radii are ρ = 0 .983 (foods), 0.978 
+
+(household), 0.970 (hobbies), and the global operator has ρ = 0 .979 . This confirms that the parametric stability constraint ( ρ < 1) is not biasing the model toward trivial dynamics; the data themselves support stable operators. 
+
+Impulse-response structure. The category- and global-level EDMD impulse responses show genuine decay structure (Figure 8, panels a–b): a sharp peak at lag 0 followed by a decaying tail at subsequent lags. The EDMD kernels decay more gradually than the parametric DoE kernel, which has a more pronounced initial surge and faster exponential decay. EDMD therefore recovers a broadly similar carryover pattern, but without the sharp parametric structure that encodes the specific surge-and-vacuum shape. The parametric kernel captures a more concentrated initial response, while EDMD spreads the same total mass over more lags. 
+
+Pseudospectra and non-normality. A purely spectral analysis (eigenvalues inside the unit circle) is insufficient to characterize the short-term behavior of a Koopman operator. We therefore compute the pseudospectra Λϵ(K) = {z ∈ C : σmin (zI − K) ≤ ϵ} for each learned operator K (Trefethen & Embree, 40 2005). Figure 9 shows the ϵ = 10 −4, 10 −3, 10 −2, 10 −1 contours together with the eigenvalues (black ×)and the unit circle (dashed). For all four operators, the ϵ = 10 −1 pseudospectral boundary crosses the unit circle, indicating that arbitrarily small perturbations can push eigenvalues outside the stability region. More importantly, the numerical abscissa ω(K) = max ∥x∥=1 Re (x∗Kx )—which governs the Kreiss constant and short-term transient growth—is far larger than the spectral abscissa α(K) = max i Re (λi) (Table 19). The gap ω − α ranges from 0.59 (household) to 1.40 (hobbies), with Henrici numbers 0.17 –0.57 , confirming substantial non-normality. 
+
+Remark (Structural control of non-normality). The parametric kernel operator Aspec is banded with bandwidth equal to the finite kernel support n (typically n ≤ 14 for M5). For a single-event-type instance, it is a lower-triangular Toeplitz matrix whose eigenvalues are all equal to ϕ(0) ; its de-parture from normality, measured by the Henrici number H(A) = √∥A∥2 
+
+> F
+
+− ∑ 
+
+> i
+
+|λi|2/∥A∥F , reduces to 
+
+H = √∑ nk=1 ϕ(k)2/√∑ nk=0 ϕ(k)2, which is controlled by the decay rate of the kernel. Because the DoE ker-nel concentrates most energy at lag 0, H(ADoE ) ≪ 1. In contrast, the EDMD operators are dense matrices with off-diagonal energy spread across all lags, yielding H(K) ∈ [0 .17 , 0.57] and transient growth 7–12 ×.Table 19: Spectral properties of learned Koopman operators. Operator ρ(K) α(K) ω(K) ω − α
+
+Foods 0.983 0.983 1.940 0.957 Household 0.978 0.978 1.573 0.594 Hobbies 0.970 0.970 2.365 1.395 Global 0.979 0.979 1.656 0.677 The practical consequence is transient growth: || Kk|| 2 reaches 7.4–11 .6 before eventually decaying (Fig-ure 10), whereas the spectral prediction ρk would predict monotonic decay. The transient growth factor 
+
+|| Kk|| 2/ρ k climbs to roughly 10 ×–15 ×, meaning the actual impulse-response magnitude at intermediate lags is an order of magnitude larger than the spectral radius alone would suggest. This explains the more gradual EDMD decay observed in Figure 8: the non-normality “spreads” the impulse response over more lags, creating a flatter, more diffuse carryover pattern than the sharply peaked parametric kernel. The parametric kernel, being a direct convolution model with no latent state dynamics, does not suffer from this non-normality-induced diffusion. 
+
+Robustness to the observable dictionary. A natural concern is whether the observed non-normality is an artifact of the degree-2 polynomial lifting rather than a property of the underlying dynamics. To test this, we refit the pooled global operator under a range of observable dictionaries—linear, quadratic ( ≤ 2), full-quadratic with all cross terms, and cubic ( ≤ 3)—and recompute the non-normality diagnostics (Table 20). A normal operator would yield departure ω − α ≈ 0, Henrici number ≈ 0, and transient factor ≈ 1 under 
+
+every basis. Instead, non-normality is present for all dictionaries and increases monotonically with lifting richness: the transient-growth factor rises from 2.4 (linear) to 12 .7 (quadratic) to 16 .3 (full-quadratic), with the cubic basis amplifying it further (partly reflecting the poorer conditioning of high-degree monomials). The degree-2 value used in our main analysis is therefore conservative, not inflationary: the non-normality is intrinsic to promotional-demand dynamics, and a richer dictionary would only strengthen the conclusion. The per-category transient factors under the quadratic basis ( 8.2 foods, 13 .1 household, 23 .4 hobbies) bracket the 7–12 × range reported in the main text. 
+
+Operational metrics. Substituting category-level EDMD into the Stage 3 evaluation pipeline yields me-dian VR = 0 .0006 and wMAPE = 1 .010 (global-EDMD: 0.0006 and 1.010 ), matching the parametric kernel’s 
+
+0.0006 and 1.010 . On M5’s near-impulsive operators the parametric and data-driven operators are opera-tionally indistinguishable: the parametric kernel’s median VR is not significantly different from EDMD’s (Wilcoxon signed-rank p = 0 .06 for category, p = 0 .12 for global). Both remain far below the ML baselines (Tuned XGBoost: VR 0.013 ; PatchTST: VR 0.052 ), confirming that the structural decomposition—not the choice between a parametric or data-driven operator—is what suppresses variance. 
+
+Takeaway. EDMD is a genuine competitor: it learns stable dynamics and recovers a decaying carryover structure without a parametric prior. The parametric DoE kernel matches EDMD’s operational variance 41 Table 20: Non-normality of the global pooled Koopman operator across observable dictionaries (120 M5 SKUs). A normal operator has ω − α = 0 , Henrici = 0 , transient factor = 1 . All learned operators are strongly non-normal, and richer dictionaries amplify rather than remove the effect.                           
+
+> Observable dictionary dim ω−αHenrici transient factor Linear 16 0.05 0.09 2.4 Quadratic ( ≤2)31 0.60 0.17 12.7 Full-quadratic +cross 136 0.89 0.09 16.3 Cubic ( ≤3)46 41.1 1.41 363
+
+Figure 9: Pseudospectra of learned Koopman operators ( ϵ = 10 −4, 10 −3, 10 −2, 10 −1). Black × marks eigen-values; dashed gray circle is the unit circle. All operators are highly non-normal: the ϵ = 10 −1 contour extends well outside the unit circle, indicating that small perturbations can destabilize the operator. (statistically indistinguishable on M5) while offering a sharper, more interpretable impulse response. The practical case for the parametric family is therefore not that EDMD fails, but that the parametric kernel offers comparable accuracy and variance with superior interpretability (physically meaningful parameters: 42 Figure 10: Transient growth of the Koopman semigroup || Kk|| 2 (blue), spectral prediction ρk (green dashed), and transient factor || Kk|| 2/ρ k (red dotted). All operators exhibit transient growth 7– 12 × above the spectral prediction, with hobbies showing the strongest non-normality. surge rate, vacuum rate, decay time constants) and a more compact representation. In settings where interpretability matters—explaining to planners why a promotion’s effect persists for 7 days, not 14—the parametric structure is valuable at no operational cost. EDMD is a valid alternative when interpretability is secondary and the data volume is large enough to support non-parametric operator estimation. 
+
+V.1 Favorita Koopman Analysis 
+
+We repeat the EDMD pseudospectral analysis on the Favorita Grocery Sales dataset (Ecuador, 2013–2017), which contains 4,036 items across 24 product families. Unlike M5, Favorita has no SNAP program; the only binary event feature is the onpromotion flag (encoded as promo_depth ). We fit EDMD at category level (24 families) and globally, pooling all 476 sampled items. 
+
+Stability. All 24 category-level operators and the global operator are spectrally stable ( ρ < 1). Spectral radii range from 0.955 (school/office supplies) to 0.997 (meats), with the global operator at ρ = 0 .977 . This 43 confirms that the stability observed on M5 is not a Walmart-specific artifact: stable, decaying Koopman dynamics are a generic feature of FMCG demand. 
+
+Non-normality and transient growth. Table 21 reports spectral properties for a representative subset of Favorita categories plus the global operator. The pattern is qualitatively identical to M5: the numerical abscissa ω(K) exceeds the spectral abscissa α(K) for every category, confirming non-normality. The gap is especially severe in perishable categories (BREAD/BAKERY: ω − α = 18 .40 ; PREPARED FOODS: 5.92; PRODUCE: 5.21), where transient growth reaches 45.9 × above the spectral prediction. Even stably non-perishable categories (DAIRY, FROZEN FOODS, EGGS, MEATS) show moderate non-normality ( ω − α
+
+0.09–0.26), with transient factors of 2.1–3.4 ×.Table 21: Spectral properties of learned Koopman operators on Favorita (selected categories).                                                          
+
+> Operator ρ(K)α(K)ω(K)ω−αMax Transient Dairy 0.990 0.990 1.248 0.257 2.83 ×
+> Grocery I 0.981 0.981 4.078 3.097 10.46 ×
+> Bread/Bakery 0.987 0.987 19.390 18.403 45.88 ×
+> Frozen Foods 0.993 0.993 1.208 0.215 2.71 ×
+> Beverages 0.983 0.983 3.891 2.908 13.10 ×
+> Produce 0.985 0.985 6.197 5.212 22.75 ×
+> Deli 0.992 0.992 3.158 2.166 10.19 ×
+> Meats 0.997 0.997 1.089 0.091 2.00 ×
+> Eggs 0.994 0.994 1.151 0.157 2.54 ×
+> Global 0.977 0.977 2.912 1.935 10.21 ×
+
+Figure 11 shows the pseudospectra for the four largest categories. The ϵ = 10 −1 contour crosses the unit circle for all operators, confirming that arbitrarily small perturbations can destabilize the operator. Figure 12 shows the transient growth curves: the global operator reaches 10 .2× above the spectral prediction at lag 15, and the most non-normal category (BREAD/BAKERY) reaches 45 .9×.
+
+Operational metrics. Substituting category-level EDMD kernels into the Stage-3 evaluation pipeline on 476 Favorita items yields median VR = 0 .0072 and wMAPE = 0 .870 (global-EDMD: VR = 0 .0073 , wMAPE 
+
+= 0 .868 ), versus the parametric kernel’s VR = 0 .0053 and wMAPE = 0 .886 . Safety stock is comparable (parametric: 0.256; category-EDMD: 0.265; global-EDMD: 0.271). The parametric kernel achieves slightly lower VR (Wilcoxon signed-rank p = 0 .004 for category, p < 0.001 for global), but the absolute difference is small—one order of magnitude smaller than the gap between either method and the ML baselines (Tuned XGBoost: VR 0.043 on Favorita, evaluated on a larger paired subset). The same qualitative pattern as M5 holds: EDMD is a genuine competitor on the same sample, but the parametric kernel offers comparable accuracy with superior interpretability and avoids the non-normality-induced diffusion that flattens the impulse response. 
+
+Cross-dataset comparison. Table 22 summarizes the spectral and operational findings across both datasets. The central result is consistent: data-driven Koopman operators are spectrally stable ( ρ < 1)but highly non-normal ( ω ≫ α) on both M5 and Favorita. The non-normality is stronger on Favorita (global 
+
+ω − α = 1 .93 vs. M5 global 0.68 ), likely because Favorita’s 24-category structure creates more heterogeneous dynamics that the pooled operator must compress. Transient growth is larger on Favorita (global 10 .2×
+
+vs. M5 global 7.4×), and the most extreme category reaches 45 .9× (BREAD/BAKERY) versus 11 .6× (hob-bies) on M5. Despite this larger non-normality, the operational penalty is small: the parametric kernel still achieves lower VR than EDMD on both datasets, and the gap between EDMD and the ML baselines is far larger than the gap between EDMD and the parametric kernel. 
+
+Takeaway. Non-normal Koopman dynamics are not an M5 artifact. They are a structural property of learned demand operators across heterogeneous retail catalogs. The parametric kernel’s advantage— compact, interpretable, and non-normality-free—generalizes from Walmart (M5) to Ecuador (Favorita). The practical case for the parametric family is strengthened by this cross-dataset replication: it regularizes non-normal operator diffusion into a physically meaningful form regardless of geographic market or category structure. 44 Figure 11: Pseudospectra of learned Koopman operators on Favorita ( ϵ = 10 −4, 10 −3, 10 −2, 10 −1). Black ×
+
+marks eigenvalues; dashed gray circle is the unit circle. All four shown operators are highly non-normal: the 
+
+ϵ = 10 −1 contour extends well outside the unit circle. Table 22: Cross-dataset comparison of Koopman spectral properties and operational metrics. 
+
+Dataset Operator ρ(K) ω − α Max Transient VR (median) wMAPE (median) M5 Foods 0.983 0.957 7.43 × — —M5 Household 0.978 0.594 8.74 × — —M5 Hobbies 0.970 1.395 11.58 × — —M5 Global 0.979 0.677 7.43 × 0.0022 1.034 Favorita Dairy 0.990 0.257 2.83 × — —Favorita Grocery I 0.981 3.097 10.46 × — —Favorita Bread/Bakery 0.987 18.403 45.88 × — —Favorita Global 0.977 1.935 10.21 × 0.0073 0.868 
+
+45 Figure 12: Transient growth of the Koopman semigroup || Kk|| 2 on Favorita (blue), spectral prediction ρk
+
+(green dashed), and transient factor || Kk|| 2/ρ k (red dotted). The global operator exhibits transient growth 
+
+10 .2× above the spectral prediction. 46

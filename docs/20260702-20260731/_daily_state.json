@@ -1,0 +1,153 @@
+{
+  "date": "20260702-20260731",
+  "date_label": "2026-07-02 ~ 2026-07-31",
+  "generated_at": "2026-07-31 06:44:19 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2607.04056v1",
+      "route": "20260702-20260731/2607.04056v1-a-policy-decomposition-framework-for-dynamic-order-fulfillment-operations",
+      "title": "A Policy Decomposition Framework for Dynamic Order Fulfillment Operations",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "协调订单准备与下游配送的动态订单履行优化框架",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.15182v1",
+      "route": "20260702-20260731/2607.15182v1-stigmergic-graph-memory-an-environment-aware-approach-for-many-to-many-multi-agent-pickup-and-delivery",
+      "title": "Stigmergic Graph Memory: An Environment-Aware Approach for Many-to-Many Multi-Agent Pickup and Delivery",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "自动化履约仓库中的多智能体取送货，通过信息激波图记忆改进端点选择与路径规划",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.25956v1",
+      "route": "20260702-20260731/2607.25956v1-large-language-model-for-operations-research-formulation-selection-in-multi-warehouse-inventory-allocation",
+      "title": "Large Language Model for Operations Research Formulation Selection in Multi-Warehouse Inventory Allocation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "利用大语言模型为多仓库库存分配选择运筹学公式",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.28488v1",
+      "route": "20260702-20260731/2607.28488v1-scope-supply-chain-operations-through-coupled-policies-for-end-to-end-coordination",
+      "title": "SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "决定每个位置存放哪些产品，处理品类和补货与需求耦合，优化仓库运营",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.05683v1",
+      "route": "20260702-20260731/2607.05683v1-deep-reinforcement-learning-for-dynamic-battery-management-of-autonomous-order-pickers",
+      "title": "Deep Reinforcement Learning for Dynamic Battery Management of Autonomous Order Pickers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "深度强化学习用于仓库自主订单拣选机器人的动态电池管理，以改善订单处理时间和吞吐量",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.08960v1",
+      "route": "20260702-20260731/2607.08960v1-eluna-an-agentic-llm-system-for-automating-warehouse-operations-with-reasoning-and-task-execution",
+      "title": "Eluna: An Agentic LLM System for Automating Warehouse Operations with Reasoning and Task Execution",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于LLM代理的仓库标准操作流程自动化系统",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.16354v1",
+      "route": "20260702-20260731/2607.16354v1-a-predict-then-correct-loop-based-on-few-shot-continuous-contextual-bandit-for-demand-forecasting",
+      "title": "A Predict-then-Correct Loop Based on Few-Shot Continuous Contextual Bandit for Demand Forecasting",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "提升零售需求预测精度，支撑基于需求的库存管理策略",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.21354v1",
+      "route": "20260702-20260731/2607.21354v1-spord-a-simulation-propose-then-or-dispose-approach-for-supply-chain-planning",
+      "title": "SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "解决供应链规划中的动态仓库品类规划",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    },
+    {
+      "paper_id": "2607.25664v1",
+      "route": "20260702-20260731/2607.25664v1-contextual-deconvolution-for-variance-stable-demand-sensing-kernel-modulated-operators-in-promotional-retail",
+      "title": "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向零售库存管理的需求感知方法，降低安全库存波动",
+      "first_seen_at": "2026-07-31 06:44:19 UTC",
+      "updated_at": "2026-07-31 06:44:19 UTC"
+    }
+  ]
+}

@@ -1,0 +1,981 @@
+Title: SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning
+
+URL Source: https://arxiv.org/pdf/2607.21354v1
+
+Published Time: Fri, 24 Jul 2026 01:15:55 GMT
+
+Number of Pages: 39
+
+Markdown Content:
+# SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning 
+
+Jiayin He 
+
+Department of Industrial Engineering, Tsinghua University, Beijing 100084, China, hejy23@mails.tsinghua.edu.cn 
+
+Yutong Pan, Sen Yang, Ningxuan Kang, Yongzhi Qi, Jianshen Zhang 
+
+JD.com, Beijing, China, 101111, panyutong5@jd.com,yangsen66@jd.com,kangningxuan@jd.com,qiyongzhil@jd.com,zhangjianshen@jd.com 
+
+Wei Qi 
+
+Department of Industrial Engineering, Tsinghua University, Beijing 100084, China, qiw@tsinghua.edu.cn 
+
+Zuo-Jun Max Shen 
+
+College of Engineering, UC Berkeley, Berkeley, CA 94720, USA; Faculty of Engineering, Faculty of Business and Economics, University of Hong Kong, Hong Kong, China, maxshen@berkeley.edu 
+
+Abstract. For years, supply chain planning at e-commerce firms has operated as a collection of isolated projects. Each planning task from static network planning to dynamic warehouse assortment planning requires analysts to spend weeks building models from scratch, calibrating and persuading executives to act on outputs they cannot verify. Three barriers drive this: bespoke models proliferate because standardization is difficult (operational fragmentation); once unified, the combinatorial scale of millions of SKUs, thousands of nodes, and intricate routing logic exceeds what solvers can handle within a tight window (computational intractability); and a mathematically optimal solution still fails to be implemented if the executives do not trust it (implementation hurdle). To bridge this gap, we propose and implement the Simulation-Propose-then-OR-Dispose method, deployed as JD.com’s 
+
+NetSim platform. The central insight is decoupling: simulation proposes by generating and evaluating the full set of operationally valid candidate paths-absorbing all idiosyncratic business logic, while an integer program disposes by selecting the globally optimal subset. Computationally, matrix-vectorized CPU/GPU accelerated simulation achieves a 10-100 times speedup over serial methods, and a list scheduling algorithm reduces coupled-order processing from hours to minutes. Operationally, we establish a closed loop via an intelligent diagnosis engine. Since 2025, NetSim has optimized end to-end services for over 20,000 suppliers, the cross-regional fulfillment rate dropped from 6.1% to 4.9%, and the average monthly carbon reduction is approximately 5,745 tCO2e. SPORD moves simulation from monitoring to active planning. The transparent outputs turn skeptical executives into engaged collaborators, and the modular architecture ensures that the next planning requires just configuration, not reconstruction. 
+
+Key words: Simulation, Supply chain management, Operations strategy, OM practice 
+
+1. Introduction 
+
+Modern e-commerce supply chains are characterized by massive scale, high dynamism, and intricate coupling, placing the cost-service trade-off at the center of strategic operations. In low-margin, high-velocity retail environments, stringent cost control is a profitability imperative (Zhou et al. 2025), while a high service level, primarily manifested as rapid and reliable delivery (Hu et al. 2024), remains a cornerstone of customer loyalty. These objectives are often in inherent conflict, as pursuing lower costs can sometimes compromise the system’s responsiveness and order fulfillment 
+
+1arXiv:2607.21354v1 [cs.AI] 23 Jul 2026 He et al.: A SPORD Approach for Supply Chain Planning 
+
+2 Article submitted to 
+
+timeliness, and thus underscore the need for multi-echelon optimization to maximize overall efficacy while navigating the balance between cost and service. Supply chain planning (SCP) is a pivotal framework for navigating this trade-off. Essentially, SCP encompasses a massive decision-making ecosystem that generally spans a spectrum from long-term static structural design (e.g., Trunk Network Planning (TNP), typically evaluated over a 6-to-12-month horizon) to short-term dynamic tactical planning (e.g., Warehouse Assortment Planning (WAP), adjusted on a weekly or monthly basis). To appreciate the scope of this heterogeneity, Figure 1 maps the SCP landscape along two dimensions: the horizontal axis enumerates representative business units within JD.com’s ecosystem, each governed by distinct cost structures, service-level requirements, and product-handling rules, while the vertical axis stratifies planning time horizons from semi-annual structural decisions down to weekly or daily tactical adjustments. Each cell represents a distinct, concurrently running SCP problem. TNP and WAP, highlighted in Figure 1, anchor almost opposite ends of this spectrum and serve as the two representative SCP problems examined in this paper. Fashion &  
+
+> Apparel
+> Consumer
+> Electronics
+> Fresh
+> Groceries
+> Household
+> Goods
+> Instant
+> Delivery
+
+... 
+
+> Semi-
+> annual/
+> Annual
+
+...  
+
+> Quarterly
+
+...  
+
+> Monthly
+
+... 
+
+> Weekly/
+> Daily
+
+... 
+
+> Planning Time Horizon
+> Shorter horizon/More dynamic
+> Trunk Network
+> Planning
+> (TNP)
+> Trunk Network
+> Planning
+> (TNP)
+> Cold-chain
+> Network
+> Design
+> DC Location
+> Planning
+> Station
+> Network
+> Planning
+> Seasonal
+> Inventory
+> Positioning
+> Warehouse
+> Assortment
+> Planning
+> (WAP)
+> Order Fulfillment
+> Routing
+> Regional
+> Stocking
+> Strategy
+> Warehouse
+> Assortment
+> Planning
+> (WAP)
+> Dynamic Repricing
+> & Routing
+> Supplier
+> Allocation
+> Planning
+> Freshness-aware
+> Assortment
+> Daily
+> Replenishment
+> Warehouse
+> Capacity
+> Planning
+> Replenishment
+> Planning
+> Expedite
+> Planning
+> Zone
+> Coverage
+> Planning
+> SKU Mix
+> Optimization
+> Real-time
+> Dispatch
+> TNP
+> WAP
+
+Figure 1 The Landscape of Supply Chain Planning (SCP) Problems at JD.com 
+
+For structural design (e.g. TNP), this planning process refers to (national or regional) multi-echelon end-to-end network planning for goods to distribute from suppliers (O) to customers (D). The planning output must be an optimal set of decisions on product flows, candidate warehouse site selection, network hierarchy & coverage relationships, and transportation modes. For short-term tactical planning (e.g. WAP), this process determines the pairing relationship between SKUs and warehouses at each decision-making stage. Figure 2 zooms in on what TNP and WAP do in detail. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to
+
+3TNP: Trunk Network Planning (Semi-annual     
+
+> /Annual) WAP: Warehouse Assortment Planning (Monthly)
+> 6-12 month horizon |  Static structural decision
+> Monthly / Weekly horizon |  Dynamic tactical decision
+> Suppliers
+> Network Design
+> RDC
+> RDC
+> FDC Customers
+> Decision: Which RDCs/FDCs to activate? Which routes to assign?
+> All candidate SKUs
+> Assortment Planning
+> DC
+> Inventory level
+> Days 1-30
+> Decision: Which SKUs to stock at which DC (and the inventory dynamics)?
+
+Figure 2 Illustration of TNP and WAP problem 
+
+In practice, a massive e-commerce ecosystem like JD.com must continuously solve hundreds of such diverse planning variants. This complexity echoes the significant challenges encountered by global logistics leaders like Amazon (Shavarani et al. 2018, Jeong et al. 2022) or DHL (Dang et al. 2024). Specifically, even translating theoretical optimization into actionable industrial practice is further impeded by several primary bottlenecks (which we will formally categorize and elaborate upon in Section 2.2): (i) Operational fragmentation: Developing, solving, and maintaining isolated, bespoke models for every unique business scenario requires prohibitive engineering overhead (detailed in Challenge I). (ii) Computational intractability: Given millions of discrete decisions and tightly interacting operational nodes, traditional exact methods fail to compute a global optimum within operational time limits (detailed in Challenge I). (iii) Implementation hurdles: A significant trust deficit stems from relying on opaque mathematical algorithms, hindering validation and executive buy-in (detailed in Challenge II). (iv) Counterfactual deficit: The reliance on biased historical data fails to capture the nuances of unobserved scenarios, limiting the predictive power of traditional approaches (detailed in Challenge III). Together, these multifaceted challenges create a substantial barrier to realizing the full potential of SCP. A promising direction is to transition toward large-scale parallel simulation, which naturally absorbs complex business rules without bespoke mathematical reformulations and leverages mas-sive parallel computing for rapid evaluation. Seamlessly integrating simulation with prescriptive optimization, however, remains the critical architectural challenge that motivates this paper. In response to the aforementioned challenges, we propose a Simulation-Propose-then-OR-Dispose (SPORD) method. SPORD is a general-purpose methodology designed to establish a He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 4Article submitted to
+
+unified framework across all scales (e.g., from TNP to WAP) of supply chain planning. At its core, SPORD achieves this goal by standardizing both static physical routes (i.e. end-to-end logistics) in problems like TNP and dynamic inventory trajectories in problems like WAP into a universal candidate path representation. This design handles complex business logic by decoupling feasibil-ity evaluation and cost/service evaluation (simulation) from prescriptive selection (optimization). For dynamic WAP specifically, a “candidate path” represents a simulated temporal trajectory of inventory flow for a given SKU-to-warehouse (for specific customer demand) assignment over a specified horizon 𝑇 . Tracing this inventory trajectory via simulation serves as an evaluation mechanism for assortment decisions: it dynamically measures the operational costs and service impacts of each candidate assignment under realistic inventory constraints, capturing replenish-ment dynamics, capacity limits, and complex mismatch costs that simplistic analytical assumptions cannot accommodate. A question at this point is whether exhaustively evaluating candidate paths is computationally feasible, given that the space of SKU-warehouse-trajectory combinations is in principle exponential. SPORD addresses this through a two-stage tractability design. First, the Initialization Layer applies expert-defined logical masks and flow discretization to prune the raw combination space, retaining only those paths that satisfy local operational validity conditions (e.g., permissible storage rules, minimum order quantities, routing feasibility). This transforms an intractable combinatorial explosion into a finite, business-meaningful candidate set. Second, a massively parallel simulation engine which leverages distributed computing and GPU-accelerated matrix operations evaluates the candidate paths simultaneously within operational time windows. In this way, both spatial and temporal paths encapsulate their corresponding operational costs and service metrics under different evaluation strategies. Subsequently, a simple, transparent Operations Research (OR) model disposes of the complexity by selecting the globally optimal subset of paths from this simulated candidate space. By doing so, SPORD eliminates the need for start-from-scratch mathematical formulations across different business domains. The contributions of this paper are threefold: 1. This work represents a practice-based attempt to address the persistent, structural chal-lenges of industrial-scale supply chain planning, i.e., operational fragmentation, computational intractability, and a deep trust deficit between algorithmic outputs and business stakeholders. The proposed SPORD method offers an architectural response: by standardizing both static network fulfillment routes and dynamic inventory trajectories into a universal candidate path He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 5
+
+representation, SPORD establishes a unified planning framework that spans the full spec-trum from long-horizon trunk network design to short-cycle warehouse assortment decisions. This design decouples the complexity of feasibility evaluation from prescriptive optimization, eliminating the need for start-from-scratch mathematical formulations across diverse business units. The result is a system with generalizability, maintainability, and transparency. 2. Technically, we pioneer a parallel simulation architecture based on Matrix Computing. By vec-torizing complex discrete events, we transform the simulation process into matrix operations handled by CPU/GPU stacks, achieving a computational acceleration of 10 to 100 times. The inherent efficiency of parallel simulation extends beyond specialized hardware. Apache Spark generates high-quality solutions rapidly, even without GPU dependency. Furthermore, to over-come the computational bottlenecks incurred by coupled orders with precedence constraints, we integrate a list-scheduling algorithm based on topological sorting. 3. We demonstrate the operational viability of the SPORD method through its industrial imple-mentation as NetSim , JD.com’s enterprise supply chain planning platform. NetSim simulates JD.com’s entire supply chain at order-level resolution, digitally replicating the complete spec-trum of distribution networks, forecasting, procurement, replenishment, transshipment, and fulfillment. Deployed to optimize end-to-end services for more than 20 , 000 suppliers since 2025, the platform provides a reproducible solution for enterprise-level supply chain digital transformation. Empirical results confirm that SPORD effectively navigates the cost-service trade-off at national scale: the cross-regional fulfillment rate dropped from 6.1% to 4.9% (a 20% reduction), boosting the consumer experience. WAP applications have delivered over 73 million dollars in annual cost savings, and the average monthly carbon reduction stands at approximately 5,745 tCO2e—comparable to preventing a 9.6-meter vehicle from traveling over 15 million kilometers. Granular evidence across ten business units over eighteen months further demonstrates that savings compound as platform coverage expands. The remainder of this paper is organized as follows. Section 2 reviews the evolution of SCP, iden-tifying the critical industrial bottlenecks that motivate our SPORD framework. Section 3 formalizes the SPORD method, detailing its core pipeline from the simulation-based path generation to the final optimization. To show the system’s tractability for hyper-scale networks, Section 4 elaborates on our computational breakthroughs, specifically parallel simulation and list scheduling algorithm. Section 5 demonstrates the generalizability of our approach through two deployments at JD.com, while illustrating how visualization and intelligent diagnosis effectively close the operational loop. Finally, Section 6 summarizes managerial insights and concludes the paper. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 6Article submitted to
+
+2. Retrospect and Rethinking Supply Chain Planning  
+
+> 2.1. Evolution of Supply Chain Planning
+
+Phase I: Arc-Based Multi-Commodity Models . In its classical form, fulfillment planning is modeled as a Multi-Commodity Network Flow problem. The decision variables are defined on physical arcs (e.g., 𝑥 𝑖 𝑗 𝑘 denoting flow of commodity 𝑘 on link (𝑖, 𝑗 )), and the objective is to opti-mize flow allocation subject to capacity and conservation constraints. Foundational works, such as Iri (1969), establish the algorithmic basis for these flows, demonstrating their theoretical effi-ciency for large-scale transport scheduling and personnel assignment. To address the complexities of multi-echelon systems, Van Hoesel et al. (2005) extend this into a monolithic framework. They formulate a polynomial-time algorithm that integrates production capacities, inventory lot-sizing, and transportation arcs into a single dynamic program. This model treats the supply chain as a synchronized rigid pipeline. As supply chains face increasing uncertainty, the rigidity of deter-ministic arcs becomes apparent. Klibi et al. (2010) have critically reviewed this era, arguing that standard arc models fail to achieve value-creating robust networks because they cannot easily encode stochastic disruptions or rule-based constraints without fundamentally altering the model structure. In response, Bertsimas et al. (2013) introduce Robust and Adaptive Network Flows. This method immunizes arc flows against node/link failures via max-flow/min-cut duality, though this adds significant computational complexity. Most recently, Ramos et al. (2022) present an exact arc flow model based on a graph to solve the multitrip production, inventory, distribution, and routing problem with time windows and validates the effectiveness of the proposed approach through a series of experimental tests. However, this reliance on arc-based constraints tightly couples business logic with mathematical formulations. Consequently, routine operational updates require analysts to manually recode the core model structure, causing significant deployment delays. 
+
+Phase II: Path-Based Service Network Design . To escape the granular rigidity of link-by-link decision making, researchers shift to path-based formulations. In this paradigm, the fundamental decision unit is no longer a physical arc, but a complete fulfillment chain (e.g., Supplier →Cross-dock →Customer). Crainic (2000) reviews this approach as Service Network Design, emphasizing that tactical planning is fundamentally about selecting the optimal configuration of services rather than merely routing volume through a fixed grid. This structural shift allows models to incorporate complex, non-additive path attributes that arc-based models could not easily handle. For instance, Verter and Kara (2008) utilize path formulations to manage hazardous material risks, where the feasibility of a route is determined by a holistic measure of population exposure rather than a He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 7
+
+simple sum of link costs. Similarly, Heydari and Melachrinoudis (2017) apply path-based flows to railcar distribution, successfully capturing intricate blocking rules and train capacity constraints that previous models struggled to handle. To solve these exponentially large path sets, algorithms like Column Generation become the standard. The efficiency of this decomposition depends on solving the pricing problem to construct new valid paths. When business rules involve highly cus-tomized or interdependent logic, this sub-problem becomes analytically intractable. A recent study by Guan et al. (2024) illustrates this challenge: when modeling multi-modal transit systems with adoption awareness (where path validity depends on complex user behavior logic), standard math-ematical generation fails, forcing researchers into computationally heavy enumeration or complex reformulations. This suggests that as business logic becomes more arbitrary and rule-based, purely mathematical methods struggle to generate feasible paths efficiently. 
+
+Phase III: The Rise of the Simulation-Optimization Era . To address the business logic that purely mathematical problems struggled to handle, the field turned to Simulation-Optimization. This paradigm generally follows two distinct methodological streams. The first stream utilizes simulation to estimate uncertainty or approximate gradients through discrete event simulation, system dynamics simulation, etc., and then guides an OR model or an optimization algorithm. Recent advancements focus on improving the efficiency of this coupling by enhancing the ability to simulate complex dynamics. For instance, H¨ ogdahl and Bohlin (2022) employ simulation to predict delay distributions, which are then fed into an optimization model for robust railway timetabling. Similarly, Xu and Zheng (2023) propose a multi-resolution approximation method, using simulation to construct stochastic gradients for optimizing complex systems (perform gradient search in the decision space). In the realm of solver architecture, Cooper and Hunter (2020) introduce PyMOSO to solve problems on integer lattices using pseudo-gradients, while Chang and Wild (2025) have developed the ParMOO framework to handle multi-objective problems via parallel simulation execution. The second stream follows a guess-and-check logic. Here, the optimizer (e.g. (D)RL agent) proposes a candidate solution, which is then run through the simulation to evaluate its quality, followed by adjustments based on statistical feedback. With the rise of Industry 4.0, this concept also develops into the Digital Supply Chain Twin (DSCT) which has the potential to evaluate a given solution precisely. Ivanov and Dolgui (2021) theorize the DSCT as a real-time, computerized model capable of mapping physical network states to managing disruption risks. Ivanov (2024) further formalizes a 7-element framework for DSCTs, arguing that modern twins must integrate human-AI interactions to handle complex socio-technical tasks. He et al.: A SPORD Approach for Supply Chain Planning   
+
+> 8Article submitted to
+> 2.2. Challenges
+
+While the evolution demonstrates significant methodology progress, substantial gaps remain when translating these paradigms into industrial practice. The intrinsic limitations of current simulation engines, specifically regarding computational scalability and prescriptive power, are compounded by the complexity of human-algorithm interaction. This section details these multifaceted challenges.   
+
+> 2.2.1. Challenge I: The Dilemma between generalizability and customization.
+
+In practice, the existence of highly tailored strategies and constraints across business departments, such as varying service-level requirements for different products or distinct cost structures in different regions, has traditionally necessitated the development of bespoke network plans. Each business unit imposes distinct constraints—fashion categories prioritize inventory turnover, instant-delivery stations enforce brand quotas and order-value thresholds, and irregular items require bin-packing analyses. This proliferation of bespoke requirements, while locally precise, produces prohibitive engineering overhead and low delivery efficiency. A network planning project often requires a dedi-cated team of analysts to spend several weeks to months on data preparation, model calibration, and partner communication. This prolonged timeline prevents rapid responses to market and business changes. More critically, the business logic does not guarantee desirable mathematical properties such as convexity or Lipschitz continuity, which are often prerequisites for existing exact or heuris-tic algorithms. Therefore, many classical optimization algorithms are not directly applicable or may fail to find a good solution within a reasonable time (Shen et al. 2010, Seyhan et al. 2018). Consequently, this inefficiency incurs a critical need for a more scalable, automated solution. Tran-sitioning to a universal, automated framework offers a pathway to scalability but also introduces a severe computational trade-off. For a single TNP instance, candidate path combinations across warehouses, SKUs, and routing rules can reach tens of millions, making the selection problem a large-scale combinatorial challenge.   
+
+> 2.2.2. Challenge II: The Gap Between Recommended Solution and Practical Implemen-tation.
+
+Even after deriving a mathematically optimal solution, a significant chasm often remains before practical implementation can be realized. This gap is primarily driven by the importance of establishing trust and enabling validation within a compressed decision window. Business lead-ers rarely accept an opaque algorithmic solution outright. They require the ability to compare the proposed solution against a set of neighboring alternatives (e.g., by swapping one warehouse selected) across a range of familiar supply chain KPIs to understand its robustness and justify the decision. This requires not only accuracy but also rapid execution. Therefore, despite the roughly He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 9
+
+six-month life-cycle of a network plan, the decision-making process itself must be compressed to almost hour level to support rapid, interactive what-if analysis and foster buy-in by business depart-ments. This requirement is amplified by the rise of generative AI: Large Language Models (LLMs) and autonomous agents that lack physical grounding routinely produce plausible but operationally infeasible outputs. A transparent simulation engine encoding supply chain physics and business rules is therefore essential as a verifiable ground truth for any algorithmic recommendation.   
+
+> 2.2.3. Challenge III: The Inherent Bias of Historical Data.
+
+The third hurdle stems from the intrinsic limitations of historical operational data, which restricts the applicability of conventional statistical analysis or purely data-driven machine learning approaches. Supply chain data is obser-vational and suffers from severe selection bias. Historically, operational decisions were governed by legacy business rules. For instance, specific SKUs might have been exclusively assigned to a single regional distribution center, while alternative routing options were never exercised. Therefore, the resulting dataset is structurally censored: it records performance metrics (e.g., cost, lead time) only for these pre-existing, manually selected assignments. This creates a highly sparse observation matrix and the performance of unattempted product-warehouse combinations remains unknown. This phenomenon incurs a critical deficit in counterfactual reasoning: the analytical capability to determine “what would have happened” regarding cost and efficiency had a product flowed through a different, untried path. Without physical grounding, supervised/imitation learning algorithms are difficult to extrapolate to out-of-distribution configurations, creating a self-reinforcing loop that replicates past decisions rather than discovering superior structures.  
+
+> 2.3. Rethinking Supply Chain Planning
+
+The challenges outlined above collectively point to a structural inadequacy in how supply chain planning has traditionally been conceived. In fact, the fragmentation of bespoke models, the com-putational intractability of monolithic formulations, the bias of historical data, and the persistent trust deficit between algorithmic outputs and business stakeholders are not isolated symptoms. They share a common root: the attempt to encode idiosyncratic, non-linear operational reality directly into mathematical structure. Motivated by the inherent limitations of existing approaches, we, as scholars and practitioners in supply chain management, posit two fundamental questions: 
+
+• In an era of burgeoning computational power, what fundamental properties must a planning methodology possess for next-generation supply chain planning? 
+
+Based on our theoretical understanding and extensive field experience, we identify an urgent need for a next-generation, ultra-resolution simulation tool combined with OR models, the design He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 10 Article submitted to
+
+of which must be strictly mapped to overcoming specific industrial hurdles. First, to resolve the conflict between operational fragmentation and large-scale application (Challenge I), the method must demonstrate generalizability & maintainability , enabling adaptation across diverse business scenarios via parameter configurations rather than hard-coding. Second, to break through the computational bottlenecks of large-scale combinatorial problems (Challenge I), it must possess 
+
+scalability to effectively handle millions of SKUs and complex topologies, alongside superior performance to deliver high-quality solutions within hour-level decision windows. Third, to counter the descriptive but non-prescriptive nature of simulation and the bias of historical data (Challenge III), the system requires logical fidelity , ensuring credibility by accurately capturing core business logic and enabling counterfactual reasoning rather than merely mimicking historical dataset. Finally, to mitigate the distrust in unexplainable solutions (Challenge II), usability is essential to lower the understanding barrier for business experts of different backgrounds and foster buy-in. Simulation emerges as the natural embodiment of these properties. By digitally replicating the supply process, simulation enables low-risk what-if analysis of various network configurations without disrupting actual operations. Furthermore, compared to currently popular reinforcement learning and deep learning technologies, it offers greater interpretability and business reliability, especially in decisions that involve hundreds of millions of dollars in economic benefits. The question then becomes architectural: 
+
+•Which architectural design best embodies these principles? 
+
+We propose the Simulation-Propose-then-OR-Dispose (SPORD) paradigm as the answer. The central insight of SPORD is a deliberate decoupling: rather than asking an optimizer to simulta-neously construct feasible solutions and respect complex operational constraints (a task that grows intractable at industrial scale), SPORD assigns these two responsibilities to separate, specialized components. Simulation is tasked with proposing: generating and evaluating the full set of opera-tionally valid candidate paths, thus each carrying computed cost and service attributes. Optimization is tasked with disposing: selecting the globally optimal subset from this candidate space via a clean, transparent binary integer program. Because all idiosyncratic business logic has been absorbed upstream by simulation, the optimization problem is reduced to a structurally simple, universally solvable selection task—regardless of the complexity of the underlying operational domain (as shown in Figure 3). This architecture is realized through a modular five-layer pipeline, detailed in Section 3. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to
+
+11 Simulate    
+
+> Candidate Path Set {p1,p2, ..., pn}
+> Candidate Path Generation
+> Parallel Simulation
+> List Scheduling
+> NetSim runs N candidate paths simulateously
+> across business units and time horizons.
+> Handles coupled orders and dependent
+> fulfillment constraints.
+
+Propose 
+
+OR-Dispose    
+
+> Optimization & Selection
+> Integer Programming
+> Select optimal subset of candidate paths
+> subject to generic constraints.
+> Optimal Plan
+> Actionable supply chain planning decision.
+> Decoupling Principle: Simulation generates operationally valid paths and calculates the costs ➡Optimization selects the optimum.
+
+Figure 3 The SPORD Framework 
+
+Two design properties are critical to making this paradigm work in practice: fidelity and scala-bility . The first concerns fidelity : a simulation-based planning system is only as trustworthy as the candidate space it evaluates, which demands comprehensive coverage rather than sampling. The raw combinatorial space of candidate paths is exponentially large, but SPORD renders it tractable through a deliberate two-stage reduction. Expert-defined logical masks and flow discretization first prune the space to a finite, business-valid candidate set by encoding permissible routing rela-tionships, order quantity bounds, and capacity thresholds. A massively parallel simulation engine then evaluates this pruned set simultaneously—leveraging distributed in-memory computation for independent paths, GPU-accelerated tensor operations for inventory-intensive temporal paths, and a list scheduling algorithm that eliminates thread starvation for precedence-coupled orders by dis-patching jobs in critical-path priority order. Together, these mechanisms make exhaustive candidate evaluation not a theoretical ideal but a routine operational reality at JD.com’s scale. The second commitment concerns how uncertainty is handled to guarantee scalability . Supply chain planning problems, particularly assortment and inventory problems, are frequently framed in the literature under stochastic demand assumptions, motivating formulations such as stochastic programming, sample average approximation, or robust optimization. We clarify that the plan-ning problems addressed in this paper are treated as deterministic, and this is a deliberate design choice rather than a simplifying omission. In JD.com’s operational setting, both TNP and WAP are solved against forecasted demand inputs that are fixed at the time of planning. Downstream business units generate demand forecasts over the planning horizon and submit them as committed inputs to the planning system. The planner’s task is to identify the best structural or assortment decision given this input snapshot, not to hedge against an unrealized distribution of future demand. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 12 Article submitted to
+
+Several considerations justify this deterministic framing: Computationally, stochastic formulations such as SAA require solving across large scenario sets, which is prohibitive within the hour-level decision windows of industrial planning; robust optimization faces analogous scalability barriers and yields overly conservative solutions misaligned with margin-sensitive e-commerce operations. Structurally, the deterministic problem is itself far from trivial: its difficulty stems from heteroge-neous non-convex business constraints and combinatorial scale, making stochastic approximation and iterative simulation-optimization loops both redundant and architecturally mismatched. Oper-ationally, the deterministic setting yields transparent, auditable solutions that support systematic what-if analysis and align with the decision-making cadence of industrial workflows. 
+
+3. The SPORD method 
+
+To address the critical need for a high-fidelity, scalable planning tool, this section formalizes the SPORD method. To concretely illustrate the mechanics of this method, we will primarily utilize static TNP as our running example throughout this section. The application of SPORD to dynamic problems, specifically WAP, will be detailed later in the Industrial Applications (Section 5.2.2) and Online Appendix ?? . We first present a comprehensive and representative multi-echelon network planning model (Section 3.1) that exemplifies the computational and interpretability challenges faced by conventional monolithic approaches. To overcome the problem, we introduce the SPORD method and its modular components, detailing the sequential flow from generation to optimization.  
+
+> 3.1. The Conventional Monolithic Model
+
+To strictly describe the multi-echelon network planning problem, we start with a Mixed-Integer Linear Programming (MILP) model. Consider a multi-echelon supply chain network represented by a directed graph 𝐺 = (N , 𝐴 ),where N denotes the set of all nodes and 𝐴 represents the set of potential arcs. The node set 
+
+N is partitioned into a set of candidate warehouse nodes K and a set of demand sink nodes M,such that N = K Ð M. The warehouse network is further structured hierarchically into disjoint layers indexed by 𝑙 ∈ L = {1, . . . , 𝐿 }, where K𝑙 ⊆ K represents the subset of warehouses belonging to layer 𝑙 . A subset of these warehouses, F ⊆ K , are designated as mandatory and must remain operational. The system manages the distribution of a set of heterogeneous commodities (SKUs), indexed by 𝑠 ∈ S . Each demand node 𝑗 ∈ M has a specific demand 𝑑 𝑠 𝑗 for commodity 𝑠 . The flow of goods through the network incurs two primary types of costs: (i) a fixed unit transportation and fulfillment cost 𝑐 𝑠 𝑖 𝑗 , and (ii) a variable operational throughput cost 𝑟 𝑘 incurred at warehouse 𝑘 ∈ K 
+
+for processing incoming flows. The feasibility of a link for a specific 𝑠 is a binary parameter 𝑎 𝑠 𝑖 𝑗 .He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 13
+
+The planning problem involves two coupled decisions: network design and tactical flow alloca-tion. First, we must determine the binary network configuration variables 𝑦 𝑙 𝑘 , which equals to 1 if warehouse 𝑘 in layer 𝑙 is opened, and 0 otherwise. This selection is constrained by a predetermined number of facilities ℎ𝑙 allowed for each layer. Second, we must determine the continuous flow variables 𝑥 𝑠 𝑖 𝑗 , representing the quantity of commodity 𝑠 transported from node 𝑖 to node 𝑗 .The objective is to minimize the total cost, which consists of transportation costs along the arcs and variable operational costs at the warehouse nodes. This optimization is subject to flow conservation constraints at intermediate nodes, demand satisfaction at sink nodes, and capacity logic linking flows to open warehouses. Furthermore, the network must adhere to Service Level Agreements. We define a set of time thresholds T , where for each threshold 𝜏 ∈ T , a minimum proportion 𝜌 𝜏 of total demand must be satisfied within the transportation time 𝑡 𝑠 𝑖 𝑗 specified by the set A𝜏 . A𝜏 = {( 𝑖, 𝑗, 𝑠 ) | 𝑡 𝑠 𝑖 𝑗 ≤ 𝜏 } represents the set of arcs satisfying the time threshold 𝜏 .Mathematically, this planning problem is specified as follows: min 𝑍 =∑︁ 
+
+> 𝑠 ∈S
+
+∑︁ 𝑖 ∈N ∑︁ 𝑗 ∈N 
+
+𝑐 𝑠 𝑖 𝑗 𝑥 𝑠 𝑖 𝑗 +∑︁ 
+
+> 𝑘 ∈K
+
+©«
+
+𝑟 𝑘 ∑︁ 
+
+> 𝑠 ∈S
+
+∑︁ 𝑗 ∈N 
+
+𝑥 𝑠 𝑘 𝑗 
+
+ª®¬
+
+(1a) ∑︁ 
+
+> 𝑖 ∈N
+
+𝑥 𝑠 𝑖 𝑗 −∑︁ 
+
+> 𝑒 ∈N
+
+𝑥 𝑠 𝑗 𝑒 = 0, ∀ 𝑗 ∈ K \ K 1, ∀𝑠 ∈ S (1b) ∑︁ 
+
+> 𝑖 ∈N
+
+𝑥 𝑠 𝑖 𝑗 = 𝑑 𝑠 𝑗 , ∀ 𝑗 ∈ M , ∀𝑠 ∈ S (1c) 
+
+𝑥 𝑠 𝑖 𝑗 ≤ 𝑀 · 𝑎 𝑠 𝑖 𝑗 , ∀𝑖, 𝑗 ∈ N , ∀𝑠 ∈ S (1d) ∑︁  
+
+> 𝑗 ∈N
+
+∑︁ 𝑠 ∈S 
+
+𝑥 𝑠 𝑘 𝑗 ≤ 𝑀 · 𝑦 𝑙 𝑘 , ∀𝑘 ∈ K 𝑙 , 𝑙 ∈ L (1e) ∑︁ 
+
+> 𝑖 ∈N
+
+∑︁ 𝑠 ∈S 
+
+𝑥 𝑠 𝑖𝑘 ≤ 𝑀 · 𝑦 𝑙 𝑘 , ∀𝑘 ∈ K , 𝑙 ∈ L (1f) ∑︁ 
+
+> 𝑘 ∈K 𝑙
+
+𝑦 𝑙 𝑘 = ℎ𝑙 , ∀𝑙 ∈ L (1g) 
+
+𝑦 𝑙 𝑘 = 1, ∀( 𝑘, 𝑙 ) ∈ F ∩ K 𝑙 (1h) ∑︁ 
+
+> (𝑖, 𝑗,𝑠 )∈A 𝜏
+
+𝑥 𝑠 𝑖 𝑗 ≥ 𝜌 𝜏 ·∑︁ 
+
+> 𝑠 ∈S
+
+∑︁ 𝑗 ∈M 
+
+𝑑 𝑠 𝑗 , ∀𝜏 ∈ T (1i) 
+
+𝑥 𝑠 𝑖 𝑗 ≥ 0, 𝑦 𝑙 𝑘 ∈ { 0, 1} (1j) 
+
+𝑨𝒙 ≤ 𝒃 custom (S) . (1k) Constraint (1b) ensures that for intermediate warehouses (excluding the first layer sources), the total inbound flow equals total outbound flow. Constraint (1c) ensures demand satisfaction at sink nodes. Constraint (1d) restricts flow to valid arcs defined by the feasibility parameter ( 𝑎 𝑠 𝑖 𝑗 ). Constraints (1e) and (1f) are Big-M constraints linking the continuous flow variables to the binary He et al.: A SPORD Approach for Supply Chain Planning 
+
+14 Article submitted to 
+
+facility decisions; no flow is allowed through a closed warehouse. Constraint (1g) enforces the specific number of active warehouses required for each echelon layer. Constraint (1h) ensures mandatory warehouses are selected. Constraint (1i) mandates that the proportion of total network flow executed within the time limit 𝜏 must meet the service level target 𝜌 𝜏 . Constraint (1j) is consistent with the variable definitions. Constraint (1k) represents a massive set of heterogeneous business rules which are defined by specific SKU-related department. The monolithic model embeds numerous operational details that directly impact network topol-ogy and its performance. While theoretically sound, directly solving the above model in an industrial setting incurs several problems: (1) The Curse of Dimensionality: The variable space scales with 
+
+|S| × |K | × | 𝑀 |. The continuous nature of 𝑥 𝑠 𝑖, 𝑗 implies that any 𝑥 ≥ 0 creates a valid connection between different layers. In reality, logistic networks are relatively concentrated, but the solver tends to create a dense topology where infinitesimal flows exist on many arcs, complicating oper-ational execution. Although a threshold-type constraint may avoid such circumstance, it is still difficult to determine specific values due to differences in business characteristics and experience. (2) Constraint Heterogeneity preventing Decomposition: Conventional decomposition methods like Column Generation (CG) rely on a solvable pricing sub-problem. In our network, the specific busi-ness constraints (1k) are highly customized for different commodity subsets. Constructing a unified mathematical pricing oracle to capture these diverse rules is computationally inefficient. (3) Struc-tural Rigidity: A minor change in network topology or a new business rule requires reconstructing the global constraint matrix A in (1k), making the system incapable of rapid iteration. Candidate Origins O 
+
+> Supplier
+> Demand Destinations D
+> Customer
+> Transportation-related T
+
+X  
+
+> Candidate Path 1: (O 1,D 1,T 1)
+> Candidate Path n: (O i,D j,T k)
+> Candidate Path 2: (O 2,D 1,T 1)
+> . . .
+> Time Efficiency Cal.
+> Inventory Cal.
+> Trans. Cost Cal.
+> Warehouse
+> Cost
+> Simulation
+> Time Efficiency Cal.
+> Inventory Cal.
+> Trans. Cost Cal.
+> Warehouse
+> Cost
+> Simulation
+> Time Efficiency Cal.
+> Inventory Cal.
+> Trans. Cost Cal.
+> Warehouse
+> Cost
+> Simulation
+
+Initialization   
+
+> Expert Knowledge
+> Repository ➡️Policy
+
+Simulation-Based Generation        
+
+> Customer
+> Supplier RDC FDC
+> Customer
+> Supplier RDC FDC
+> Customer
+> Supplier RDC FDC
+> . . .  . . .
+> RDC RDC
+> RDC
+> Supplier
+
+Decision-M aking Visualization 
+
+> FDC
+
+Intelligent Diagnosis       
+
+> Factors GMVs Status Quo Target
+> ... ... ... ...
+> factor s sequence
+> Supplier
+> Supplier
+> RDC
+> RDC
+> RDC
+> FDC
+> To-B
+> To-C
+> RDC
+> Now
+> New
+
+X
+
+Figure 4 The Pipeline of SPORD (illustrated by the case of TNP) He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 15
+
+To overcome these fundamental limitations across supply chain planning, we propose a paradigm shift from bespoke arc-based or state-based optimization to a unified path-based formulation (with nuanced but simple, basic models for different problems). Rather than asking the optimizer to construct a valid spatial arc or temporal state-transition while satisfying complex rules, SPORD massively generates operationally valid candidate paths before solving the model. The candidate paths satisfy local business rules during simulation, while global feasibility still depends on the subsequent decision model (e.g. different paths may share the same capacitated warehouse, etc.). The whole framework is engineered as a modular, five-stage systematic architecture, as shown in Figure 4. The following sections introduce the process in detail. 
+
+3.2. Simulation-Based Path Construction 
+
+To address the challenge of balancing high-fidelity modeling with computational solvability (Chal-lenge I), the SPORD method begins with a System Initialization. This layer functions as a high-resolution digital version of the real supply chain, ingesting heterogeneous business data to construct a structured description of the supply chain attributes based on network nodes and links. This layer preserves the granularity of individual operational entities, enabling the precise evaluation of Product × Node × Echelon × Transportation interactions. 
+
+3.2.1. The Initialization: Defining Supply Chain Attributes. Formally, we define the supply chain network as a directed multigraph, 𝐺 = (N , L) , where N represents the set of distinct logistical nodes (warehouses) and L denotes the set of varying transportation linkages (arcs). The node set is partitioned into subsets N = N𝑓 𝑎𝑐 
+
+Ð N𝑐𝑢𝑠𝑡 , representing distinct facility types (e.g., suppliers, RDCs, FDCs) and customer demand points. Each node 𝑛 ∈ N is characterized by a static attribute vector an (e.g., geospatial coordinates, facility type, processing capabilities, etc.). To capture the complexity of managing millions of SKUs, we define the product set S. Each SKU 𝑠 ∈ S is associated with a physical attribute vector 𝜙 𝑠 = (𝑣𝑜𝑙 𝑠 , 𝑤𝑔𝑡 𝑠 , 𝑐𝑎𝑡 𝑠 ), denoting volume, weight, and handling category (e.g., fragile, cold-chain). These attributes are critical for the calculation of storage density and transportation fill rates. Demand is modeled as a discrete stream of orders 
+
+𝑑 = (𝑠, 𝑛 𝑑𝑒𝑠𝑡 , 𝑡 𝑑𝑢𝑒 , 𝑞 ), specifying the requested SKU 𝑠 , delivery location 𝑛 𝑑𝑒𝑠𝑡 , required delivery time 
+
+𝑡 𝑑𝑢𝑒 , and quantity 𝑞 . Network connectivity is governed by four combinatorial relational modules that encode permissible inventory flow rules: (i) Production relations (source logic) defines the mapping M𝑝𝑟𝑜𝑑 : S → N 𝑓 𝑎𝑐 , specifying which supplier nodes constitute the sourcing origin for specific SKUs. (ii) Inventory relations (storage logic) defines the mapping M𝑖𝑛𝑣 : S → N 𝑓 𝑎𝑐 ,He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 16 Article submitted to
+
+determining the permissible storage nodes for each SKU category (e.g., hazardous materials must be stored in specialized chemical warehouses). (iii) Fulfillment flows (directional logic) defines the set of permissible logical arcs A𝑙𝑜𝑔𝑖𝑐 , dictating the supporting relationships between nodes (e.g., Node 𝐴 is authorized to replenish Node 𝐵 ). This establishes the directed topology of network coverage. (iv) Transportation routes (physical attributes) defines the physical connection attributes 
+
+A𝑝ℎ𝑦𝑠 . For every logical arc, this module assigns detailed cost and time parameters, denoted as vector w𝑖 𝑗 = (𝑐 𝑡𝑟𝑎𝑛𝑠 , 𝑡 𝑙𝑒𝑎𝑑 ). In our framework, routes filtered by these rules constitute the initial construction space for the simulation engine. Besides, the Initialization Layer incorporates a comprehensive set of constraints and cost param-eters, denoted as Ω, which govern the feasibility and evaluation of logistical activities. Ω includes hard constraints (e.g., maximum warehouse throughput capacity 𝐶𝑎 𝑝 𝑛 , strictly prohibited routes) and soft constraints (e.g., target delivery timeliness 𝜏 𝑠𝑙𝑎 ). We define a composite cost function 𝐶 (·) 
+
+that maps operational activities to financial metrics, including parameterized settings for warehous-ing costs (labor, etc.), transportation costs (fixed costs, distance/quantity-based variable costs), and inventory (holding) costs. To manage the search space effectively, NetSim integrates a Human-in-the-Loop (HITL) mechanism. This mechanism allows domain experts to inject industrial know-how into the initialization process. This module effectively prunes the search space and aligns the model parameters with specific business contexts: (i) Context-Aware Node Strategies ( S𝑛𝑜𝑑𝑒 ). We introduce a tunable strategy vector S𝑛𝑜𝑑𝑒 for facility nodes, enabling experts to toggle operational modes (e.g., steady-state, peak-surge, elastic expansion), dynamically adjusting effective capacity constraints 𝐶𝑎 𝑝 𝑛 (𝑡 ) to reflect real-world resource scaling. (ii) Pruning of Routing Logic ( M 𝑓 𝑖𝑙𝑡𝑒𝑟 ). To maintain tractability, NetSim applies an expert-defined logical mask M 𝑓 𝑖𝑙𝑡𝑒𝑟 to pre-filter A𝑙𝑜𝑔𝑖𝑐 
+
+using business rules (e.g. product category 𝐴 implies direct-to-consumer flow ). The Initialization Layer discretizes the continuous flow space according to business-meaningful breakpoints: mini-mum order quantities per arc (𝑞 𝑏 ), vehicle capacity fill-rate thresholds (𝜂 ), and expert-specified routing priorities, ensuring every instantiated path corresponds to a genuinely executable opera-tional decision. (iii) Cost & Service Policy Parameterization ( Π𝑝𝑜𝑙𝑖𝑐𝑦 ). Cost and service parameters are policy-dependent. For example, experts select replenishment models (e.g., (𝑠, 𝑆 ), predictive demand-driven policies, or hybrid methods) for different SKUs, and configure region- and category-specific timeliness thresholds 𝜏 𝑠𝑙𝑎 (𝑟𝑒𝑔𝑖𝑜𝑛, 𝑐𝑎𝑡𝑒𝑔𝑜𝑟 𝑦 ), reflecting heterogeneous customer latency tolerances across the network. These configurations are institutionalized in a dynamic expert knowl-edge repository R𝑒𝑥 𝑝 , which maps historical problem instances to recommended parameter sets He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 17
+
+by scenario category (e.g., fresh product vs. electronics) and planning horizon (e.g., strategic vs. tactical). Each new instance is initialized from R𝑒𝑥 𝑝 , ensuring that the structural definition is not a cold start but a warm initialization with accumulated domain knowledge. The Generation Layer then functions as a high-fidelity key performance indicator (KPI) oracle (O), responsible for generating candidate paths and mapping a candidate topological structure as well as the input policy parameters into scalar attributes (e.g. cost 𝑐 𝑝 , service level 𝛼 𝑝 ) based on the aforementioned initialization. A critical design principle is comprehensive coverage: the Generation Layer simulates the complete set of operationally meaningful candidate paths rather than a sampled subset. At the intra-path level, flow discretization bounds the infinite continuous simplex to a finite set of business-valid configurations. At the inter-path level, expert pre-screening ( M 𝑓 𝑖𝑙𝑡𝑒𝑟 , Section 3.2.1) combined with JD.com’s massively parallel computing infrastructure (detailed in Section 4) enables the evaluation of tens of millions of candidate paths within operational time windows. This comprehensive coverage also addresses Challenge III directly: by simulating paths never historically exercised, SPORD transforms the sparse observational dataset into a dense, simulation-grounded cost landscape that supports rigorous counterfactual what-if analysis. To accommodate varying contexts of operational reality (static/ dynamic), we design a dual-mode mechanism: a static generation mode for macroscopic network planning, and a dynamic generation mode for microscopic inventory simulation. 
+
+3.2.2. Macroscopic Equilibrium: The Flow Balance Requirement. Building on the initial-ized network structure, the static generation mode constructs each candidate path by ensuring a macroscopic flow balance requirement: at every intermediate transshipment node, total inflow must equal total outflow, and the terminal demand sink must receive exactly the committed demand. Let 𝐺 𝑝 = (𝑁 𝑝 , 𝐴 𝑝 ) be a subgraph extracted from the overall fulfillment network. As illustrated in Figure 5, the isolated subgraph itself is a single candidate path 𝑝 . It represents one poten-tial routing configuration to fulfill the demand of Customer 𝐷 from Supplier 𝑂 . The Generation Layer constructs millions of such candidate paths to fulfill all demands. For each path, the system operates in a conservation state where inflow equals outflow at every transshipment node 𝑛 ∈ 𝑁 𝑝 .Let 𝑑 𝑂𝐷 be the demand for an Origin-Destination pair. The flow 𝑓 𝑖 𝑗 on link (𝑖, 𝑗 ) is derived via backward propagation from the demand sink: Í𝑘 ∈𝛿 − (𝑛 ) 𝑓 𝑘𝑛 = Í𝑗 ∈𝛿 + (𝑛 ) 𝑓 𝑛 𝑗 , ∀𝑛 ∈ 𝑁 𝑝 \{ 𝑂, 𝐷 },
+
+Í𝑘 ∈𝛿 − (𝐷 ) 𝑓 𝑘 𝐷 = Í𝑗 ∈𝛿 + (𝑂 ) 𝑓 𝑂 𝑗 = 𝑑 𝑂𝐷 , where 𝛿 − (𝑛 ) means the in-degree node of 𝑛 , and 𝛿 + (𝑛 ) means the out-degree node of 𝑛 . Upon determining 𝑓 𝑖 𝑗 , the system selects the proper vehicle type 𝑣 ∗ and its corresponding quantity 𝑚 𝑖 𝑗 . This step explicitly couples transportation capacity with flow intensity, He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 18 Article submitted to
+
+allowing for precise calculation of lead times 𝐿 𝑖 𝑗 and transport costs. Depending on the inventory strategy specified by experts (e.g., (s,S), base-stock, etc.), we then estimate the inventory cost along this path using the initial inventory and replenishment targets information.  
+
+> Figure 5 Illustration of Flow Balance Requirement for a Candidate Path
+
+3.2.3. Microscopic Dynamics: Inventory Simulation. While the macroscopic equilibrium provides a rapid static assessment, it masks the volatility of daily operations. To accurately evaluate the candidate paths under dynamic operational details for cases like WAP, we deploy the parallel track: the dynamic generation mode. This track models the microscopic temporal evolution of multi-echelon inventory systems over a discrete horizon 𝑡 ∈ { 1, . . . , 𝑇 }.
+
+The Structure. The dynamic system is characterized by its state vector at each period 𝑡 , contin-uously perturbed by exogenous events, i.e. realized/estimated demand sequence, etc. 
+
+• Inventory State: The vector 𝐻 𝑡 = [𝐼 𝑡 , 𝐼 𝑃 𝑡 , 𝐵 𝑡 ]𝑇 represents the system’s memory , encapsulating the on-hand inventory 𝐼 𝑡 , the inventory position 𝐼 𝑃 𝑡 (including pipeline inventory), and the backlog quantity 𝐵 𝑡 .
+
+• Exogenous Events: The vector 𝑥 𝑡 = [𝐷 𝑡 , Λ𝑡 ]𝑇 represents external variables, where 𝐷 𝑡 is the realized demand and Λ𝑡 indicates event triggers (e.g. review day arrival). 
+
+State Transition. The core of the dynamic simulation lies in its state transition logic, governed by predefined inventory control policies. Taking a periodic review (𝑅, 𝑆 ) policy as an illustrative example, the temporal evolution proceeds sequentially. 
+
+• Order Generation: On a designated review day, the system evaluates the current inventory position to determine the replenishment order quantity 𝑂 𝑡 , ensuring non-negativity: 𝑂 𝑡 =
+
+max {0, 𝑆 − 𝐼𝑃 𝑡 −1} · I(𝑡 ∈ ReviewDays ).
+
+• System Update: The on-hand inventory 𝐼 𝑡 evolves by integrating arrivals (orders placed 𝐿 days ago, where 𝐿 is the lead time) and demand subtraction, again processed to separate physical stock from backlogs: 𝐼 𝑡 = (𝐼 𝑡 −1 + 𝑂 𝑡 −𝐿 − 𝐷 𝑡 )+, 𝐵 𝑡 = (𝐷 𝑡 − ( 𝐼 𝑡 −1 + 𝑂 𝑡 −𝐿 )) +.
+
+The simulation generates a complete trajectory of inventory states by propagating these transition equations across the full horizon 𝑇 . This trajectory is then aggregated to derive the cost attributes, 
+
+𝑐 𝑝 , which is the simulation outputs for the following optimization in the whole SPORD method. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 19
+
+3.3. The Path Selection Model 
+
+Following the path construction and high-fidelity simulation in the Generation Layer, the system produces a comprehensive set of candidate paths P. Regardless of whether the problem context is static structural planning or dynamic warehouse assortment planning, each candidate 𝑝 ∈ P is standardized and encapsulated as a self-contained proposal. It inherently carries a cost attribute 𝑐 𝑝 
+
+and a resource consumption vector 𝑎 𝑝 . It is crucial to note that while the fundamental framework remains consistent across both static and dynamic domains, the specific mathematical structures of the base models do exhibit necessary variations depending on the problem types. But fortunately, because all complex and idiosyncratic operational details have been absorbed by the simulation phase, the final optimization model is reduced to a simple, fundamental, and highly interpretable Binary Integer Programming (BIP) formulation. Specifically, as established in Section 3.1, the monolithic model embeds operational rules directly into the constraint matrix, making it rigid and computationally burdensome. SPORD removes this bottleneck. After the Generation Layer constructs and filters a large set of operationally valid candidate paths via parallel simulation, the remaining optimization problem reduces to a path-based formulation: given the precomputed operational costs and resource consumption attributes of each candidate path, the Decision-Making Layer selects a subset of candidates that covers demand and respects cardinality and capacity logic. The model involves two classes of binary decision variables: one governing the selection of physical warehouse locations, and the other governing the selection of candidate paths—together encoding both the structural and the routing dimensions of the planning decision. Let P denote the set of all candidate paths generated by the simulation layer. Let 𝑥 𝑛 ∈ { 0, 1} be the binary variable indicating whether candidate warehouse 𝑛 ∈ N is selected, and 𝑦 𝑝 ∈ { 0, 1} be the binary variable indicating whether candidate path 𝑝 ∈ P is selected. Let 𝑛 𝑑 ∈ N 𝑑𝑒𝑚𝑎𝑛𝑑 denote the demand point, N𝑟𝑒𝑞𝑢𝑖𝑟𝑒𝑑 the set of required warehouses that must be chosen, and N𝑏𝑎𝑛𝑛𝑒𝑑 the set of banned warehouses that cannot be chosen. The candidate warehouse sets with cardinality limits denoted as 𝑁 𝑐𝑎𝑟𝑑 and those with capacity limits denoted as 𝑁 𝑐𝑎 𝑝 . The optimization model is formulated as follows: min 𝐶 𝑇 𝑠 𝑋 + 𝐶 𝑇 𝑇 𝑌 (2a) s.t. ∑︁  
+
+> 𝑝 ∈𝑃 :𝑛 𝑑 ∈𝑝
+
+𝑦 𝑝 = 1, ∀𝑛 𝑑 ∈ 𝑁 𝑑𝑒𝑚𝑎𝑛𝑑 (2b) ∑︁ 
+
+> 𝑝 ∈𝑃 :𝑛 ∈𝑝
+
+𝑦 𝑝 ≥ 𝑥 𝑛 , ∀𝑛 ∈ 𝑁 (2c) 
+
+𝑦 𝑝 ≤ 𝑥 𝑛 , ∀𝑝 ∈ 𝑃, ∀𝑛 ∈ 𝑝 (2d) He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 20 Article submitted to
+
+𝐾 min  
+
+> 𝑐𝑎𝑟𝑑
+
+≤∑︁ 
+
+> 𝑛 ∈𝑁 𝑐𝑎𝑟 𝑑
+
+𝑥 𝑛 ≤ 𝐾 max  
+
+> 𝑐𝑎𝑟𝑑
+
+(2e) 
+
+𝑥 𝑛 = 1, ∀𝑛 ∈ 𝑁 𝑟𝑒𝑞𝑢𝑖𝑟𝑒𝑑 (2f) 
+
+𝑥 𝑛 = 0, ∀𝑛 ∈ 𝑁 𝑏𝑎𝑛𝑛𝑒𝑑 (2g) 
+
+𝐶 𝑚𝑖𝑛 𝑐𝑎 𝑝 𝑥 𝑛 ≤∑︁ 
+
+> 𝑝 ∈𝑃 :𝑛 ∈𝑝
+
+𝑐 𝑐𝑎 𝑝 𝑝 𝑦 𝑝 , ∀𝑛 ∈ 𝑁 𝑐𝑎 𝑝 (2h) 
+
+𝐶 𝑚𝑎𝑥 𝑐𝑎 𝑝 𝑥 𝑛 ≥∑︁ 
+
+> 𝑝 ∈𝑃 :𝑛 ∈𝑝
+
+𝑐 𝑐𝑎 𝑝 𝑝 𝑦 𝑝 , ∀𝑛 ∈ 𝑁 𝑐𝑎 𝑝 (2i) 
+
+𝐶 𝑚𝑖𝑛 𝑆𝐿 ≤∑︁ 
+
+> 𝑝 ∈𝑃
+
+𝑠 𝑝 𝑦 𝑝 ≤ 𝐶 𝑚𝑎𝑥 𝑆𝐿 (2j) 
+
+𝑥 𝑛 ∈ { 0, 1}, ∀𝑛 ∈ 𝑁 (2k) 
+
+𝑦 𝑝 ∈ { 0, 1}. ∀𝑝 ∈ 𝑃 (2l) The objective is to minimize the total cost, including warehouse and transportation costs. Con-straint (2b) ensures that the demand of every customer point is satisfied. Constraint (2c) guarantees that if a candidate location is selected, at least one candidate path that includes this location must also be selected. Constraint (2d) enforces the reverse implication: if a candidate path is selected, all candidate locations that constitute that path must also be selected. Constraint (2e) limits that for any subset of candidate locations with cardinality limits, the number of selected locations remains within the specified lower 𝐾 𝑚𝑖𝑛 𝑐𝑎𝑟𝑑 and upper 𝐾 𝑚𝑎𝑥 𝑐𝑎𝑟𝑑 bounds. Constraint (2f) requires that all warehouses in the set of required locations are selected. Constraint (2g) ensures that no warehouse from the set of banned locations is selected. Constraints (2h), (2i) and (2j) enforce local and global capacity limits on the candidate routes, respectively. For instance, for any 𝑛 ∈ 𝑁 𝑐𝑎 𝑝 , the sum of the volumes of all chosen paths passing through the warehouse 𝑛 should be in the interval [𝐶 𝑚𝑖𝑛 𝑐𝑎 𝑝 𝑥 𝑛 , 𝐶 𝑚𝑎𝑥 𝑐𝑎 𝑝 𝑥 𝑛 ].Finally, the last two constraints define the domains of the decision variables for selecting candidate locations and candidate paths, typically as binary variables. This TNP formulation exemplifies the SPORD philosophy: complex operational realities (vehicle types, SKU attributes, time windows) are pre-evaluated in simulation, leaving the optimizer with a clean, binary selection task. For dynamic problems such as WAP, the Decision-Making Layer employs a structurally analogous but contextually adapted model, detailed in Online Appendix ?? .The reduction from the monolithic model to the above model by SPORD yields two critical advantages: (i) interpretability and stability: the transparent BIP structure is readily auditable by business stakeholders even without advanced mathematical backgrounds. (ii) plug-and-play versatility: The base model is an adaptable, universal chassis. Swapping between different cases He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 21
+
+requires only a model chassis change, not a full re-engineering. The resulting sparse linear model is directly solvable by commercial solvers (e.g., Gurobi, CPLEX) without specialized decomposition. 
+
+4. Scalability via Parallel Computing and List Scheduling 
+
+The mathematical simplicity of the Decision-Making Layer is achieved by offloading complex business constraints into the simulation. This decoupling allows standard solvers to solve the final model efficiently. Fundamentally, it shifts the computational burden upstream. The simulation engine must evaluate tens of millions of candidate paths and process intricate constraints. To ensure tractability, we leverage high-throughput parallel computing for independent path generation. For coupled orders with precedence constraints, we apply a scheduling algorithm. 
+
+High-Throughput Simulation via Resilient Distributed Datasets (RDDs). For the majority of candidate paths where flow dynamics are decoupled, we leverage the data parallelism inherent in the solution space. Unlike traditional disk-based MapReduce paradigms, we utilize Apache Spark’s in-memory computing framework centered on Resilient Distributed Datasets (RDDs), which are immutable, fault-tolerant, and distributed collections of objects designed for parallel processing. The set of candidate paths P is encapsulated as a distributed RDD. The simulation oracle is broadcasted to worker nodes (i.e. machines or processes that actually perform the computational work). They receive tasks from a “driver” program (which coordinates the overall execution) and process data, allowing the attribute computation (cost 𝑐 𝑝 , service metrics 𝛼 𝑝 ) to occur entirely in memory without incurring significant input/output overhead. This architecture minimizes latency by caching the Initialization Layer’s structural data. In production environments, the system achieves extreme throughput and ensures the downstream Decision-Making Layer receives a comprehensive candidate space with negligible pre-processing time. 
+
+Acceleration via Matrix Vectorization and GPU Offloading. For paths with dense temporal dynamics, serial processing creates a latency bottleneck. We address this via Matrix-Based Par-allelism: the inventory simulation is isomorphic to a Recurrent Neural Network (RNN) forward process (Figure 6), enabling decomposition into tensor operations offloaded to GPU. The inventory simulation unfolds over a discrete time horizon 𝑡 ∈ { 1, . . . , 𝑇 }. We map the core components of RNN cells to inventory dynamics as follows: 
+
+• Hidden State ( ℎ𝑡 ) ↔ Inventory State: The vector H𝑡 = [𝐼 𝑡 , 𝐼 𝑃 𝑡 , 𝐵 𝑡 ]𝑇 represents the system’s 
+
+memory , encapsulating the physical on-hand inventory 𝐼 𝑡 , the inventory position 𝐼 𝑃 𝑡 (including pipeline inventory), and the backlog quantity 𝐵 𝑡 .He et al.: A SPORD Approach for Supply Chain Planning 
+
+22 Article submitted to 
+
+• Input ( 𝑥 𝑡 ) ↔ Exogenous Events: The vector 𝑥 𝑡 = [𝐷 𝑡 , Λ𝑡 ]𝑇 represents external variables, where 
+
+𝐷 𝑡 is the realized demand and Λ𝑡 indicates event triggers (e.g. review day arrival). 
+
+• Trainable Weights ( 𝑊 ) ↔ Policy Parameters: The static parameters governing the logic, such as the target stock level 𝑆 or reorder points 𝑅𝑂𝑃 , correspond to the weights in an RNN. Our optimization goal is to find these parameters to minimize the loss function. 
+
+• Activation Function ( 𝜎 ) ↔ Replenishment Logic: The control logic is mathematically equiva-lent to activation functions (e.g., the non-negativity of orders is inherently a ReLU operation). y1 y2 yr                  
+
+> . . .
+> h1h2hr
+> . . .
+> y3
+> h3
+> x1x2x3xr
+> . . .
+> RNN Training Process Our Inventory Optimization Process
+> c1c2cr
+> I1,...,O 1I2,...,O 2Ir,...,O r. . .
+> c3
+> I3,...,O 3
+> D1D2D3Dr
+> . . .
+> . . .
+> Figure 6 RNN-Isomorphic Inventory Simulation
+
+The simulation executes a forward pass analogous to unrolling an RNN. At each time step 𝑡 , the state updates based on the previous state H𝑡 −1, current input x𝑡 , and policy parameters Θ:
+
+• Order Generation: Under a periodic review (𝑅, 𝑆 ) policy, the order quantity 𝑂 𝑡 is computed via: 𝑂 𝑡 = ReLU (( 𝑆 − 𝐼𝑃 𝑡 −1) · Λ𝑡 ) = max {0, 𝑆 − ( 𝐼 𝑡 −1 + InTransit 𝑡 −1)} · I(𝑡 ∈ ReviewDays ).
+
+• System Update: The on-hand inventory 𝐼 𝑡 evolves by integrating arrivals (orders placed 𝐿 days ago, where 𝐿 is lead time) and demand subtraction, again processed through a ReLU to separate physical stock from backlogs: 𝐼 𝑡 = ReLU (𝐼 𝑡 −1 + 𝑂 𝑡 −𝐿 − 𝐷 𝑡 ), 𝐵 𝑡 = ReLU (𝐷 𝑡 − ( 𝐼 𝑡 −1 + 𝑂 𝑡 −𝐿 )) .
+
+• Loss Function and Parameter Optimization: The objective function is the training loss L( Θ),defined as the cumulative operational cost over the simulation horizon: L( Θ) = Í𝑇 𝑡 =1 (ℎ ·
+
+𝐼 𝑡 (Θ) + 𝑝 · 𝐵 𝑡 (Θ) + 𝐾 · I(𝑂 𝑡 > 0)) , where ℎ,𝑝 ,𝐾 denote holding, penalty, and fixed ordering costs. Standard back propagation and Grid Search or Gradient-Free Optimization can both be implemented to iteratively update Θ. The system explores the parameter space (e.g. varying 𝑆 
+
+and 𝑅𝑂𝑃 ) to find the global minimum of the loss surface. The final minimized cost L( Θ∗) is then extracted as the cost-related attribute 𝑐 𝑝 for the subsequent Decision-Making Layer. The inherent recurrent structure of our dynamic simulation is particularly amenable to massive parallelization, offering opportunities for accelerating computations through GPUs. For scenarios such as inventory simulation over a long horizon ( 𝑇 = 30 days), the traditional iterative approach (e.g., for 𝑡 in 𝑇 ) is computationally inefficient due to the overhead of interpreter locks and lack of instruction-level parallelism. We restructure the operational logic by flattening the temporal He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 23
+
+and SKU dimensions. Instead of processing orders sequentially, we construct the state space as high-dimensional tensors (matrices). The simulation logic 𝑆 𝑡 +1 = 𝑓 (𝑆 𝑡 , 𝐷 𝑡 , 𝑅 𝑡 ) is decomposed into linear algebra operations. The inventory states, sales signals, and replenishment decisions for thousands of SKUs are aggregated into a unified matrix structure. These matrix-structured calculations are offloaded to CPU or GPUs for further acceleration. GPUs, with their thousands of cores, are architecturally optimized to perform these matrix manipulations in parallel, bypassing the bottlenecks of serial processing. Speed, however, is only half the equation. The simulation pipeline outlined in Section 3.2.3 provides a theoretically sound architecture for state transitions. However, the Generation Layer must maintain strict logical fidelity to reliably evaluate costs (Challenge III). This fidelity refers to the degree to which its simulated trajectories accurately mirror the actual physical operations of the supply chain. We validate this fidelity via historical back-testing: replaying realized exogenous inputs (e.g. realized demand, etc.) through the engine and comparing simulated trajectories against ground-truth operational records. The results are shown in Section 5.1. 
+
+List Scheduling for Coupled Orders. When multiple orders with precedence constraints (e.g., FIFO allocation) compete for the same SKU, standard parallel execution stalls. Naive blocking causes severe thread starvation. We resolve this via a list scheduling module that transforms the blocked execution model into an active scheduling, reducing makespan ( 𝐶 𝑚𝑎𝑥 ) from hours to minutes. Specifically, we model the execution as a Parallel Machine ( 𝑃 𝑚 ) Scheduling Problem with Precedence Constraints ( 𝑃 𝑚 | 𝑝𝑟𝑒𝑐 |𝐶 𝑚𝑎𝑥 ). The solution involves constructing a Directed Acyclic Graph (DAG) and applying a critical-path algorithm for large-scale coupled cases. 
+
+• Jobs ( J ): The set of N coupled orders to be simulated. Each job 𝑗 has a processing cost 𝑝 𝑗 
+
+(typically evaluated by processing time). 
+
+• Machines ( M): The finite set of available computing threads in CPU. 
+
+• Precedence Constraints ( ≺): A strict partial order 𝑖 ≺ 𝑗 implies job 𝑗 cannot start until job 𝑖 
+
+releases the inventory lock on a shared SKU. 
+
+• Target: Minimizing makespan ( 𝐶 𝑚𝑎𝑥 ). The optimization goal is to minimize the maximum completion time across all resources. We map the order stream to a Directed Acyclic Graph 𝐺 = (𝑉, 𝐸 ). A directed edge (𝑖, 𝑗 ) ∈ 𝐸 
+
+is established if 𝑖 ≺ 𝑗 . We then compute the height 𝐻 𝑗 for each node, representing the distance to the terminal state on the critical path. The priority 𝜋 𝑗 for sorting is set to this height value: 
+
+𝜋 𝑗 = 𝐻 𝑗 = 𝑝 𝑗 + max {𝑘 |( 𝑗,𝑘 )∈ 𝐸 } 𝐻 𝑘 . Nodes with higher 𝐻 𝑗 are prioritized as they represent the He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 24 Article submitted to
+
+bottlenecks of the batch. The scheduler maintains a dynamic Ready Queue 𝑄 𝑡 , containing tasks whose in-degree is zero (all predecessors completed): Q𝑡 = { 𝑗 ∈ 𝑉 |deg 𝑖𝑛 ( 𝑗 ) = 0}.
+
+At any time step, an idle machine 𝑘 pulls the task 𝑗 ∗ with the highest priority: 𝑗 ∗ = arg max 𝑗 ∈Q 𝑡 𝜋 𝑗 .
+
+Upon completion, 𝑗 ∗ is removed from 𝐺 , instantly unlocking successor nodes for the next cycle, updating Q𝑡 . Empirical results demonstrate that this approach enables the processing of almost 500,000 coupled orders within minutes. The detailed illustration refers to Online Appendix ?? .
+
+5. Industrial Applications 
+
+Section 4 established the computational infrastructure (i.e. speed and fidelity) necessary for a cred-ible planning engine. This section answers the more consequential question: does SPORD translate into better real-world decisions, and can those decisions be adopted by business organizations? 
+
+5.1. Numerical Validation 
+
+We have introduced the matrix-vectorized parallel simulation and list scheduling algorithm as the computational backbone of SPORD in Section 4. Now, we empirically validate the performance of our parallel technique. Using real-world SKU data (Replenishment/Sales/Inventory simulation for small/medium items over a 91-day horizon), we compare several computational methods: Tradi-tional for-loops (two-level for loops), pandas.apply methods (a Python-native vectorized processing format) and our vectorized approach where all data is restructured into matrices for simultaneous computation. As illustrated in Table 1, the transition from serial processing to matrix parallelism yields a dramatic performance leap. For a batch of 50,000 simulation instances, the serial method requires approximately 75.9 seconds. The matrix-parallel method completes the task in 2.1 seconds. This represents an over 30-fold increase in efficiency, and parameter optimization accelerated by GPUs can achieve drastically more improvement (Table 2). This allows the Generation Layer to handle computationally intensive simulations without slowing down the overall pipeline, ensuring that even the most complex cost attributes are generated in near-real-time.                                    
+
+> Table 1 Time Consumptions of Different Calculation Strategies in CPU (10 cores & 40 Threads)
+> # of SKUs for-loops (s) pandas (s) vectorization (s) 100 0.179184 0.165043 0.009640 1000 1.570751 1.742290 0.026114 10000 16.089718 16.234240 0.230672 50000 75.988832 81.876154 2.109408 100000 159.204360 165.418447 5.115564
+> Table 2 Time Consumptions of CPU-vectorization vs. GPU-vectorization
+> # of SKUs+DCs CPU of 8 cores & 32 Threads (s) GPU of P40*1 (s) 100 140 15 1000 243 21 10000 1071 71 He et al.: A SPORD Approach for Supply Chain Planning
+> Article submitted to 25
+
+The results in Tables 1 and 2 confirm that the parallel techniques deliver order-of-magnitude throughput improvements that make exhaustive evaluation operationally feasible at JD.com’s scale. Computational speed alone is insufficient. Considering that the pure algorithmic logic is fre-quently disrupted by idiosyncratic business behaviors (e.g., manual overrides, capacity adjust-ments), we adopt an incremental testing approach, progressively injecting operational complexities into the baseline model to guarantee simulation fidelity. The following progressive back-testing quantifies how closely NetSim ’s simulated inventory and sales trajectories track ground-truth oper-ational records as progressively more real-world data is incorporated. Three metrics quantify this simulation-reality alignment. Let 𝐼 𝑠𝑖𝑚 𝑠,𝑑,𝑡 /𝐼 𝑎𝑐𝑡 𝑠,𝑑,𝑡 and 𝑆 𝑠𝑖𝑚 𝑠,𝑑,𝑡 /𝑆 𝑎𝑐𝑡 𝑠,𝑑,𝑡 denote simulated and actual inventory and sales for a specific SKU 𝑠 at Distribution Center (DC) 𝑑 on day 𝑡 . The Cumulative Inven-tory Attainment Rate (CIA) measures the macroscopic volume alignment of the inventory, i.e., 
+
+𝐶𝐼 𝐴 = Í𝑠,𝑑,𝑡 𝐼 𝑠𝑖𝑚 𝑠,𝑑,𝑡 /Í𝑠,𝑑,𝑡 𝐼 𝑎𝑐𝑡 𝑠,𝑑,𝑡 . The Cumulative Sales Attainment Rate (CSA) measures the macro-scopic volume alignment of fulfillment capability, i.e., 𝐶𝑆 𝐴 = Í𝑠,𝑑,𝑡 𝑆 𝑠𝑖𝑚 𝑠,𝑑,𝑡 /Í𝑠,𝑑,𝑡 𝑆 𝑎𝑐𝑡 𝑠,𝑑,𝑡 . The Granular Inventory Accuracy (GIA) is based on the Mean Absolute Percentage Error (MAPE), evaluating the absolute deviation at the most granular level, i.e., 𝐺 𝐼 𝐴 = 1 − Í𝑠,𝑑,𝑡 𝐼 𝑠𝑖𝑚 𝑠,𝑑,𝑡 − 𝐼 𝑎𝑐𝑡 𝑠,𝑑,𝑡 /Í𝑠,𝑑,𝑡 𝐼 𝑎𝑐𝑡 𝑠,𝑑,𝑡 .With these metrics, we validate our simulation’s accuracy against the real-world supply chains.  
+
+> Table 3 Progressive Enhancement of Simulation Logical Fidelity
+
+Scenario Evolution CIA CSA GIA Cumulative Simulation Accuracy 
+
+Baseline 73.4% 75.3% 51.1% 74.3% + Initial In-Transit Inventory 78.3% 77.2% 54.4% 77.7% + Manual Order Interventions 108.3% 96.6% 80.6% 94.2% + Fulfillment Capacity Adjustments 94.9% 92.7% 82.1% 93.8% + Banned-List Constraints 94.9% 92.6% 82.5% 93.7% + Order Placement Adjustments 95.1% 92.6% 82.3% 93.9% Full-Data Driven Simulation 99.9% 99.9% 99.7% 99.9% 
+
+As shown in Table 3, the naive baseline model, relying solely on standard replenishment logic, struggles to capture the reality, yielding a Granular Inventory Accuracy (GIA) of only 51.1%. As we systematically incorporate real-world operational information, the fidelity metrics exhibit an upward trajectory. Notably, the introduction of manual orders (i.e. manual overrides data by business staff) corrects a massive variance in cumulative attainment, while fulfillment adjustments refine the granular accuracy to over 82%. Ultimately, when driven by the full spectrum of historical operational data, the simulation achieves near-perfect alignment with reality, recording a cumulative simulation accuracy of 99.9% and a granular SKU-DC-Day accuracy of 99.7%. This exceptional logical fidelity confirms that the NetSim platform is qualified to serve as a well-performed cost oracle for the subsequent Decision-Making Layer. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 26 Article submitted to
+
+Together, the experiments provide quantitative confirmation that the parallel architecture deliv-ers the throughput required for industrial-scale candidate evaluation, and the progressive fidelity validation confirms that NetSim can serve as a reliable cost oracle grounded in operational reality. 
+
+5.2. Implementation 
+
+To demonstrate how the SPORD method achieves universal applicability across diverse SCP domains, the following subsections detail its deployment at two ends of the spectrum: static TNP (Section 5.2.1) and dynamic WAP (Section 5.2.2). 
+
+5.2.1. Application Scenario I: Trunk Network Planning. NetSim simulates millions of candi-date paths. A path 𝑝 is defined as a tuple (𝑂 𝑖 , 𝐷 𝑗 , 𝑇 𝑘 ), representing a complete logistical chain from Origin 𝑂 𝑖 to Destination 𝐷 𝑗 using Transportation Mode 𝑇 𝑘 . Detailed operational parameters such as the inventory management policies, and further transportation specifics, are encoded as attributes, i.e. part of the 𝑇 𝑘 parameter of each path. During generation, NetSim strictly filters paths against local constraints, such as specific routing rules, etc. It then pre-calculates the operational cost 𝐶 𝑇 𝑠 
+
+and transportation cost 𝐶 𝑇 𝑇 for each path , incorporating elements like transportation time, etc. The problem is finally abstracted into an integer program (refer to Section 3.3) to select the optimal subset of pre-validated paths that minimize the total cost while satisfying generic constraints. By moving business logic into the simulation-based Generation Layer, the solver focuses purely on the selection, reducing solution time for large-scale instances (up to 80 million candidate paths before implementing dimension reduction) to nearly 90 seconds. 
+
+5.2.2. Application Scenario II: Warehouse Assortment Planning. In each decision period 𝑡 
+
+within the planning horizon, for a candidate SKU-warehouse pair (𝑖, 𝑜 ), NetSim executes a detailed simulation process for a preset time shot (a trajectory until 𝑇 , e.g. 30-days plan). This engine sys-tematically updates the state of the inventory system by tracking on-hand stock, pipeline inventory, arriving inventory, new order placements, and the amount of demand that can be successfully fulfilled. Based on these updated states, it then calculates the end-of-period inventory and the costs incurred during that specific period, which are composed of holding costs, transportation costs, and the lost sales along the trajectory. At the end of each period’s simulation, a cumulative total cost from the start of period 𝑡 up to the preset time horizon is computed based on the functions defined in Online Appendix ?? . Then, this cumulative total cost is incorporated as the objective function. By simulating trajectories, NetSim dynamically identifies whether an item should be positioned in a RDC or a FDC, balancing the Endless Aisle (massive SKUs) availability with fulfillment costs. From 2025 to the present, JD.com has achieved a year-on-year reduction of over 73 million dollars in supply chain costs attributable to WAP applications. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to
+
+27 
+
+5.2.3. Visualization & Verification: Bridging the Cognitive Gap. During the early piloting phases of NetSim , JD.com’s retail partners and regional logistics directors consistently raised a practical concern: they were extremely hesitant to adopt a static mathematical blueprint. From their frontline perspective, the e-commerce landscape is inherently volatile, and they requested a mechanism to observe how the recommended network would behave under unexpected stress before signing off on million-dollar structural changes (Challenge II). To consider this business feedback, our interactive module empowers the domain experts or stakeholders to inject perturbation scenarios (e.g., a sudden 20% demand surge in a specific region). The system then computes the optimal solution for the perturbed state, and generates a set of adjacent solutions. We define the solution stability metric to quantify the robustness of the network design. By visualizing the initial solution alongside the perturbed one and their respective KPIs, decision-makers transition from passive recipients of an algorithm to active participants in the design process. They can visually verify whether the proposed solution shatters under volatility or gracefully absorbs the shock. This mechanism ensures that the final deployed solution is not merely a mathematical optimum for a deterministic snapshot, but a resilient configuration validated by domain expertise, thus also promoting the progress of adoption. In Figure 7, the layer aggregates selected path flows at each facility and transport leg, translating mathematical outputs into concrete operational attributes: node attributes (e.g., facility throughput, capacity utilization) and edge attributes (e.g., freight volume). Executives can thereby assess macroscopic structure and micro-operational bottlenecks at a glance. Warehouse Nodes Product Attributes Customer Demand Production   
+
+> Relations
+> Storage
+> Requirements Fulfillment Flows
+> Basic Data
+> Transportation
+> Routes
+> Plan List (Predefined Constraints)
+> + New Plan
+> Creating Time: xxxx-xx-xx xx:xx:xx
+> Completion Time: xxxx-xx-xx xx:xx:xx
+> Visualization Report Layer Management Import HTML
+
+Figure 7 The Schematic Interface of NetSim in JD.com (illustrated by a TNP solution) 
+
+5.2.4. Intelligent Diagnosis: Closing the Decision Loop. Field feedback from JD.com’s frontline warehouse managers and third-party merchants further exposed a post-implementation challenge: operational drift. They reported that over a planning cycle of several months, the actual empirical performance (e.g. fulfillment costs, cross-regional delivery rates) gradually diverges from He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 28 Article submitted to
+
+the simulated baseline due to micro-level execution variances, shifting consumer behaviors, or localized capacity bottlenecks that emerge after the initial planning phase. To transform the SPORD framework from a static planning tool into a self-correcting dynamic system, we have designed an automated diagnostic feedback loop, which is the fifth step of our SPORD method. Conceptually analogous to a policy iteration mechanism, the system continuously monitors post-deployment KPIs against the simulated ground truth. When empirical metrics (e.g., fulfillment costs or lead times) deviate significantly from the standards given before, a hierarchical attribution tree decomposes the variance across intertwined operational factors. By applying a statistical pruning technique to isolate the root causes, the system quantifies the theoretical improvement gap weighted by actual business volume. These quantified anomalies are then translated into structural constraints or policy parameter adjustments, which can be fed back into the initialization for the subsequent planning epoch. This closed-loop architecture ensures sustained systemic resilience and continuous optimization. We illustrate the process with a real case from JD.com in Online Appendix ?? . 
+
+> 5.3. Field Impact
+
+Since NetSim ’s deployment in 2025, the platform has optimized end-to-end supply chain decisions for over 20,000 suppliers across JD.com’s national network. The majority of these are small and medium-sized enterprises whose pre-NetSim planning amounted to a regional manager’s intuition, a spreadsheet calibrated once and never revisited, or simply last season’s assignment carried forward. For the first time, their assortment and routing decisions are evaluated against a simulation of their actual supply chain, real demand patterns, real lead times, real replenishment constraints, rather than a planner’s best guess. The verified outcomes across multiple live planning cycles are significant. For TNP, the cross-regional fulfillment rate dropped from 6.1% to 4.9%, a 20% reduction; at JD.com’s order volumes, it translates directly to faster deliveries and lower freight spend at national scale. For WAP, year-on-year supply chain cost savings attributable to WAP optimization have exceeded 73 million dollars annually. The platform’s verified monthly carbon reduction of approximately 5,745 tCO2e is therefore what better decisions look like at scale: fewer unnecessary long-haul transshipments, less inventory redundancy, more precise pre-positioning in place of expedited shipping. To provide a finer-grained view of this impact, we conduct a cost optimization analysis spanning January 2025 through June 2026 across ten major business units: the Large Supermarket Group, Home Appliances & Furniture Group, 3C Digital Group, Fashion & Apparel Group, Automo-tive Division, JD Health, Government & Enterprise Division, Innovative Retail Group, Private He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to 29
+
+Brand Division, and JD Industrial. For each unit, the direct fulfillment cost under the SPORD-recommended plan is benchmarked against the incumbent baseline on a monthly basis, and year-on-year improvements are computed for each of the first six months of 2026. The eighteen-month record reveals a consistent pattern of deepening optimization. Units onboarded in earlier rollout phases exhibit progressively larger absolute savings as the platform accumulates planning cycles and refines its candidate path space. The 3C Digital Group exemplifies this trajectory: year-on-year monthly savings grew from approximately 0.73 million dollars in January 2026 to 1.72 million dollars by June 2026—more than doubling within a single half-year. JD Industrial displays an even steeper acceleration, achieving a nearly 27-fold increase over six months, reflecting the com-pounding effect of route-level learning as more supplier-SKU combinations become eligible for SPORD-governed direct delivery. These trajectories confirm that SPORD’s value accrual is not front-loaded: each newly onboarded product category or logistics corridor becomes an additional source of margin recovery without requiring bespoke re-engineering. Viewed across business units, the performance snapshot illustrates both the breadth and het-erogeneity of NetSim ’s impact. The Large Supermarket Group registers the single largest absolute improvement—approximately 11.16 million dollars in year-on-year savings in June 2026 alone, reflecting the outsized direct-delivery volumes of this unit and the correspondingly high leverage that route-level optimization yields at scale. The Fashion & Apparel Group records more moderate but consistently positive savings (0.37 million dollars in June 2026), consistent with the category’s lower average order value and more geographically concentrated fulfillment patterns. The Auto-motive Division and JD Health, both relatively newer to direct-delivery optimization, show steady positive trajectories (0.10 million dollars and 0.22 million dollars in June 2026, respectively), underscoring SPORD’s generalizability to verticals with highly idiosyncratic handling and rout-ing constraints. Although a small number of unit-month observations show negative year-on-year values, most notably the Large Supermarket Group in January 2026 (-1.14 million dollars) and marginal negatives in the Private Brand Division, they reflect a structural feature of progressive net-work expansion: as new product categories and logistics lanes are brought under SPORD-governed planning, they initially interact with adjacent flows (e.g. sharing warehouse capacity, transportation slots, and replenishment cycles) previously optimized independently. During the transition window, some cross-unit interactions manifest as transient cost increases for individual units even as the network-level trajectory remains favorable. Crucially, recovery follows in every case. The Large Supermarket Group makes this point most forcefully: after the -1.14 million dollars observation in January 2026, it recovers to 12.14 million dollars in February 2026 and then sustains positive. He et al.: A SPORD Approach for Supply Chain Planning  
+
+> 30 Article submitted to
+
+6. Discussion 
+
+The large-scale deployment of the NetSim platform at JD.com yields insights that extend far beyond specific algorithmic performance metrics. In this section, we summarize these empirical observations into broader managerial and architectural insights for the supply chain community.  
+
+> 6.1. Philosophy: Decoupling, Human-Algorithm Interaction, and Isomorphism
+
+SPORD advances the SCP literature along three dimensions. Fidelity and generalizability : standard-izing static routing and dynamic inventory trajectories into a universal representation eliminates the need for bespoke models across business domains. Scalability and speed : massively parallel sim-ulation and GPU-accelerated matrix operations transform combinatorial explosions into tractable selection tasks, enabling near real-time decision cycles. Trust and continuous improvement : the transparent candidate-path mechanism, HITL verification, and Intelligent Diagnosis feedback loop convert algorithmic outputs into auditable recommendations, sustaining stakeholder buy-in across planning epochs. These achievements rest on three design principles. Decoupling : separating feasi-bility evaluation from prescriptive selection minimizes the blast radius of operational updates. Most parameter changes are absorbed non-invasively by the initialization, leaving the solver untouched. 
+
+Human-algorithm symbiosis : by encoding expert know-how into the knowledge repository, the system converts tacit individual experience into durable organizational assets, enabling warm-start initialization across planning cycles. Computational isomorphism : conceptualizing inventory dynamics as an RNN-equivalent computation graph allows discrete logistical events to be mapped into high-dimensional tensors, unlocking massive GPU parallelism. Consequently, rather than conducting heuristic trial-and-error, NetSim evaluates millions of candidate paths simultaneously, mapping a high-fidelity cost landscape from which solvers can instantly extract global optima.  
+
+> 6.2. Granularity Paradox: Theoretical Precision vs. Operational Feasibility
+
+Our practical deployment has illuminated a critical determinant of algorithmic adoption: the cali-bration of decision granularity. Researchers naturally gravitate toward finer resolution to maximize theoretical optimality. However, we observe that the solution validity depends not only on math-ematical precision but on alignment with the organization’s operational execution bandwidth. For instance, while algorithms can generate precise, atomic-level instructions for specific orders, real-world logistical management often operates at coarser aggregates, such as facility-level resource allocation or route-level scheduling. Hyper-granular solutions, therefore, face a dual challenge: they are often cognitively difficult for stakeholders to accept and logistically prohibitive to execute. Beyond the explicit constraints encoded within the model, a vast space of tacit operational fric-tions governs day-to-day execution. Accordingly, SPORD constrains decision granularity to match He et al.: A SPORD Approach for Supply Chain Planning  
+
+> Article submitted to
+
+31 
+
+the execution horizon of the business environment, acknowledging that a robustly implementable near-optimal solution consistently outperforms an unimplementable global optimum. 
+
+6.3. Future Extensions 
+
+Three directions emerge as most consequential for future research. First, NetSim already functions as a high-fidelity digital replica of JD.com’s physical operations; the natural next step is to elevate it from a planning tool into a generative world model for supply chains, one that autonomously generates and reasons over hypothetical operational scenarios, internalizing the causal structure of the network well enough to simulate any intervention forward. Second, the current pipeline treats simulation and optimization as sequential; a richer OR–AI integration would close the loop: LLMs or planning agents generate strategic hypotheses (“what if we consolidate three regional DCs into a hub-and-spoke cluster?”), SPORD instantly simulates and costs them, and the optimizer’s selection decisions in turn guide the next round of hypothesis generation—creating a human-AI-OR reasoning cycle in which expert knowledge, generative intelligence, and rigorous combinatorial optimization each play an irreplaceable role. Third, one persistent barrier to progress in supply chain optimization research is the scarcity of large-scale, operationally grounded benchmarks; most published results are validated on stylized or proprietary datasets that resist reproduction. We are exploring the possibility of partially opening the NetSim platform to the research community so that researchers have a shared, industrially realistic testbed on which to develop and compare new methods. 
+
+References 
+
+Bertsimas D, Nasrabadi E, Stiller S (2013) Robust and adaptive network flows. Operations Research 61(5):1218–1242. Chang TH, Wild SM (2025) Designing a framework for solving multiobjective simulation optimization problems. 
+
+INFORMS Journal on Computing 38(1):269–294. Cooper K, Hunter SR (2020) Pymoso: Software for multiobjective simulation optimization with R-PERLE and R-MinRLE. INFORMS Journal on Computing 32(4):1101–1108. Crainic TG (2000) Service network design in freight transportation. European Journal of Operational Research 
+
+122(2):272–288. Dang Y, Allen TT, Singh M, Gillespie J, Cox J, Monkmeyer J (2024) Innovative integer programming software and methods for large-scale routing at DHL supply chain. INFORMS Journal on Applied Analytics 54(1):20–36. Guan H, Basciftci B, Van Hentenryck P (2024) Path-based formulations for the design of on-demand multimodal transit systems with adoption awareness. INFORMS Journal on Computing 36(6):1459–1480. Heydari R, Melachrinoudis E (2017) A path-based capacitated network flow model for empty railcar distribution. 
+
+Annals of Operations Research 253(2):773–798. He et al.: A SPORD Approach for Supply Chain Planning 
+
+32 Article submitted to 
+
+H¨ ogdahl J, Bohlin M (2022) A combined simulation-optimization approach for robust timetabling on main railway lines. Transportation Science 57(1):52–81. Hu H, Qi Y, Lee HL, Shen ZJM, Liu C, Zhu W, Kang N (2024) Supercharged by advanced analytics, JD.com attains agility, resilience, and shared value across its supply chain. INFORMS Journal on Applied Analytics 54(1):54–70. Iri M (1969) Network Flow, Transportation, and Scheduling; Theory and Algorithms . Mathematics in Science and Engineering : a series of monographs and textbooks (Academic Press), ISBN 9780123738509, URL https: //books.google.co.kr/books?id=IqWrqRUDKFUC .Ivanov D (2024) Conceptualisation of a 7-element digital twin framework in supply chain and operations management. 
+
+International Journal of Production Research 62(6):2220–2232. Ivanov D, Dolgui A (2021) A digital supply chain twin for managing the disruption risks and resilience in the era of Industry 4.0. Production Planning & Control 32(9):775–788. Jeong HY, Song BD, Lee S (2022) Optimal scheduling and quantitative analysis for multi-flying warehouse schedul-ing problem: Amazon airborne fulfillment center. Transportation Research Part C: Emerging Technologies 
+
+143:103831. Klibi W, Martel A, Guitouni A (2010) The design of robust value-creating supply chain networks: a critical review. 
+
+European Journal of Operational Research 203(2):283–293. Ramos B, Alves C, Valerio de Carvalho J (2022) An arc flow formulation to the multitrip production, inventory, distribution, and routing problem with time windows. International Transactions in Operational Research 
+
+29(1):526–553. Seyhan TH, Snyder LV, Zhang Y (2018) A new heuristic formulation for a competitive maximal covering location problem. Transportation Science 52(5):1156–1173. Shavarani SM, Nejad MG, Rismanchian F, Izbirak G (2018) Application of hierarchical facility location problem for optimization of a drone delivery system: a case study of Amazon prime air in the city of San Francisco. The International Journal of Advanced Manufacturing Technology 95(9):3141–3153. Shen ZJM, Zhan RL, Zhang J (2010) The reliable facility location problem: Formulations, heuristics, and approximation algorithms. INFORMS Journal on Computing 23(3):470–482. Van Hoesel S, Romeijn HE, Morales DR, Wagelmans AP (2005) Integrated lot sizing in serial supply chains with production capacities. Management Science 51(11):1706–1719. Verter V, Kara BY (2008) A path-based approach for hazmat transport network design. Management Science 54(1):29– 40. Xu J, Zheng Z (2023) Gradient-based simulation optimization algorithms via multi-resolution system approximations. 
+
+INFORMS Journal on Computing 35(3):633–651. Zhou Q, G¨ um¨ us ¸ M, Miao S (2025) E-commerce order fulfillment problem with limited time window. Operations Research 73(6):2914–2932. Online Supplement “SPORD: A Simulation-Propose-then-OR-Dispose Approach for Supply Chain Planning” 
+
+EC.1. Application Scenario Model (for WAP) 
+
+In dynamic WAP, traditional approaches face a fundamental difficulty: assortment decisions (which SKUs to stock at which facilities) are intrinsically intertwined with temporal inventory evolution and replenishment policies. When these components are encoded directly into a single dynamic programming model, the resulting formulation quickly becomes intractable at operational scale, and counterfactual evaluation is further limited by the reliance on historical decision records. Under SPORD, this coupling is handled by construction: the Generation Layer simulates the resulting SKU-to-warehouse temporal trajectories under the specified inventory policies and operational boundary conditions, producing standardized candidate outcomes whose cost and service implica-tions are evaluated by simulation. Consequently, the OR-Dispose stage here does not re-simulate inventory dynamics; it instead solves a reduced selection formulation over the simulated candi-date trajectories, using their simulation-derived costs and feasibility information to produce an implementable assortment plan that satisfies coverage and operational constraints. The resulting mathematical model in Eqs.(EC.1a)-(EC.1e) therefore represents the basic decision structure for WAP through SPORD, translating simulation outputs into actionable assortment decisions. During the process of dynamic simulation, the simulation engine systematically updates the state of the inventory system by tracking on-hand stock Ii,o,d,t , pipeline inventory Hi,o,d,t , arriving inventory 
+
+Pi,o,d,t , new order placements Oi,o,d,t , and the amount of demand that can be successfully fulfilled 
+
+Si,o,d,t . Based on these updated states, it then calculates the end-of-period inventory Ii,o,d,t +1 and the costs incurred during that specific period, which are composed of holding costs CI i,o,d,t , trans-portation costs CF i,o,d,t , and the lost sales CL i,o,d,t along the trajectory. At the end of each period’s simulation, a cumulative total cost T C i,o,d from the start of period t up to the preset time horizon is computed. 
+
+min X
+
+> i,o,d
+
+T C i,o,d xi,o,d (EC.1a) s.t. X
+
+> o
+
+xi,o,d = 1 , ∀(i, d ) existing (EC.1b) 
+
+> ec1
+
+ec2 e-companion to Author: Article Short Title 
+
+xi,o,d ≤ yi,o , ∀i, o, d (EC.1c) 
+
+X
+
+> d
+
+xi,o,d ≥ yi,o , ∀i, o (EC.1d) 
+
+X
+
+> i,o,d
+
+CX i,o,d xi,o,d ≤ ϵ. (EC.1e) Constraint (EC.1b) ensures that all demands are covered. Constraint (EC.1c) ensures that if prod-uct/SKU i is not stocked at the distribution center o (i.e. yi,o = 0 ), then the customer d won’t be satisfied by the (i − o − d) (i.e. xi,o,d = 0 ). Constraint (EC.1d) guarantees that every selected ware-house should at least cover 1 demand, otherwise the candidate warehouse won’t be chosen. The last constraint (EC.1e) corresponds to additional business requirements, where the CX i,o,d can refer to other metrics, e.g., specific cost budgets, inventory turnover ratios for designated routes, and quotas allocated to particular distribution lines. The total cost of decision xi,o,d over the planning horizon is T C i,o,d = PTt {CI i,o,d,t + CF i,o,d,t + CL i,o,d,t }, calculated by: 
+
+Ii,o,d,t = Ii,o,d,t −1 + Pi,o,d,t , (EC.2a) 
+
+Hi,o,d,t = Hi,o,d,t −1 − Pi,o,d,t , (EC.2b) 
+
+Oi,o,d,t = −min {Ii,o,d,t + Hi,o,d,t 
+
+− T I i,o,d,t , 0} ∗ Ri,o,d,t , (EC.2c) 
+
+Hi,o,d,t = Hi,o,d,t + Oi,o,d,t , (EC.2d) 
+
+Pi,o,d,t +V LT i,o,d,t = Oi,o,d,t , (EC.2e) 
+
+Si,o,d,t = min {Ii,o,d,t , D i,o,d,t }, (EC.2f) 
+
+Ii,o,d,t +1 = Ii,o,d,t − Si,o,d,t , (EC.2g) 
+
+CI i,o,d,t = hc i ∗ Ii,o,d,t , (EC.2h) 
+
+CF i,o,d,t = f c i,o,d ∗ Si,o,d,t , (EC.2i) 
+
+CL i,o,d,t = lc i ∗ (Di,o,d,t − Si,o,d,t ). (EC.2j) 
+
+EC.2. The List Scheduling Algorithm 
+
+As outlined in Section 4, when multiple orders compete for the same SKU inventory pool under a precedence allocation discipline, their simulation cannot proceed independently: a downstream order is not permitted to claim inventory until all higher-priority upstream orders sharing that SKU have been fully processed and their inventory locks released. Pure parallel execution cannot resolve these coupled resource constraints. We therefore introduce a List Scheduling algorithm to bridge this operational gap. This algorithm functions as a capacity allocator within the Generation Layer. It extracts conflicting fulfillment requests and processes them sequentially based on predefined e-companion to Author: Article Short Title ec3 
+
+priority rules. By doing so, the algorithm ensures strictly feasible resource assignments during the simulation phase. Figure EC.1(a) presents the given arrival sequence of orders. The input to the algorithm is a stream of N orders, each associated with one or more SKUs it competes for. In the illustrative example, nine orders {A, B, C, D, E, F, G, H, I } arrive, with their respective SKU dependencies listed alongside (e.g., Order A involves SKUs {1, 7}, Order B involves SKUs {1, 2}, etc.). This arrival sequence defines the raw input to the scheduler, but the arrival order itself does not deter-mine execution priority—that is instead derived from the structural dependency analysis conducted in subsequent steps. The core structural insight of the algorithm is that SKU-level conflicts define a partial order over jobs: if orders i and j share a common SKU and i must be processed before j, we establish a directed edge i ≺ j. Figure EC.1(c) depicts the resulting Directed Acyclic Graph (DAG) G =(V, E ), where nodes represent orders and directed edges encode these precedence constraints. For instance, since Orders A, B, C, and H all involve SKU 1, they form a dependency chain; similarly, Orders E, F , G are linked through SKUs {3, 4}. This DAG captures the full dependency structure of the order batch and serves as the foundation for all subsequent scheduling decisions. Figure EC.1(e) augments the DAG from Figure EC.1(c) with node heights Hj , computed via a reverse topological traversal. The height of a node j represents the total processing time along the longest downstream path from j to any terminal node: 
+
+Hj = pj + max  
+
+> {k|(j,k )∈E}
+
+Hk,
+
+with Hj = pj for all sink nodes. Nodes with larger Hj are the bottlenecks of the execution batch: delaying them propagates idle time through the entire downstream dependency chain. Accordingly, the scheduling priority of each job is set to πj = Hj . In the figure, critical-path nodes are visually distinguished by their annotated height values, allowing the scheduler to immediately identify which jobs must be dispatched first to keep all threads maximally occupied. As a baseline reference, Figure EC.1(b) depicts execution under a single-threaded FIFO disci-pline, where orders are processed one at a time in strict arrival order on a single thread X1. All nine orders are serialized, and the makespan equals the sum of all individual processing times. This baseline illustrates the theoretical lower bound on parallelism: even if more threads are available, without intelligent scheduling, the system degenerates toward this worst case. ec4 e-companion to Author: Article Short Title 
+
+Figure EC.1(d) shows what happens when a greedy, uncoordinated parallel strategy is applied: multiple threads ( X1, X2, X3) are launched simultaneously, and each idle thread simply picks the first pending order from the queue—but only if all predecessors in the DAG have already com-pleted. This “blocked-activation” model respects precedence but does so reactively: threads that cannot acquire the necessary inventory lock are suspended and remain idle, causing thread starva-tion . As visible in the timeline, several threads sit idle while waiting for upstream jobs to release shared SKU locks, inflating Cmax well beyond the theoretical optimum. In production environ-ments with hundreds of thousands of coupled orders, this idle-wait accumulation drives makespan to several hours. Figure EC.1(f) shows the execution timeline under our List Scheduling algorithm. By dispatch-ing jobs in descending order of πj from a dynamically maintained Ready Queue Qt (jobs whose all predecessors have completed), the scheduler proactively deals with the idle-wait problem seen in EC.1(d). At every scheduling epoch, any idle thread immediately receives the highest-priority available job; upon a job’s completion, its successors are instantly unlocked and inserted into Qt.Comparing EC.1(f) with EC.1(d), the reduction in Cmax is clearly visible: the same set of nine orders is completed in fewer time units, with lower idle time. (b) Single Thread (sequential processing)                                                     
+
+> (d) Parallel Thread (blocked-activation)
+> (f) Parallel Thread (active-scheduling)
+> Thread
+> Time
+> AX1 BCDEFGHI
+> 123456789
+> A (1,7)
+> E (3,6)
+> B (1,2)
+> F (3,4,7)
+> C (1,2)
+> G (4)
+> D (2,5)
+> H (1,4)
+> I (6)
+> Thread
+> Time
+> AX1
+> B
+> C
+> D
+> EF
+> H
+> I
+> 123456
+> Or der ABCDEFGHI
+> SKU 1,7 1,2 1,2 2,5 3,6 3,4,7 41,4 6
+> X2
+> X3
+> B
+> CC
+> DD
+> GG
+> H
+> A (1,7)
+> E (3,6)
+> B (1,2)
+> F (3,4,7)
+> C (1,2)
+> G (4)
+> D (2,5)
+> H (1,4)
+> I (6)
+> 4321
+> Thread
+> Time
+> AX1 C
+> EFH
+> I
+> 1234
+> X2
+> X3
+> D
+> G
+> B
+> I
+> (a) Arrived Order Sequence List
+> (c) Preference List
+> (e) Preference List with height
+
+Figure EC.1 Illustration of List Scheduling Algorithm 
+
+The complete procedure is summarized in Algorithm 1. e-companion to Author: Article Short Title ec5 
+
+Algorithm 1 List Scheduling for Coupled Orders 
+
+Require: 
+
+1: Order set J = {j1, j 2, . . . , j N } with processing costs {pj }j∈J 
+
+2: Precedence relation ≺ over J (induced by shared-SKU precedence constraints) 3: Machine set M = {m1, m 2, . . . , m k } (available CPU threads) 
+
+Ensure: 
+
+4: A feasible schedule assignment for all jobs in J
+
+5: Minimized makespan Cmax = min (max k∈M Tk )
+
+6: procedure LIST SCHEDULING 
+
+7: ▷ Phase 1: DAG Construction 
+
+8: Initialize directed acyclic graph G = ( V, E ) with V ← J , E ← ∅ 
+
+9: for each pair (i, j ) ∈ J × J do 
+
+10: if i ≺ j then ▷ i must release SKU lock before j can proceed 11: E ← E ∪ { (i, j )}
+
+12: end if 
+
+13: end for 
+
+14: ▷ Phase 2: Critical-Path Height Computation 
+
+15: Compute topological ordering σ of G
+
+16: for each node j in reverse order of σ do 
+
+17: if j has no successors in G then 
+
+18: Hj ← pj
+
+19: else 
+
+20: Hj ← pj + max {k|(j,k )∈E} Hk
+
+21: end if 
+
+22: πj ← Hj ▷ Set scheduling priority to critical-path height 23: end for 
+
+24: ▷ Phase 3: Ready Queue Initialization 
+
+25: Q ← { j ∈ V | deg in (j) = 0 } ▷ All source nodes with no predecessors 26: AvailableAt [k] ← 0 for all k ∈ M 
+
+27: ▷ Phase 4: Priority-Based Dispatch Loop 
+
+28: while Q̸ = ∅ or any k ∈ M is still processing do 
+
+29: if Q̸ = ∅ and ∃ idle machine k ∈ M then 
+
+30: j∗ ← argmax j∈Q πj ▷ Pull highest-priority ready job 31: Assign j∗ to machine k; remove j∗ from Q
+
+32: end if 
+
+33: // Upon completion of j∗: unlock successors 
+
+34: for each successor s of j∗ in G do 
+
+35: deg in (s) ← deg in (s) − 1
+
+36: if deg in (s) = 0 then 
+
+37: Q ← Q ∪ { s} ▷ Successor unblocked; enqueue immediately 38: end if 
+
+39: end for 
+
+40: Remove j∗ from G
+
+41: end while 
+
+42: end procedure ec6 e-companion to Author: Article Short Title 
+
+EC.3. A Case to Show Intelligent Diagnosis 
+
+In this section, We illustrate the process of intelligent diagnosis with a real business case from JD.com. In this instance, the core metric of concern for the business department is the warehouse and transportation cost ratio (cost of warehouse and transportation over gross merchandise vol-ume).  
+
+> Figure EC.2 A Case of Intelligent Diagnosis. Blue nodes represent normal states, while light red and dark red nodes both indicate anomalies, with dark red denoting the ultimately identified root cause.
+
+The diagnostic analysis proceeds along a predefined hierarchical factor sequence: Cross-Region Type → Fulfillment Type → Customer Type → Billing Type → Order Structure. These factors are defined as follows: (1) Cross-Region Type: Distinguished shipments based on the relationship between the destination Regional Distribution Center (RDC) and the shipping DC’s parent RDC (cross-region or not). (2) Fulfillment Type: Direct local fulfillment, local fulfillment via trans-fer, and drop-shipping. (3) Customer Type: Categorized as either enterprise or other. (4) Billing Type: C-type or B-type. (5) Order Structure: Classified as single-item versus multi-item orders. (6) The anomaly criteria is twofold (in this example): 1) any cross-regional shipment is automatically flagged as an anomaly, and 2) any node is flagged if its average cost exceeds the overall mean and its associated business volume (measured by Gross Merchandise Volume, GMV) accounts for more than 5% of the total. Based on this framework, historical order fulfillment data for the busi-ness department is extracted. The system then calculates the average cost ratio at each level of the factor hierarchy and identifies anomalous nodes, as shown in Figure EC.2. The subsequent root e-companion to Author: Article Short Title ec7 
+
+cause analysis reveals that elevated costs are primarily associated with cross-regional shipments, local fulfillment via transfer, drop-shipping, and single-item orders. Following a multi-dimensional assessment to quantify the optimization potential for each of these drivers (summarized in Table EC.1), the findings and strategy insights are fed back into the simulation to inform the optimization of next planning period.                            
+
+> Table EC.1 Optimization Potential Analysis (TIP means Theoretical Improvement Gap)
+> Factors Status-Quo TIP Optimized Suggestions Weight
+> Cross-Regional 20.7% 27,072,558 13.5% Stocking, cross-regional charges, coordinated warehouse transfer 0.3% =7.2% ×GMV Drop-Shipping 18.5% 157,931,974 9.6% Direct delivery, drop-shipping charges 1.8% Local via Transfer 19.3% 53,207,648 13.8% Direct delivery, intra-network transfer charges 0.6% Single-Item Order 20.1% ––––
+
+In practice, the application of this technique has already yielded an annualized cost reduction of 2.6 million dollars in warehousing and distribution for this single business unit. Extrapolating from this success and benchmarking against H1 2022 revenue figures, a full-scale application across all retail divisions is projected to save an estimated 128.3 million dollars in annual warehousing and distribution costs. Such cost reductions are strategically significant, as they directly enhance the market competitiveness of our product categories and enable the capture of a larger market share.
