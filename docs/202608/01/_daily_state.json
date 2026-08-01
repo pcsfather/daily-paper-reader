@@ -1,0 +1,41 @@
+{
+  "date": "20260801",
+  "date_label": "",
+  "generated_at": "2026-08-01 21:09:52 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2607.26365v1",
+      "route": "202608/01/2607.26365v1-embedding-items-at-scale-comparing-gnn-based-and-id-based-item-embeddings-in-the-yandex-ecosystem",
+      "title": "Embedding Items at Scale: Comparing GNN-Based and ID-Based Item Embeddings in the Yandex Ecosystem",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "捕获产品亲和性的大规模工业物品嵌入",
+      "first_seen_at": "2026-08-01 21:09:52 UTC",
+      "updated_at": "2026-08-01 21:09:52 UTC"
+    },
+    {
+      "paper_id": "2607.23503v1",
+      "route": "202608/01/2607.23503v1-impute-on-demand-adaptive-correlated-time-series-imputation-for-changing-environments",
+      "title": "Impute On-Demand: Adaptive Correlated Time Series Imputation for Changing Environments",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "适用于需求相关性分析的相关时间序列自适应插补",
+      "first_seen_at": "2026-08-01 21:09:52 UTC",
+      "updated_at": "2026-08-01 21:09:52 UTC"
+    }
+  ]
+}
