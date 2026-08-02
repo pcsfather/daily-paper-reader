@@ -1,6 +1,9 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
 * Daily Papers
+  * 2026-07-24 ~ 2026-08-02 <!--dpr-date:20260724-20260802-->
+    * 精读区
+      * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/20260724-20260802/2607.28257v1-operationally-guided-placement-aware-learning-for-industrial-online-3d-bin-packing" data-sidebar-item="{&quot;title&quot;: &quot;Operationally Guided Placement-Aware Learning for Industrial Online 3D Bin Packing&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2607.28257v1-operationally-guided-placement-aware-learning-for-industrial-online-3d-bin-packing&quot;, &quot;score&quot;: &quot;9.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wo&quot;}], &quot;evidence&quot;: &quot;面向工业在线3D装箱的操作引导与放置感知学习&quot;}">Operationally Guided Placement-Aware Learning for Industrial Online 3D Bin Packing</a>
   * 2026-08-01 <!--dpr-date:20260801-->
     * 精读区
       * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/01/2607.26365v1-embedding-items-at-scale-comparing-gnn-based-and-id-based-item-embeddings-in-the-yandex-ecosystem" data-sidebar-item="{&quot;title&quot;: &quot;Embedding Items at Scale: Comparing GNN-Based and ID-Based Item Embeddings in the Yandex Ecosystem&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2607.26365v1-embedding-items-at-scale-comparing-gnn-based-and-id-based-item-embeddings-in-the-yandex-ecosystem&quot;, &quot;score&quot;: &quot;8.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wo&quot;}], &quot;evidence&quot;: &quot;捕获产品亲和性的大规模工业物品嵌入&quot;}">Embedding Items at Scale: Comparing GNN-Based and ID-Based Item Embeddings in the Yandex Ecosystem</a>

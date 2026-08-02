@@ -1,0 +1,1363 @@
+Title: Operationally Guided Placement-Aware Learning for Industrial Online 3D Bin Packing
+
+URL Source: https://arxiv.org/pdf/2607.28257v1
+
+Published Time: Fri, 31 Jul 2026 01:07:12 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Operationally Guided Placement-Aware Learning for Industrial Online 3D Bin Packing 
+
+## Dheeraj Poolavaram 1∗, Aanchal Rajesh Chugh 1, Sebastian Dorn 1
+
+> 1
+
+TTZ Landsberg am Lech, Technische Hochschule Augsburg, Augsburg, Germany {dheeraj.poolavaram, aanchal.rajesh.chugh, sebastian.dorn}@tha.de 
+
+Abstract 
+
+The online three-dimensional bin packing problem (3D-BPP) is a longstanding challenge in logistics and industrial pal-letizing. Recent learning-based methods use a learned policy to select among feasible candidate placements. Performance depends on the candidate generator and representation, espe-cially in industrial settings where packings must be space-efficient, stable, compact, and balanced. However, prior work has mainly optimized the policy, while candidate generation and representation remain largely geometry-driven. We ad-dress this gap with OPAL, an operationally guided placement-aware learning framework for industrial online 3D-BPP which combines an Operationally Guided Empty-Maximal-Space generator (OG-EMS), an operational representation for each candidate placement, and a masked ranking policy trained with proximal policy optimization. OG-EMS evaluates multi-ple anchors within each free-space region and prioritizes low, well-supported, compact, and spatially diverse placements. An xLSTM-based Placement Encoder models dependencies among geometric and operational candidate attributes, while a lightweight recurrent core combines the resulting embed-dings with the current item and pallet state to rank feasible actions. On the BED-BPP benchmark, OPAL achieves a mean space utilization of 0.49, with improvements of 15.1% from operationally guided candidate generation and 6.3% from learned ranking, while maintaining robust inference-time per-formance. 
+
+## Introduction 
+
+The three-dimensional bin packing problem (3D-BPP) is a fundamental combinatorial optimization challenge with di-rect relevance to palletization, warehouse logistics, and con-tainer loading (Martello, Pisinger, and Vigo 2000; Bortfeldt and Wäscher 2013). In the online variant, items are processed sequentially and each placement is committed without sub-sequent rearrangement (Ha et al. 2017; Zhao et al. 2021; Zhao, Yu, and Xu 2022). In industrial palletizing, volume utilization alone is insufficient. A deployable packing must also maintain support, avoid excessive overhang, limit stack-load risk, preserve a reasonable center of gravity, and remain reachable for handling (Bortfeldt and Wäscher 2013). This work targets industrial order packing on standardized Euro pallets (European Pallet Association e.V. n.d.). 
+
+> ∗
+
+Corresponding author. 
+
+A common design in learning-based online packing avoids direct continuous placement prediction. Instead, a geometric generator proposes a finite set of feasible or near-feasible placements, a mask removes invalid actions, and a learned policy ranks the remaining candidates (Zhao et al. 2021; Zhao, Yu, and Xu 2022; Xiong et al. 2024). We refer to this combination of candidate generation, candidate repre-sentation, feasibility masking, and learned ranking as the candidate-selection interface. This design keeps the neural model within a structured planning loop. However, it also makes overall performance strongly dependent on how this interface is constructed, an aspect that prior work has under-emphasized. Thus, performance depends on both exposure, which placements are generated, and ranking, whether their representation lets the policy distinguish them. We combine operationally guided candidate generation with placement-aware candidate representation and ranking in OPAL, an Operationally Guided Placement-Aware Learn-ing framework built around a masked candidate-selection formulation. The candidate generator, Operationally Guided EMS (OG-EMS), starts from Empty-Maximal-Space (EMS) regions (Parreño et al. 2008), evaluates multiple anchors per region, and scores them with low-height, wall-contact, fit-quality, sliver-avoidance, corner, support, and diversity pri-ors. Each anchor-orientation action is encoded as its own 15-dimensional vector containing EMS position and di-mensions, the item footprint under that orientation, bottom support, support-region centering margin, normalized top height, stack-load ratio, fragility feasibility, side support, and placement-effort score. The ranker embeds each candidate with a Placement Encoder (PE) built on an xLSTM stack (Beck et al. 2024), mixes item and candidate tokens with a recurrent action mixer (LRAM) (Schmied et al. 2025), and scores feasible candidates through an actor head. OPAL therefore improves both which placements are exposed to the policy and how effectively the policy can distinguish among them. Beyond the core comparisons, we evaluate a shallow inference-time lookahead and analyze how its gains vary with baseline packing efficiency. Experiments across pallet footprints test whether the relative ordering of Base-EMS and OG-EMS can be generalized beyond the primary Euro-pallet setting. We further assess operational quality through density, surface and side support, center-of-gravity balance, arXiv:2607.28257v1 [cs.AI] 30 Jul 2026 and end-to-end inference latency. The main contributions are as follows: 
+
+• OG-EMS, an operationally guided multi-anchor candi-date generator, paired with a 15-dimensional candidate representation and placement-aware learned ranking. 
+
+• An interface-first analysis of masked candidate-selection packing on 1500 real-world orders from the BED-BPP dataset (Kagerer et al. 2023), examining the roles of candi-date generation, representation, ranking architecture, and temporal recurrence. 
+
+• An evaluation beyond volume utilization, including op-erational KPI trade-offs, inference-time lookahead, and pallet-footprint sensitivity. 
+
+## Related Work 
+
+Classical and industrial 3D bin packing. Research on the 3D-BPP and container loading spans exact methods, constructive heuristics, maximal-space methods, extreme-point rules, and metaheuristics. Classical formulations estab-lish the combinatorial difficulty of packing cuboidal items under geometric feasibility constraints (Martello, Pisinger, and Vigo 2000). Industrial container loading additionally requires stability, support, load-bearing, and handling con-straints that utilization alone does not capture (Bortfeldt and Wäscher 2013). Many online systems reduce continu-ous placement to a finite set of geometrically meaningful candidates. Extreme-point and maximal-space methods con-struct these candidates while preserving the spatial structure of the remaining free space (Crainic, Perboli, and Tadei 2008; Parreño et al. 2008; Ha et al. 2017). OPAL retains explicit geometric candidate generation and hard feasibility checks, and uses learning only to rank a bounded feasible set. 
+
+Learning-based online 3D bin packing. Early deep-learning approaches framed packing as sequence prediction (Hu et al. 2017) or attention-based construction (Zhang, Zi, and Ge 2021). Constrained deep reinforcement learning with feasibility-masked action spaces established the masked-selection paradigm for online 3D-BPP (Zhao et al. 2021). PCT introduced packing-configuration trees as a structured state-action representation (Zhao, Yu, and Xu 2022), while GOPT used a Transformer policy to rank finite placement subspaces generated from the packing state (Xiong et al. 2024). More recent methods explicitly structure the decision or planning process. ASAP decomposes decision making into learned pruning and selection policies to improve gen-eralization (Fang, Weng, and Ban 2026), DeliPacker ex-tends packing-configuration representations toward delib-erate planning over structured trees (Zhao et al. 2026), and MPC-3D-BP uses short-horizon lookahead parcels with Monte Carlo tree search for model-predictive planning under partially visible future items (Fang et al. 2026). ASAP and MPC-3D-BP extend PCT- and GOPT-based pipelines at the decision or planning stage while leaving candidate genera-tion and representation unchanged. They could therefore, in principle, be layered on top of the candidate interface pro-posed in this work. 
+
+KPI-guided hybrid methods. Hybrid and multi-objective methods have similarly incorporated practical packing crite-ria beyond volumetric utilization. Hybrid genetic approaches combine constructive placement with evolutionary refine-ment while accounting for stability and fragility constraints (Ancora, Palli, and Melchiorri 2020), while multi-objective formulations consider load balance, stability, and product-family requirements alongside conventional packing objec-tives (Erbayrak, Özkır, and Yıldırım 2021). GENPACK fol-lows this direction with a KPI-guided genetic-algorithm pipeline that combines constructive initialization, genetic re-finement, and post-processing while explicitly optimizing industrial indicators including density, support, and balance (Poolavaram, Markgraf, and Dorn 2026). It represents a state-of-the-art approach to industrial bin packing and is included as a contextual reference because it explicitly optimizes in-dustrial KPIs such as density, support, and balance. 
+
+## Problem Formulation 
+
+An order contains T rectangular items with dimensions, weight, and handling attributes. Before packing, the items are sorted by descending footprint area, yielding the fixed sequence 
+
+O = ( i1, i 2, . . . , i T ). (1) The presorting procedure is analogous to the CUT-1 and CUT-2 sequences used by PCT and GOPT (Zhao, Yu, and Xu 2022; Xiong et al. 2024). After sequencing, the policy observes the current pallet state and item, commits each placement irrevocably, and performs no rearrangement or post-processing in the primary configuration. We therefore study online placement decisions under a precomputed item sequence rather than unknown-order arrivals. At step t, the system observes the pallet state Pt and the current item it. Let K denote the per-step budget on re-tained region-anchor records, each contributing up to two orientation-specific candidate rows, and let Nt ≤ 2K denote the number of candidate placements generated at step t. The resulting candidate set is 
+
+Ct = {at, 1, . . . , a t,N t }, (2) with a corresponding feasibility mask Mt ∈ { 0, 1}2K . Each candidate action at,j specifies a placement position and an orientation for item it. The entry Mt,j = 1 marks row j as ad-missible, meaning the placement is geometrically valid and satisfies the operational constraints of Section ; Mt,j = 0 
+
+marks it inadmissible, covering constraint-violating place-ments and the 2K − Nt padding rows, which are excluded from sampling and selection. The policy commits one ad-missible action 
+
+at ∈ { at,j ∈ C t : Mt,j = 1 }, (3) where at is the placement executed at step t: the position and orientation at which it is irrevocably placed. Afterwards, the environment updates the heightmap, the placed-item set, the support structure, and the remaining order. A masked action can be neither selected nor recovered later in the order. The stochastic policy πθ is the actor–critic network of Section with trainable parameters θ, learned by maximizing the expected discounted cumulative shaped reward over an order: 
+
+θ⋆ = arg max  
+
+> θ
+
+Eπθ
+
+" TX
+
+> t=1
+
+γt−1rt
+
+#
+
+, (4) where θ⋆ denotes the resulting optimized parameter vector, 
+
+γ ∈ [0 , 1] is the discount factor, and the expectation is taken over trajectories induced by πθ and the environment. For a successful placement, the step reward is 
+
+rt = wf ∆ft + wsSt + wbBt − wτ τt − wr Rt − whχheight 
+
+> t
+
+− wg Gt + wuUt + wwχwall  
+
+> t
+
++ wss χside  
+
+> t
+
+,
+
+(5) where ∆ft is the increase in raw absolute density, St is the bottom-support fraction, Bt is the support-region centering term, τt is the placement-effort score, and Rt combines un-supported footprint and excess stack-load risk. The terms 
+
+χheight  
+
+> t
+
+and Gt penalize fill-weighted placement height and fill-weighted growth of the pallet maximum height, respec-tively; Ut rewards low placements, χwall  
+
+> t
+
+rewards proximity to a pallet boundary, and χside  
+
+> t
+
+measures lateral support from previously placed items. Exact definitions are provided in Supplementary Material . These local training signals are distinct from the final-layout operational KPIs defined in Supplementary Material . Henceforth, we use the reward weights 
+
+(wf , w s, w b, w τ , w r , w h, w g , w u, w w, w ss )= (1 .25 , 0.45 , 0.30 , 0.08 , 0.35 , 0.90 , 1.80 ,
+
+0.60 , 0.20 , 0.15) ,
+
+(6) which were selected through preliminary ablations and fixed before evaluation on the reporting orders. 
+
+Candidate exposure and ranking. Because the policy can select only from Ct, a high-quality placement omitted during generation cannot be recovered by the ranker, which mo-tivates treating candidate generation and representation as separate parts of the policy interface. A controlled gener-ator comparison using a common deterministic selector is reported in Supplementary Material . 
+
+## Method 
+
+Overview 
+
+OPAL addresses both components of the candidate interface: candidate exposure and candidate representation. OG-EMS determines which actions are exposed, while the candidate representation and Placement Encoder determine what infor-mation is available to the policy when ranking them. Figure 1 shows the resulting decision pipeline. The complete online packing procedure is summarized in Supplementary Mate-rial . 
+
+Operationally Guided EMS (OG-EMS) 
+
+Base-EMS enumerates empty maximal spaces and priori-tizes the resulting placement candidates using simple ge-ometric criteria. This is efficient, but it may expose many placements that are feasible yet operationally undesirable. OG-EMS starts from the same EMS regions but evaluates multiple anchor patterns and admissible orientations within each region. It then constructs a bounded candidate set us-ing a geometric exposure cost, support-based ordering, and spatial-diversity filtering, stated in full in Supplementary Ma-terial . The learned policy ranks only the actions retained in this exposed set. 
+
+Generation. For each EMS region, OG-EMS evaluates five anchor patterns: the four bottom corners and the region center. At each pattern, both allowed item orientations are instantiated and checked for geometric validity and physical support stability. Each eligible placement is evaluated using the five-term geometric exposure cost 
+
+COG = βhz + βwdw + βres res + βv v + βcdc, (7) where z, dw, res , v, and dc denote lower placement height, nearest-wall distance, horizontal residual EMS slack, narrow-slack penalty, and nearest-corner distance, respec-tively. Their exact definitions and grid scaling are provided in Supplementary Material . We found (βh, β w, β res , β v , β c) = (5 .0, 2.0, 0.8, 3.0, 1.0) as the optimal parameter setting and held it fixed in all experiments. Each EMS-anchor pair forms one record containing up to two orientation-specific actions. The record is assigned the smallest geometric exposure cost COG among its eligi-ble actions, and inherits the bottom-support ratio and resting position of that same action, while both actions remain repre-sented if the record is retained. Selection proceeds in staged passes with bottom-support thresholds 0.95 , 0.80 , 0.65 , and a final pass without a support threshold. Within each pass, previously unselected records are sorted by cost and retained when their minimum-cost action meets the current threshold. Near-duplicate records are then suppressed using a bucket with edge length 80 mm applied to all three resting-position coordinates. Algorithm 2 (in Supplementary Material ) states the full procedure. The action-level mask acts separately, re-moving padding rows and rows whose orientation is disal-lowed or whose placement is geometrically invalid. Up to K = 64 region-anchor records are retained. Each retained record contributes up to two orientation-specific ac-tion rows, so the number of generated candidate actions sat-isfies Nt ≤ 2K. These actions are stored in a fixed 2K-row candidate table, with unused rows padded and masked. Ev-ery downstream policy selects from this same bounded action space. 
+
+Industrial Candidate Representation 
+
+Each retained region-anchor-orientation placement is repre-sented as a separate 15-dimensional action row. For K = 64 
+
+retained region-anchor records and up to two allowed orien-tations per record, the candidate matrix is 
+
+Xt ∈ R2K×15 . (8) The feature vector for candidate action a is 
+
+ϕ(a) = ( x, y, z, d x, d y , d z , f x, f y ,s, m, ˆh, ℓ, b frag , s side , τ ), (9) Next Item                                
+
+> Feasibility Mask
+> Observation
+> ...
+> candidate actions,
+> features per action
+> Candidate Feature Matrix
+> Item Tokens
+> Shared LRAM
+> Core
+> Token Concatenation
+> xLSTM Core Mixer
+> [3:0]
+> Residual + LayerNorm
+> Temporal xLSTM
+> [2:0]
+> Shared Actor-Critic Features
+> Item features:
+> Candidate features:
+> Actor
+> Head
+> Critic
+> Head
+> Per-action
+> Scalar
+> Scoring
+> Pooled
+> value
+> estimation
+> State Value
+> Masked
+> action
+> logits
+> Actor-Critic Policy
+> ...
+> Operationally
+> Guided EMS
+> Candidate
+> Generation
+> L
+> Y
+> X
+> Z
+> W
+> H
+> L
+> W
+> 550
+> 550
+> 550
+> 552
+> 552
+> 552
+> 000
+> 044
+> 044
+> 244
+> 244
+> 244
+> 00
+> 00
+> 00
+> 30
+> 30
+> 30
+> Heightmap
+> Placement-xLSTM
+> Encoder
+> Feature
+> Tokenization
+> Input Projection
+> Linear
+> xLSTM block
+> xLSTM block
+> LayerNorm +
+> MeanPool
+> Output Projection
+> Linear
+> Candidate Embeddings
+> Candidate 1
+> ...
+> Candidate 2K
+> Item Encoder
+> CNN
+> Encoder
+> Pallet-state
+> Embedding
+
+Figure 1: Overview of OPAL. From the current pallet heightmap and next item, OG-EMS retains up to K region-anchor records, where K is the configured record budget, and represents up to two admissible orientations per record as at most 2K
+
+candidate actions. Each action is described by a 15-dimensional feature vector, giving Xt ∈ R2K×15 , together with the aligned feasibility mask Mt ∈ { 0, 1}2K . The Placement-xLSTM Encoder independently maps each action row to a D-dimensional embedding, producing Ec ∈ R2K×D , while a compact convolutional encoder maps the pallet state Pt to the pallet-state embedding epal  
+
+> t
+
+∈ RD . Candidate embeddings, orientation-conditioned item tokens, and the pallet-state embedding are mixed by the shared LRAM core and, when enabled, the temporal xLSTM. For each action, the actor combines the mixed candidate representation with its orientation-matched item token and produces one action logit; infeasible and padded rows are masked before sampling. The critic pools the shared representations to estimate the state value V (Pt).where (x, y, z ) is the candidate placement anchor; 
+
+(dx, d y , d z ) is the extent of the generating EMS measured from that anchor to its upper corner; (fx, f y ) is the item foot-print under the corresponding orientation; s is the bottom-support ratio; m is the support-region centering margin; ˆh is the normalized top height; ℓ is the stack-load ratio imposed on items below; bfrag is a binary fragility-feasibility flag; sside 
+
+is the side-support ratio; and τ is the placement-effort score. The flag bfrag indicates whether the load-bearing constraint is satisfied, whereas the continuous stack-load ratio ℓ quan-tifies the load imposed on the supporting items relative to their allowable capacity. Exact definitions of all 15 candidate features are provided in Supplementary Material . Because orientation is resolved before encoding, the two action rows associated with the same region-anchor pat-tern may differ in their realized coordinates, EMS extent, footprint, bottom support, and placement-effort score. The representation therefore avoids aliasing between orientation-specific actions. Dimensions 1-8 describe EMS and orien-tation geometry, while dimensions 9-15 describe the opera-tional quantities computed for each placement. The feasibility mask is aligned one-to-one with the 2K
+
+action rows. Masked and padded actions are excluded from sampling and selection rather than being pooled across ori-entations. The features describe the geometric and opera-tional differences among the remaining actions, and the pol-icy learns to weigh them. 
+
+Placement Encoder (PE) 
+
+Let D denote the shared embedding dimension used by the candidate, item, and pallet-state representations. The Place-ment Encoder converts the 15 scalar attributes of each can-didate into a fixed sequence of feature tokens. These to-kens are projected to a hidden representation, processed by a lightweight xLSTM stack (Beck et al. 2024), normalized, mean-pooled across the feature dimension, and projected to the shared embedding dimension D. The encoder therefore produces the vector 
+
+Ec ∈ R2K×D . (10) Treating individual attributes as feature tokens follows to-kenization approaches for tabular inputs (Gorishniy et al. 2021). Their order is fixed and grouped into geometry, op-erational quantities, feasibility, and placement effort. This allows the encoder to model interactions among attributes before candidate actions are compared. 
+
+Masked Candidate Ranker 
+
+The shared LRAM core receives the candidate-embedding matrix Ec, the pallet-state embedding epal  
+
+> t
+
+∈ RD , and one item token for each allowed orientation. A compact con-volutional encoder maps the pallet state Pt, represented by its heightmap, to epal  
+
+> t
+
+, while an item encoder pro-duces orientation-conditioned item tokens from the incoming item’s dimensions and attributes. Candidate embeddings are supplied by the PE, or by the corresponding baseline encoder in the ablation experiments. The LRAM core jointly mixes the pallet-state, item, and candidate tokens. When enabled, a temporal xLSTM carries context between successive packing decisions (Beck et al. 2024). Each candidate row already represents one specific anchor-orientation action. The actor combines its mixed can-didate representation with the item token for that orientation and outputs one scalar logit. Thus, the actor produces a sep-arate scalar logit for every anchor-orientation action. The critic pools the valid shared representations to esti-mate the state value. All learned policies are trained using proximal policy optimization (PPO) (Schulman et al. 2017). Full optimization and implementation details are provided in Supplementary Material . 
+
+## Experimental Setup 
+
+Dataset and protocol 
+
+We evaluate on 1500 pallet-order instances derived from the BED-BPP benchmark (Kagerer et al. 2023), a real-world grocery-logistics dataset, using a Euro-pallet footprint. Each order is a fixed item sequence. Dimensions are scaled into the pallet environment, and item metadata (weight, prod-uct group, sequence order, rotation allowance) are retained where available. Training convergence is shown in Supple-mentary Material , and hardware and wall-clock times are re-ported with the training details in Supplementary Material . An anonymized implementation is provided in the supple-mentary material. 
+
+Compared methods 
+
+OPAL combines OG-EMS, an xLSTM Placement Encoder, and an LRAM backbone without temporal memory. Table 2 summarizes the evaluated variants, which examine the effects of temporal memory, the ranking backbone, candidate gener-ation, and the candidate encoder. Greedy OG-EMS provides a non-learned reference using the same candidate generator, while GOPT (Xiong et al. 2024), GENPACK (Poolavaram, Markgraf, and Dorn 2026), and PCT (Zhao, Yu, and Xu 2022) serve as external state-of-the-art baselines. We do not eval-uate directly against ASAP (Fang, Weng, and Ban 2026) or MPC-3D-BP (Fang et al. 2026), which act at the decision or planning stage and are therefore complementary extensions rather than substitutes. 
+
+Metrics 
+
+For every KPI, the raw final-layout score is multiplied by the packing efficiency η(L), the fraction of the order’s items placed in the final layout L. For readability, we refer to the resulting reported values by their KPI names throughout the results. This penalizes layouts that reach a high raw score while leaving part of the order unpacked. We additionally report relative density, surface support, side support, and 2D and 3D center-of-gravity (CoG2D and CoG3D, respectively) scores (Table 1). Raw definitions of all KPIs are given in Supplementary Material . 
+
+## Results 
+
+Quantitative results 
+
+Table 1 summarizes the internal learned configurations to-gether with the non-learned reference and relevant exter-nal references. OPAL achieves the highest absolute density across all listed methods. It matches the temporal configu-ration, and is ahead of the Base-EMS, PE=MLP, and Trans-former variants by 0.007 , 0.046 , and 0.070 , respectively. Among the external references, GENPACK is closest in ab-solute density but remains below OPAL. The operational KPIs reveal additional trade-offs. OPAL obtains the highest surface support among the learned con-figurations, while the non-learned Greedy OG-EMS attains the highest surface support overall and ties GENPACK for the highest side support, at markedly lower absolute den-sity. Among the learned configurations, OPAL w/ Base-EMS gives the strongest side support, and PE=MLP records the highest relative density and CoG2D, but at substantially lower absolute density than OPAL. These comparisons should be interpreted at the configu-ration level rather than as fully isolated component effects. OPAL and OPAL w/ Base-EMS share the same candidate encoder, backbone, and temporal setting, but differ in both candidate generation and candidate-feature availability. The Transformer configuration also changes the candidate en-coder, while PE=MLP replaces the xLSTM Placement En-coder with an MLP. Greedy OG-EMS reaches an absolute density of 0.46 over the complete evaluation dataset. OPAL exceeds it by 0.029 , a relative gain of 6.3% , measuring the benefit of learned rank-ing over deterministic selection from the same candidate generator. It further remains competitive on the remaining KPIs, matching OPAL on relative density and trailing it by at most 0.01 on both center-of-gravity scores, and it attains the highest surface support ( 0.88 ) and side support ( 0.38 ) of any listed method. Learned ranking therefore trades support quality for density rather than dominating the deterministic selector outright. This is a learned-versus-heuristic compar-ison rather than an architectural ablation. Figure 2 compares two representative reporting orders. PCT, GOPT, and GENPACK produce more fragmented structures with larger gaps and less regular stacking, whereas the OPAL variants more often form denser lower layers and better-connected stacks. Within the OPAL family, PE=MLP and Transformer show the clearest protrusions and separated Method Abs. density Rel. density Surf. support Side support CoG2D CoG3D OPAL 0.49 ± 0.10 0.53 ± 0.12 0.86 ± 0.15 0.20 ± 0.09 0.84 ± 0.14 0.57 ± 0.11 
+
+OPAL w/ temporal 0.49 ± 0.11 0.52 ± 0.12 0.84 ± 0.16 0.21 ± 0.09 0.84 ± 0.14 0.58 ± 0.12 
+
+OPAL w/ Transformer 0.42 ± 0.12 0.45 ± 0.13 0.67 ± 0.17 0.22 ± 0.09 0.77 ± 0.19 0.50 ± 0.14 
+
+OPAL w/ Base-EMS 0.48 ± 0.11 0.52 ± 0.11 0.85 ± 0.15 0.27 ± 0.11 0.77 ± 0.14 0.54 ± 0.10 
+
+OPAL w/ PE=MLP 0.45 ± 0.12 0.55 ± 0.09 0.84 ± 0.06 0.25 ± 0.09 0.91 ± 0.04 0.61 ± 0.04 
+
+Ablation tier 
+
+Greedy OG-EMS 0.46 ± 0.11 0.53 ± 0.15 0.88 ± 0.16 0.38 ± 0.12 0.83 ± 0.16 0.56 ± 0.13 
+
+External references 
+
+GOPT (adapted) 0.37 ± 0.12 0.39 ± 0.12 0.66 ± 0.15 0.23 ± 0.08 0.66 ± 0.16 0.46 ± 0.10 
+
+PCT 0.46 ± 0.19 0.51 ± 0.14 0.68 ± 0.17 0.24 ± 0.17 0.73 ± 0.19 0.43 ± 0.11 
+
+GENPACK 0.47 ± 0.10 0.53 ± 0.12 0.81 ± 0.11 0.38 ± 0.10 0.80 ± 0.11 0.62 ± 0.08 
+
+Table 1: Operational KPI means ± standard deviations over the 1500 reporting orders. 
+
+Method Generator Encoder Backbone Temporal OPAL OG-EMS xLSTM LRAM off OPAL w/ temporal OG-EMS xLSTM LRAM on OPAL w/ Transformer OG-EMS MLP Transformer off OPAL w/ Base-EMS Base-EMS xLSTM LRAM off OPAL w/ PE=MLP OG-EMS MLP LRAM off 
+
+Ablation tier 
+
+Greedy OG-EMS OG-EMS – – –
+
+External references 
+
+GOPT (adapted) Base-EMS MLP Transformer –PCT – – – –GENPACK – – – –
+
+Table 2: Methods evaluated in this paper. 
+
+Method Policy E2E (s/order) (s/order) OPAL 0.38 ± 0.03 2.88 ± 1.42 
+
+OPAL w/ temporal 0.45 ± 0.03 3.07 ± 1.32 
+
+OPAL w/ Transformer 0.12 ± 0.02 2.55 ± 1.18 
+
+OPAL w/ Base-EMS 0.45 ± 0.03 1.79 ± 0.80 
+
+OPAL w/ PE=MLP 0.27 ± 0.02 2.64 ± 1.33 
+
+Ablation tier 
+
+Greedy OG-EMS – 1.89 ± 0.97 
+
+External references 
+
+GOPT (adapted) 0.24 ± 0.07 1.16 ± 0.61 
+
+PCT – 0.25 ± 0.28 
+
+GENPACK – 32 .59 ± 28 .17 
+
+Table 3: Per-order policy-forward and end-to-end decision-loop latency over 1,500 orders. (a) PCT (b) GOPT (adapted) (c) GENPACK  
+
+> (d) OPAL
+> w/ PE=MLP
+> (e) OPAL
+> w/ Base-EMS
+> (f) OPAL
+> w/ Transformer
+> (g) OPAL
+> w/ temporal (h) OPAL
+
+Figure 2: Qualitative comparison on two representative orders. columns, while full OPAL remains comparatively compact. These examples are illustrative rather than quantitative. Two-sided paired Wilcoxon signed-rank tests on matched per-order results (Wilcoxon 1945), with Holm-Bonferroni correction across the four primary comparisons (Holm 1979), show that OPAL is significantly denser than the Trans-former, Base-EMS, and PE=MLP variants, but indistinguish-able from the temporal variant (Supplementary Material ). Footprint (mm) OPAL w/ Base-EMS ∆
+
+1200 ×800 0.49 0.48 +0 .007 
+
+1200 ×1000 0.45 0.44 +0 .009 
+
+800 ×600 0.33 0.17 +0 .153 
+
+600 ×400 0.16 0.15 +0 .003 
+
+Table 4: Absolute density as a function of pallet footprint, for OPAL and OPAL w/ Base-EMS. 
+
+Robustness and deployment characteristics 
+
+Pallet-footprint sensitivity. We evaluate whether the can-didate interface transfers to alternative pallet footprints with-out architectural changes. Table 4 shows that OPAL remains ahead of OPAL w/ Base-EMS at every tested footprint, al-though the magnitude of the difference is non-monotonic. The largest observed gain occurs at 800 ×600 mm, while the difference nearly disappears at 600 ×400 mm, where both methods pack only a small fraction of the order volume. The full evaluation methodology is provided in Supplementary Material . 
+
+Sequence-order robustness. The primary experiments present items in descending footprint area. Without retrain-ing, replacing this ordering with a fixed random permutation reduces absolute density from 0.491 to 0.445, while reversing the sequence gives 0.450. OPAL therefore benefits substan-tially from the sequencing convention used during training, which deployment should preserve or otherwise retrain for (Supplementary Material ). 
+
+Inference latency. Table 3 reports policy-forward and end-to-end decision-loop latency for the internal learned config-urations and the external references. Policy-forward latency isolates the neural policy call, whereas end-to-end latency includes candidate generation, masking, action application, and environment bookkeeping. The OPAL family spans 1.79 
+
+to 3.07 s per order end-to-end, an order of magnitude below GENPACK, so every variant stays within a range compatible with industrial palletizing cycle times. PCT has the lowest re-ported end-to-end latency, but runtime should be read jointly with its packing-quality and KPI results. 
+
+## Discussion 
+
+The KPI profile shows that absolute density alone does not fully characterize industrial packing quality. Relative to OPAL w/ Base-EMS, OPAL achieves higher density, sur-face support, and center-of-gravity scores, whereas OPAL w/ Base-EMS achieves higher side support. The PE=MLP configuration obtains stronger values on several compact-ness and balance metrics but substantially lower absolute density. These trade-offs show that no single configuration dominates every operational objective and that deployment decisions should consider the complete KPI profile. Over-all, OPAL exceeds GENPACK, a KPI-guided genetic hy-brid that optimizes industrial indicators directly, on absolute density (0.49 versus 0.47) and surface support (0.86 ver-sus 0.81) at roughly an order of magnitude lower latency, while GENPACK retains the advantage in side support and CoG3D. OPAL reaches this profile as a single online pass with no post-processing, whereas GENPACK applies a post-processing stage on top of its core method to optimize the final layout. To our knowledge, this is the first learned online policy to surpass a KPI-guided hybrid on absolute density in this industrial setting. The deterministic generator comparison, which replaces the learned ranker with a shared operational selector so that only the generator differs, provides the clearest evidence for candidate exposure: absolute density increases from 0.40 with Base-EMS to 0.46 with OG-EMS (Supplementary Ma-terial ). Learned comparisons are less isolated because OPAL versus OPAL w/ Base-EMS changes both candidate gen-eration and feature availability, while the Transformer and PE=MLP variants also alter multiple design choices. We therefore interpret these as configuration-level comparisons, with the deterministic experiment serving as the cleaner ex-posure diagnostic. The ordering between OPAL and OPAL w/ Base-EMS is preserved across the tested pallet footprints, although the magnitude varies substantially: the interface advantage is largest when the footprint leaves useful placement alterna-tives to expose and distinguish, and nearly disappears when the action space becomes severely constrained. Heuristic lookahead is similarly non-uniform, improving mean abso-lute density from 0.46 to 0.48 on the evaluated subset (Sup-plementary Material ) but not benefiting every order. This is consistent with EMS fragmentation, where a locally attrac-tive placement can create free-space regions that are poorly matched to later items, so selective activation may be more appropriate than applying lookahead to every order. 
+
+## Conclusion 
+
+We presented OPAL, an Operationally Guided Placement-Aware Learning framework for industrial online 3D bin pack-ing. OPAL combines operationally guided candidate expo-sure, an action-level industrial representation, and masked learned ranking, achieving a mean absolute density of 0.49 across three seeds. Under a common deterministic selec-tor, OG-EMS improves absolute density over Base-EMS by 0.061, a relative gain of 15 .1% , demonstrating that candi-date exposure materially affects packing performance. The learned OPAL configuration also outperforms its Base-EMS counterpart, and this ordering persists across the tested pallet footprints. The operational KPIs reveal meaningful trade-offs among density, support, and balance, but the OPAL family as a whole compares favorably with the contextual references. Future work is targeted to combine OPAL with decision-time mechanisms such as ASAP or MCTS lookahead, and evalu-ate the resulting packings in physical or high-fidelity robotic settings. 
+
+## References 
+
+Ancora, G.; Palli, G.; and Melchiorri, C. 2020. A Hybrid Genetic Algorithm for Pallet Loading in Real-World Appli-cations. IFAC-PapersOnLine , 53(2): 10141–10145. Beck, M.; Pöppel, K.; Spanring, M.; Auer, A.; Prudnikova, O.; Kopp, M.; Klambauer, G.; Brandstetter, J.; and Hochre-iter, S. 2024. xLSTM: Extended Long Short-Term Memory. In Advances in Neural Information Processing Systems , vol-ume 37, 107547–107603. Bertsekas, D. 2020. Rollout, Policy Iteration, and Distributed Reinforcement Learning . Athena Scientific. Bortfeldt, A.; and Wäscher, G. 2013. Constraints in Con-tainer Loading—A State-of-the-Art Review. European Jour-nal of Operational Research , 229(1): 1–20. Crainic, T. G.; Perboli, G.; and Tadei, R. 2008. Extreme Point-Based Heuristics for Three-Dimensional Bin Packing. 
+
+INFORMS Journal on Computing , 20(3): 368–384. Erbayrak, S.; Özkır, V.; and Yıldırım, U. M. 2021. Multi-Objective 3D Bin Packing Problem with Load Balance and Product Family Concerns. Computers & Industrial Engi-neering , 159: 107518. European Pallet Association e.V. n.d. EPAL Euro Pal-let. https://www.epal-pallets.org/eu-en/load-carriers/epal-euro-pallet. Accessed: 2026-07-10. Fang, H.; Weng, P.; and Ban, Y. 2026. ASAP: Exploiting the Satisficing Generalization Edge in Neural Combinatorial Optimization. Accepted at ICML 2026, arXiv:2501.17377. Fang, J.; Zhou, B.; Wang, H.; Zhu, X.; and Wang, L. 2026. Effective Online 3D Bin Packing with Lookahead Parcels Using Monte Carlo Tree Search. In Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining , 2184–2195. Gorishniy, Y.; Rubachev, I.; Khrulkov, V.; and Babenko, A. 2021. Revisiting Deep Learning Models for Tabular Data. In Advances in Neural Information Processing Systems , vol-ume 34, 18932–18943. Ha, C. T.; Nguyen, T. T.; Bui, L. T.; and Wang, R. 2017. An Online Packing Heuristic for the Three-Dimensional Con-tainer Loading Problem in Dynamic Environments and the Physical Internet. In Applications of Evolutionary Compu-tation: 20th European Conference, EvoApplications 2017 ,volume 10200 of Lecture Notes in Computer Science , 140– 155. Springer. Holm, S. 1979. A Simple Sequentially Rejective Multiple Test Procedure. Scandinavian Journal of Statistics , 6(2): 65–70. Hu, H.; Zhang, X.; Yan, X.; Wang, L.; and Xu, Y. 2017. Solv-ing a New 3D Bin Packing Problem with Deep Reinforcement Learning Method. arXiv preprint arXiv:1708.05930 .Kagerer, F.; Beinhofer, M.; Stricker, S.; and Nüchter, A. 2023. BED-BPP: Benchmarking Dataset for Robotic Bin Packing Problems. The International Journal of Robotics Research ,42(11): 1007–1014. Martello, S.; Pisinger, D.; and Vigo, D. 2000. The Three-Dimensional Bin Packing Problem. Operations Research ,48(2): 256–267. Ow, P. S.; and Morton, T. E. 1988. Filtered Beam Search in Scheduling. International Journal of Production Research ,26(1): 35–62. Parreño, F.; Alvarez-Valdes, R.; Tamarit, J. M.; and Oliveira, J. F. 2008. A Maximal-Space Algorithm for the Container Loading Problem. INFORMS Journal on Computing , 20(3): 412–422. Poolavaram, D.; Markgraf, C.; and Dorn, S. 2026. GEN-PACK: KPI-Guided Multi-Criteria Genetic Algorithm for Industrial 3D Bin Packing. Accepted at GECCO 2026, arXiv:2601.11325. Schmied, T.; Adler, T.; Patil, V. P.; Beck, M.; Pöppel, K.; Brandstetter, J.; Klambauer, G.; Pascanu, R.; and Hochre-iter, S. 2025. A Large Recurrent Action Model: xLSTM Enables Fast Inference for Robotics Tasks. In Proceedings of the 42nd International Conference on Machine Learning ,volume 267 of Proceedings of Machine Learning Research ,53343–53387. PMLR. Schulman, J.; Wolski, F.; Dhariwal, P.; Radford, A.; and Klimov, O. 2017. Proximal Policy Optimization Algorithms. 
+
+arXiv preprint arXiv:1707.06347 .Wilcoxon, F. 1945. Individual Comparisons by Ranking Methods. Biometrics Bulletin , 1(6): 80–83. Xiong, H.; Guo, C.; Peng, J.; Ding, K.; Chen, W.; Qiu, X.; Bai, L.; and Xu, J. 2024. GOPT: Generalizable Online 3D Bin Packing via Transformer-Based Deep Reinforcement Learn-ing. IEEE Robotics and Automation Letters , 9(11): 10335– 10342. Zhang, J.; Zi, B.; and Ge, X. 2021. Attend2Pack: Bin Pack-ing Through Deep Reinforcement Learning with Attention. 
+
+arXiv preprint arXiv:2107.04333 .Zhao, H.; She, Q.; Zhu, C.; Yang, Y.; and Xu, K. 2021. On-line 3D Bin Packing with Constrained Deep Reinforcement Learning. In Proceedings of the AAAI Conference on Artifi-cial Intelligence , volume 35, 741–749. Zhao, H.; Xu, J.; Yu, K.; Hu, R.; Zhu, C.; Du, B.; and Xu, K. 2026. Deliberate Planning of 3D Bin Packing on Packing Configuration Trees. The International Journal of Robotics Research , 45(8): 1195–1216. Zhao, H.; Yu, Y.; and Xu, K. 2022. Learning Efficient On-line 3D Bin Packing on Packing Configuration Trees. In 
+
+International Conference on Learning Representations .Online Packing Algorithm 
+
+Algorithm 1 states the decision loop executed for one order. The temporal recurrent state rec t is carried across steps only in the temporal configuration. 
+
+Algorithm 1 OPAL online packing loop  
+
+> 1:
+
+Initialize the empty pallet state P1. 
+
+> 2:
+
+Initialize the cross-step temporal state rec 0 when tem-poral memory is enabled.  
+
+> 3:
+
+for t = 1 to T do  
+
+> 4:
+
+Generate EMS regions from Pt. 
+
+> 5:
+
+Evaluate the configured anchor patterns and allowed orientations for item it. 
+
+> 6:
+
+Retain up to K region-anchor records (Algorithm 2).  
+
+> 7:
+
+Construct Xt ∈ R2K×15 and Mt ∈ { 0, 1}2K . 
+
+> 8:
+
+Encode each candidate-action row with the Placement Encoder.  
+
+> 9:
+
+Encode the pallet state and orientation-conditioned item inputs.  
+
+> 10:
+
+Mix pallet, item, and candidate tokens using the LRAM core.  
+
+> 11:
+
+if temporal memory is enabled then  
+
+> 12:
+
+Update the temporal recurrent state rec t. 
+
+> 13:
+
+end if  
+
+> 14:
+
+Produce one scalar logit for each of the 2K action rows.  
+
+> 15:
+
+Mask disallowed, geometrically invalid, and padded rows using Mt. 
+
+> 16:
+
+if no feasible action remains then  
+
+> 17:
+
+Terminate the order.  
+
+> 18:
+
+break  
+
+> 19:
+
+end if  
+
+> 20:
+
+Select action at, place item it, and update the pallet state to Pt+1 . 
+
+> 21:
+
+end for  
+
+> 22:
+
+Return the final packed layout. 
+
+## OG-EMS Geometric Exposure Cost 
+
+The geometric exposure quantities are computed in the envi-ronment’s discretized length units, where one grid cell corre-sponds to 10 mm ; the primary 1200 ×800 ×2000 mm loading space therefore has dimensions L×W ×H = 120 ×80 ×200 
+
+cells. Consider an orientation-specific action with footprint an-chor (x, y ) and oriented footprint dimensions (fx, f y ), gen-erated from an EMS with bounds [x− 
+
+> E
+
+, x +E ] × [y− 
+
+> E
+
+, y +E ] ×
+
+[z− 
+
+> E
+
+, z +E ]. Only the horizontal bounds enter COG ; the vertical bound z+E is used by the candidate features of Supplementary Material . The gaps from the footprint to the four pallet walls are 
+
+g− 
+
+> x
+
+= x, g+ 
+
+> x
+
+= max( L − x − fx, 0) ,g− 
+
+> y
+
+= y, g+ 
+
+> y
+
+= max( W − y − fy , 0) . (11) The five terms of COG are defined below. 
+
+Placement height. z is the resting height of the footprint, i.e. the maximum value of the pallet heightmap H beneath it: 
+
+z = max  
+
+> 0≤δx<f x
+> 0≤δy<f y
+
+H(x + δx, y + δy ). (12) 
+
+Wall distance. dw is the smallest of the four wall gaps: 
+
+dw = min( g− 
+
+> x
+
+, g + 
+
+> x
+
+, g − 
+
+> y
+
+, g + 
+
+> y
+
+). (13) 
+
+Residual slack. Let the item’s horizontal clearances inside its EMS be 
+
+res x = max( x+E − x− 
+
+> E
+
+− fx, 0) ,
+
+res y = max( y+E − y− 
+
+> E
+
+− fy , 0) . (14) The residual slack is their sum, res = res x + res y .
+
+Narrow-slack penalty. With a fixed sliver threshold 
+
+εsliv = 6 cells ( 60 mm ), 
+
+v = res x 1[0 < res x < ε sliv ] + res y 1[0 < res y < ε sliv ],
+
+(15) so an exact fit or a clearance of at least εsliv contributes nothing on that axis. 
+
+Corner distance. dc is the Manhattan distance to the near-est pallet corner, i.e. the smallest sum of one x-gap and one 
+
+y-gap: 
+
+dc = min( g− 
+
+> x
+
++g− 
+
+> y
+
+, g − 
+
+> x
+
++g+ 
+
+> y
+
+, g + 
+
+> x
+
++g− 
+
+> y
+
+, g + 
+
+> x
+
++g+ 
+
+> y
+
+). (16) 
+
+Combined cost. The five terms combine linearly, 
+
+COG = βhz + βwdw + βres res + βv v + βcdc, (17) with fixed coefficients 
+
+(βh, β w, β res , β v , β c) = (5 .0, 2.0, 0.8, 3.0, 1.0) . (18) All five terms are unnormalized cell lengths, so COG is a non-negative heuristic cost that is lowest for low, wall- and corner-adjacent, tightly fitting placements. Each EMS-anchor record contains up to two eligible orientation-specific actions and is assigned the minimum COG among them. 
+
+## OG-EMS Candidate Selection 
+
+Section summarizes candidate selection in prose. This sec-tion states the procedure exactly. Within each EMS region, the five anchor patterns of Section are instantiated as the fractional offsets 
+
+Ξ = {(0 , 0) , (1 , 0) , (0 , 1) , (1 , 1) , ( 12 , 12 )}, (19) where an offset (ax, a y ) ∈ Ξ places the oriented footprint at x = x− 
+
+> E
+
++ ax max( x+E − x− 
+
+> E
+
+− fx, 0) and y = y− 
+
+> E
+
++
+
+ay max( y+E −y− 
+
+> E
+
+−fy , 0) , rounded to the nearest cell. The first four are the region’s bottom corners and the fifth is its center. Let Rt denote the set of EMS-anchor records generated at step t, before any selection is applied. A record r ∈ R t
+
+groups the eligible orientation-specific actions sharing one EMS region and one anchor pattern, so its action set A(r)
+
+satisfies |A (r)| ∈ { 1, 2}.Record attributes. Each record inherits its attributes from its cheapest eligible action, 
+
+a⋆(r) = arg min 
+
+> a∈A (r)
+
+COG (a), C(r) = COG 
+
+ a⋆(r).
+
+(20) The record support s(r) = s a⋆(r) and the record position 
+
+p(r) = ( x, y, z ) of a⋆(r) are taken from this same action, where z is its resting height and s is the bottom-support ra-tio of Supplementary Material . Both actions of a retained record are emitted as separate rows, but only a⋆(r) deter-mines whether the record is retained. 
+
+Staged ordering. Records are arranged into a total or-der by four successive passes with support thresholds Σ = (0 .95 , 0.80 , 0.65 , 0) . Pass k appends every not-yet-ordered record satisfying s(r) ≥ Σk, sorted by increasing C(r). The final pass is unthresholded, so every record is ordered exactly once. Write the resulting sequence Qt = ( r1, . . . , r |R t|).
+
+Spatial-diversity bucket. Records are grouped by a dis-cretized cell of side εdiv = 8 cells ( 80 mm ) applied to all three coordinates of p(r),
+
+κ(r) = 
+
+
+
+⌊x/ε div ⌋, ⌊y/ε div ⌋, ⌊z/ε div ⌋
+
+
+
+. (21) The vertical coordinate participates, so two records that share a footprint but rest at different heights occupy different buck-ets. 
+
+Selection. Algorithm 2 fills the K record slots in three stages. A quality stage takes the Kq = max(1 , ⌊0.75 K⌋)
+
+leading records of Qt with no diversity constraint. A diversity stage then admits further records only when their bucket is unoccupied. A backfill stage lifts the bucket constraint if fewer than K records have been selected. With K = 64 this reserves Kq = 48 slots for cost-ranked quality and up to 16 
+
+slots for spatial spread, while guaranteeing that the table is filled whenever |R t| ≥ K. Each retained record then emits its eligible action rows, giving Nt ≤ 2K.
+
+## Candidate-Feature Definitions 
+
+Let (L, W, H ) denote the pallet loading dimensions, where 
+
+H is the loading height; let (x, y, z ) be the lower placement corner; let (ux, u y , u z ) = ( x+E , y +E , z +E ) be the upper corner of the generating EMS in the notation of Supplementary Material ; and let (fx, f y , h ) be the oriented item dimensions, where h denotes the item height. Let 
+
+Ω( fx, f y ) = {0, . . . , f x − 1} × { 0, . . . , f y − 1} (22) denote the set of discrete footprint-cell offsets for an item with oriented footprint dimensions (fx, f y ). Table 5 defines the 15 entries of each action row exactly as supplied to the candidate encoder. Entries 1–6 describe the record’s anchor geometry and are inherited from a⋆(r) as defined in Supplementary Material , so both action rows of a record share them. Entries 7–15 are orientation-specific: the footprint is that of the row’s own orientation, and every operational quantity is evaluated at that orientation’s placement. The first eight entries remain in the environment’s discretized length units; they are not divided by the pallet dimensions. The operational ratios are 
+
+Algorithm 2 OG-EMS record selection at step t 
+
+> 1:
+
+Input: records Rt, budget K, quota Kq , cell εdiv . 
+
+> 2:
+
+Order Rt into Qt by the staged passes over Σ. 
+
+> 3:
+
+Initialize the ordered selection list D ← () . 
+
+> 4:
+
+for r in Qt do  
+
+> 5:
+
+Append r to D. 
+
+> 6:
+
+if |D| ≥ Kq then  
+
+> 7:
+
+break  
+
+> 8:
+
+end if  
+
+> 9:
+
+end for  
+
+> 10:
+
+Initialize the occupied buckets B ← { κ(r) : r ∈ D} . 
+
+> 11:
+
+for r in Qt not already in D, while |D| < K do  
+
+> 12:
+
+if κ(r) /∈ B then  
+
+> 13:
+
+Append r to D and set B ← B ∪ { κ(r)}. 
+
+> 14:
+
+end if  
+
+> 15:
+
+end for  
+
+> 16:
+
+for r in Qt not already in D, while |D| < K do  
+
+> 17:
+
+Append r to D. 
+
+> 18:
+
+end for  
+
+> 19:
+
+Return D, containing at most K records in selection order. dimensionless, top height is normalized by the pallet loading height, and the placement-effort score is bounded below by its constant term λ0 = 1 .0, defined in Supplementary Material . For sside , pallet-wall faces are excluded. Each remaining side face is marked supported when item-to-item contact cov-ers at least 20% of its area. The candidate-level placement-effort score τ uses the definition and coefficients given in Supplementary Material , evaluated for the candidate place-ment rather than for the committed placement. 
+
+## Reward-Signal Definitions 
+
+Let ft denote the raw absolute density after decision step t,and let ∆ft = ft − ft−1. For a successful placement of item 
+
+it with height ht at vertical coordinate zt, its normalized top height is 
+
+ˆht = zt + ht
+
+H . (23) 
+
+Incremental raw absolute density. 
+
+∆ft = Vit
+
+LW H , (24) where Vit is the volume of the placed item it.
+
+Bottom support. St is the fraction of footprint cells whose height equals the placement height. Ground placements re-ceive St = 1 .
+
+Support-region centering. Bt ∈ [0 , 0.5] is the minimum distance from the center of the item footprint to the four edges of the axis-aligned bounding box of the supported footprint cells, normalized by max( fx, f y ). Ground place-ments receive Bt = 0 .5, while placements with no supported footprint cells receive Bt = 0 . It is the reward-level counter-part of the candidate feature m, and it is a purely geometric measure that does not use item mass. Index Feature Exact definition Range 1 x Lower placement coordinate on the first pallet axis [0 , L − fx]
+
+2 y Lower placement coordinate on the second pallet axis [0 , W − fy ]
+
+3 z Lower placement height [0 , H − h]
+
+4 dx ux − x, available EMS extent from the anchor to its upper boundary [0 , L ]
+
+5 dy uy − y, available EMS extent from the anchor to its upper boundary [0 , W ]
+
+6 dz uz − z, available EMS extent from the anchor to its upper boundary [0 , H ]
+
+7 fx Oriented item footprint on the first pallet axis (0 , L ]
+
+8 fy Oriented item footprint on the second pallet axis (0 , W ]
+
+9 s |{ (δx, δ y ) ∈ Ω( fx, f y ) : H(x + δx, y + δy ) = z}| 
+
+fxfy
+
+; s = 1 on the pallet floor [0 , 1] 
+
+10 m 0.5 if z = 0 and 0 if no support cell exists otherwise max 
+
+(
+
+0, min( fx/2 − δmin  
+
+> x
+
+, δ max  
+
+> x
+
+− fx/2, f y /2 − δmin  
+
+> y
+
+, δ max  
+
+> y
+
+− fy /2) max( fx, f y )
+
+)
+
+[0 , 0.5] 
+
+11 ˆh (z + h)/H , normalized top height [0 , 1] 
+
+12 ℓ max  
+
+> j∈S
+
+ωi/¯ωj ; ℓ = 0 when S = ∅ [0 , ∞)
+
+13 bfrag 1[ℓ ≤ 1] , fragility-feasibility indicator {0, 1}
+
+14 sside Supported non-boundary side faces divided by non-boundary side faces [0 , 1] 
+
+15 τ Placement-effort score [λ0, ∞)
+
+Table 5: Candidate-action features and their ranges for generated actions. H denotes the heightmap beneath the oriented footprint; 
+
+[δmin  
+
+> x
+
+, δ max  
+
+> x
+
+) × [δmin  
+
+> y
+
+, δ max  
+
+> y
+
+) is the half-open axis-aligned bounding box of footprint-cell offsets supported at height z, so δmax  
+
+> x
+
+is one past the largest supported offset on that axis; S is the set of items directly supporting the candidate; ωi is the candidate-item weight; and ¯ωj is the load capacity of supporting item j. The first eight features use the environment’s discretized length units, whereas ˆh is normalized by the pallet loading height and τ is a placement-effort score bounded below by its constant term 
+
+λ0 = 1 .0.
+
+Placement effort. The placement-effort score combines vertical placement height, orientation change, reachability, and insufficient bottom support: 
+
+τt = λ0 + λh(zt + ht) + 1rot λrot 
+
++ 1unreachable λreach + λs max(0 , 0.75 − St), (25) where 1rot indicates whether the placement requires rotation and 1unreachable = 1[zt + ht + εgrip > H reach ] indicates that the placement violates the configured reach condition of Supplementary Material . The fixed coefficients are 
+
+λ0 = 1 .0, λh = 0 .004 , λrot = 0 .25 ,λreach = 0 .4, λs = 0 .5. (26) Higher values indicate placements associated with greater operational effort. 
+
+Instability risk. Let ℓt be the maximum stack-load ratio imposed on directly supporting items. Then 
+
+Rt = (1 − St) + max(0 , ℓ t − 1) . (27) 
+
+Height terms. Let zmax  
+
+> t
+
+denote the pallet maximum height after step t. The fill-weighted placement-height and height-growth penalties are 
+
+χheight  
+
+> t
+
+= ˆht∆ft, (28) 
+
+Gt = max(0 , z max  
+
+> t
+
+− zmax  
+
+> t−1
+
+)
+
+H ∆ft. (29) 
+
+Low-placement reward. 
+
+Ut = ∆ ft(1 − ˆht). (30) Note that Ut +χheight  
+
+> t
+
+= ∆ ft, so Ut and χheight  
+
+> t
+
+are collinear given ∆ft; the pair expresses one height preference through two weights rather than two independent signals. 
+
+Wall proximity. Let dwall  
+
+> t
+
+be the minimum distance from the placed footprint to the nearest pallet boundary, and let 
+
+dmax = min( L, W )/2. Then 
+
+χwall  
+
+> t
+
+= ∆ ft max 
+
+
+
+0, 1 − dwall 
+
+> t
+
+dmax 
+
+
+
+. (31) 
+
+Lateral support. χside  
+
+> t
+
+is the fraction of non-boundary side faces of the placed item whose contact with previously placed items covers at least 20% of the face area. 
+
+Terminal transitions. A failed terminal transition receives a penalty of −wfail , where wfail = 0 .5. At any terminal transition, a terminal fill term 0.6fT is added, where fT is the final raw absolute density. Thus, a successful completion receives the final placement reward plus 0.6fT , whereas an unsuccessful termination receives 
+
+−0.5 + 0 .6fT . (32) Operational KPI Definitions 
+
+Let L denote the final packed layout, I the complete set of items in the order, and P ⊆ I the items retained in L. For item i ∈ P , let (xi, y i, z i) denote its lower placement corner and (wi, l i, h i) its placed dimensions, where wi, li, and hi
+
+are its extents along the first, second, and vertical pallet axes respectively, so that wi runs parallel to L and li parallel to 
+
+W ; its volume is Vi = wilihi.The packing efficiency is 
+
+η(L) = |P| |I| . (33) When P = ∅, every layout-level KPI score is defined to be 
+
+0. The definitions below give the raw geometric and oper-ational KPIs. Each value reported in the experiments is the corresponding normalized score 
+
+gKPI( L) = η(L) KPI( L), (34) which penalizes layouts that reach a high raw score while leaving part of the order unpacked. Following the main paper, reported KPI values are given to two decimal places, except where finer resolution is needed to separate nearby values, and differences between them to three. All differences are computed from the unrounded scores, so they need not equal the difference of the rounded values shown. 
+
+Absolute density. The raw absolute density, equivalently the space utilization, is the fraction of the pallet loading volume occupied by placed items (Martello, Pisinger, and Vigo 2000; Crainic, Perboli, and Tadei 2008): 
+
+AbsDen( L) = 
+
+P 
+
+> i∈P
+
+Vi
+
+LW H . (35) The denominator uses the configured loading height H, not the maximum height reached by the packing. 
+
+Relative density. Relative density measures the occupied fraction of the smallest axis-aligned bounding box enclosing the placed items. Let 
+
+x− = min  
+
+> i∈P
+
+xi, x+ = max  
+
+> i∈P
+
+(xi + wi), (36) 
+
+y− = min  
+
+> i∈P
+
+yi, y+ = max  
+
+> i∈P
+
+(yi + li), (37) 
+
+z− = min  
+
+> i∈P
+
+zi, z+ = max  
+
+> i∈P
+
+(zi + hi). (38) The relative-density score is 
+
+RelDen( L) = 
+
+P 
+
+> i∈P
+
+Vi
+
+(x+ − x−)( y+ − y−)( z+ − z−) . (39) The score is clipped to [0 , 1] . Higher values indicate a more compact arrangement within the enclosing bounding box. 
+
+Surface support. For item i, let csurf  
+
+> i
+
+∈ [0 , 1] be the frac-tion of its bottom face covered by items whose top face is at zi, and let ncorner  
+
+> i
+
+count the bottom-corner support inci-dences at that height, so that a corner covered by two items contributes twice. Its surface-support score, clipped to [0 , 1] ,is 
+
+σi =
+
+
+
+1, zi = 0 ,
+
+1, csurf  
+
+> i
+
+≥ 0.5 and ncorner  
+
+> i
+
+≥ 3,ncorner  
+
+> i
+
+/4, csurf  
+
+> i
+
+< 0.5 and ncorner  
+
+> i
+
+≥ 3,csurf  
+
+> i
+
+, otherwise .
+
+(40) The raw surface-support score of the final layout is 
+
+SurfSup( L) = 1
+
+|P| 
+
+X
+
+> i∈P
+
+σi. (41) 
+
+Side support. For item i, let Fside  
+
+> i
+
+denote the side faces that do not coincide with a pallet boundary. For each g ∈Fside  
+
+> i
+
+, let Ai,g be its area and Acon  
+
+> i,g
+
+the area in contact with neighboring items. A face is considered supported when at least 20% of its area is in contact with another item, consistent with common industrial loading requirements (Bortfeldt and Wäscher 2013). The layout-level side-support score is 
+
+SideSup( L) = 
+
+X
+
+> i∈P
+
+X
+
+> g∈F side
+> i
+
+1
+
+ Acon 
+
+> i,g
+
+Ai,g 
+
+≥ 0.2
+
+X
+
+> i∈P
+
+Fside 
+
+> i
+
+. (42) The score is defined to be 0 when the denominator vanishes, that is, when every side face of every placed item coincides with a pallet boundary. 
+
+Center of gravity. Let μi denote the item mass, computed from reported density times volume when density is avail-able, from reported weight otherwise, and from item volume when neither is given. The mass μi is distinct from the item weight ωi of Supplementary Material , which enters the stack-load ratio. Because μi appears in both the numerator and the denominator below, any constant unit factor between the two cancels. The mass-weighted planar center of gravity is 
+
+(x(2)  
+
+> c
+
+, y (2)  
+
+> c
+
+) = 
+
+P 
+
+> i∈P
+
+μi
+
+ xi + wi 
+
+> 2
+
+, y i + li
+
+> 2
+
+P 
+
+> i∈P
+
+μi
+
+. (43) The mass-weighted three-dimensional center of gravity is 
+
+(x(3)  
+
+> c
+
+, y (3)  
+
+> c
+
+, z (3)  
+
+> c
+
+) = 
+
+P 
+
+> i∈P
+
+μi
+
+ xi + wi 
+
+> 2
+
+, y i + li 
+
+> 2
+
+, z i + hi
+
+> 2
+
+P 
+
+> i∈P
+
+μi
+
+.
+
+(44) Let 
+
+ρ2 =
+
+q
+
+(x(2)  
+
+> c
+
+− L/ 2) 2 + ( y(2)  
+
+> c
+
+− W/ 2) 2
+
+p(L/ 2) 2 + ( W/ 2) 2 , (45) 
+
+ρ3 =
+
+q
+
+(x(3)  
+
+> c
+
+− L/ 2) 2 + ( y(3)  
+
+> c
+
+− W/ 2) 2 + ( z(3)  
+
+> c
+
+)2
+
+p(L/ 2) 2 + ( W/ 2) 2 + H2 . (46) The raw center-of-gravity scores are 
+
+CoG2D( L) = [1 − ρ2]10, (47) 
+
+CoG3D( L) = [1 − ρ3]10, (48) where [a]10 = min(1 , max(0 , a )) denotes clipping to [0 , 1] .Higher CoG2D values indicate that the projected center of gravity is closer to the center of the pallet footprint. Higher CoG3D values indicate that the center of gravity is closer to the center of the pallet floor, thereby favoring both horizontal balance and a low vertical center of gravity. 
+
+## Training Convergence 
+
+Figure 3 illustrates rollout-based training dynamics for OPAL, OPAL w/ temporal, and OPAL w/ Base-EMS. For vi-sualization, we show the run with the highest peak training-pool evaluation reward among seeds 5–7 for each variant. This gives seed 6 for OPAL and seed 7 for the other two variants. The 1500 reporting orders play no part in this selec-tion. The figure provides a qualitative view of optimization behaviour; all quantitative comparisons use the three-seed held-out evaluation reported in Table 1. Each line ends when the corresponding run early-stops; no values are extrapolated. The top panel shows raw training-episode fill ratio, the middle panel shows training episodic reward under the shaped objective of Supplementary Mate-rial , and the bottom panel shows the entropy of the policy over the masked candidate set. The training-episode fill ratio is measured under the exploring policy and is distinct from the packing-efficiency-normalized score reported in the main results. The fill-ratio trajectories are noisy and overlap substan-tially. In the displayed runs, OPAL reaches higher episodic rewards earlier, OPAL w/ temporal improves more gradually, and OPAL w/ Base-EMS reaches a lower reward range. Pol-icy entropy decreases during all three displayed runs, con-sistent with increasing concentration of the masked action distribution. Because the attainable entropy depends on the number of currently unmasked actions, and this number dif-fers between generators, absolute entropy levels should not be compared between OG-EMS and Base-EMS. 
+
+## Full Hyperparameters and Training Details 
+
+PPO configuration. The shared embedding dimension is 
+
+D = 64 . The xLSTM stack used by the Placement Encoder comprises two blocks with two heads and hidden size 32, while the LRAM core uses an xLSTM stack of three blocks with four heads and hidden size 64. In the temporal configu-ration the temporal xLSTM adds two blocks with four heads, hidden size 64, and context length 32. Training uses Adam with learning rate 7.5×10 −5 and no decay, clip range 0.15, discount γ = 0 .99 , λGAE = 0 .95 , eight parallel environ-ments, rollout length 32 steps per environment per update, and one gradient epoch per update. The entropy coefficient is 
+
+7×10 −4, the value-loss coefficient is 0.35, and the maximum gradient norm is 0.35; value clipping, advantage normaliza-tion, and reward normalization are enabled. Batch size is 32 for all the training variants. Each run has a nominal ceiling of 10000 environment steps per training cycle over at most 
+
+1000 training cycles, with early stopping after 10 training-pool evaluations without an improvement of at least 10 −4.Realized length varies by seed and method. Training uses one NVIDIA L40S GPU; OPAL wall-clock times are 4.3, 0.50     
+
+> 0.52
+> 0.54
+> 0.56
+> 0.58
+> Rollout fill ratio
+> Training convergence
+> OPAL
+> OPAL w/ temporal
+> OPAL w/ Base-EMS
+> 8
+> 10
+> 12
+> 14
+> 16
+> 18
+> Rollout episodic reward
+> 0.0 0.1 0.2 0.3 0.4
+> Environment steps (millions)
+> 0.0
+> 0.5
+> 1.0
+> 1.5
+> 2.0
+> 2.5
+> 3.0
+> Policy entropy (nats)
+
+Figure 3: Training convergence for one selected run of OPAL, OPAL w/ temporal, and OPAL w/ Base-EMS: raw training-episode fill ratio (top), shaped episodic reward (middle), and policy entropy over the masked candidate set (bottom). For each variant, the run with the highest peak training-pool eval-uation reward among seeds 5–7 is shown; reporting orders are not used for this selection. Curves are smoothed with centred moving averages, and each line ends when the corre-sponding run early-stops. Quantitative comparisons use the three-seed held-out evaluation reported in the main paper. 7.5, and 3.5 hours for seeds 5, 6, and 7, respectively. Every internal learned configuration is evaluated with seeds 5–7. 
+
+Feasibility and operational thresholds. An action row is admissible when the oriented item fits inside its EMS and the pallet, and when it satisfies the geometric stability rule of the underlying masked-selection environment, which accepts a placement if the item rests on the pallet floor, if more than half of its bottom face is supported, or if the footprint center lies inside the convex hull of the supported cells (Xiong et al. 2024). This rule, together with containment, defines the mask 
+
+Mt of Section in all reported configurations. The operational quantities that industrial deployment ad-ditionally cares about, namely support, overhang, load bear-ing, and reach (Bortfeldt and Wäscher 2013), enter the pipeline in two other places rather than as hard admissi-bility gates. They are computed for every generated candi-date and supplied to the policy as the features of Supple-mentary Material , and the bottom-support ratio drives the staged ordering of Supplementary Material , whose thresh-olds Σ = (0 .95 , 0.80 , 0.65 , 0) act as retention preferences under the record budget K. The reference thresholds used when reporting these quantities are a bottom-support ra-tio s ≥ 0.65 , equivalently an overhang of at most 0.35 ; a support-region centering margin m ≥ 0.08 , used as an addi-tional quantitative centering diagnostic alongside the binary convex-hull rule; a stack-load ratio ℓ ≤ 1, so that no item exceeds the rated capacity of the items beneath it; and a reach condition z + h + εgrip ≤ Hreach , where εgrip is the headroom the end effector needs above the placed item and 
+
+Hreach is the highest point the robot can service. The last two describe the deployment cell rather than the packing method, and are configuration inputs rather than tuned quan-tities; we use εgrip = 4 cells ( 40 mm ) and Hreach = 210 cells (2100 mm ), which exceeds the 2000 mm loading height, so the reach condition is never binding in the primary configu-ration and the reported results do not depend on a particular reach envelope. The environment implements these thresh-olds as a composite gate that can be enabled to mask actions directly; it is inactive in the configurations reported here. All of these values were fixed before evaluation on the reporting orders and were not tuned. Candidate generation additionally caps the raw EMS enumeration at 512 regions before anchor evaluation. 
+
+Deterministic operational selector. Greedy OG-EMS and the heuristic-lookahead experiments select among the gen-erated candidate actions using 
+
+JOG (Pt, a ) = αss + αss sside + αmm + αq q + αwψw
+
+− αhˆh − αoo − αℓℓ − ατ τ, 
+
+(49) where Pt is the current pallet state, s is bottom support, sside 
+
+is side support, m is the support-region centering margin, q is item volume divided by pallet volume, ψw = 1 − dw/d max 
+
+is the wall-proximity score, where dw is the nearest-wall distance defined in Supplementary Material and dmax =min( L, W )/2, ˆh is normalized top height, o = 1 − s is overhang, ℓ is the stack-load ratio, and τ is the placement-effort score. The default coefficients are 
+
+(αs, α ss , α m, α q , α w, α h, α o, α ℓ, α τ )= (6 .0, 1.2, 2.0, 0.8, 0.35 ,
+
+3.0, 2.5, 1.5, 0.25) .
+
+(50) Because q is constant across candidates for the current item, it does not affect their within-step ordering. Because o = 1 −s,the support and overhang terms are collinear and act as the single effective support weight αs + αo = 8 .5, so varying 
+
+αs alone varies this combined weight. This selector is used only by the deterministic baseline and heuristic lookahead; the learned OPAL policy does not use JOG .
+
+OG-EMS weight selection. The default selector weights, including (αs, α w) = (6 .00 , 0.35) , were fixed before the post-hoc sensitivity analysis in Table 6. That analysis is eval-uated on 1000 orders drawn from the training pool, which is disjoint from the 1500 reporting orders, so no reporting-set result informed the choice of weights. The sweep is therefore diagnostic rather than a model-selection experiment: the two best settings, (6 .00 , 1.00) and (6 .00 , 2.00) , are indistinguish-able at 0.47 absolute density, and no setting separates from the default by a margin that would justify changing it.                                             
+
+> αsαwAbs. dens. Surf. sup. Side sup. 6.00 0.35 0.46 ±0.12 0.87 ±0.16 0.37 ±0.12
+> 6.00 1.00 0.47 ±0.11 0.88 ±0.16 0.34 ±0.12
+> 4.00 1.00 0.46 ±0.12 0.87 ±0.16 0.35 ±0.12
+> 6.00 2.00 0.47 ±0.11 0.88 ±0.16 0.32 ±0.13
+
+Table 6: Post-hoc sensitivity of the deterministic OG-EMS selector over 1000 evaluation runs drawn from the training pool, disjoint from the reporting orders, reported as normal-ized scores. The default (αs, α w) = (6 .00 , 0.35) was fixed before this analysis and is retained to avoid tuning on the reporting set. 
+
+## Statistical Significance 
+
+For the four primary learned comparisons, we apply two-sided paired Wilcoxon signed-rank tests to matched per-order absolute density and control the family-wise error rate using Holm-Bonferroni correction. For each method, the three seed results are first averaged per order; the paired tests are then applied to the resulting matched order-level scores. Table 7 reports the corrected p-values.                    
+
+> Comparison ∆Abs. dens. Holm pSignif. OPAL w/ temporal +0 .002 0.256 no OPAL w/ Transformer +0 .070 <0.001 yes OPAL w/ Base-EMS +0 .007 0.005 yes OPAL w/ PE=MLP +0 .046 <0.001 yes
+
+Table 7: Paired absolute-density comparisons against OPAL using two-sided Wilcoxon signed-rank tests with Holm-Bonferroni correction across the four comparisons. Positive differences indicate higher absolute density for OPAL. 
+
+## Deterministic Generator-Exposure Analysis 
+
+A candidate generator can improve a learned online packing system only if it exposes useful feasible placements to the selector. Directly computing the best achievable sequential packing under each generator is intractable because each selected placement changes the subsequent packing state and candidate set. We therefore apply a common deterministic selector as a proxy for candidate exposure. This diagnostic removes the learned ranker and evaluates both generators using the same operational scoring rule. For generator G, let AG (Pt) denote the candidate actions produced from pallet state Pt. At each step, the deterministic selector chooses 
+
+at = arg max   
+
+> a∈A G(Pt)
+
+JOG (Pt, a ), (51) where JOG is the operational score of Eq. 49. Its coefficients are manually specified rather than learned and are held fixed across generators. All operational quantities required by JOG are computed identically after candidate generation for both Base-EMS and OG-EMS candidates. The geometry-only candidate repre-sentation supplied to the learned Base-EMS policy therefore does not constrain this deterministic comparison. Table 8 reports the outcome.         
+
+> Generator Greedy norm. abs. density OG-EMS −row Base-EMS 0.40 +0 .061
+> OG-EMS 0.46 0.000
+
+Table 8: Deterministic generator comparison over 1500 eval-uation runs spanning the first 1000 reporting orders, using the same operational selector. Because the selector is deter-ministic, the comparison is seed-independent and is run once per generator. The realized greedy outcome with OG-EMS is 0.061 higher than with Base-EMS, corresponding to a 15.1% relative improvement. This difference is an empirical expo-sure proxy, not an upper bound on the performance attainable with either generator. 
+
+## Inference-Time Lookahead: Full Results 
+
+Full mechanism. At each decision step, the method short-lists the top k = 5 candidates under the deterministic selector and simulates dLA = 2 further placements from each, using the same selector. Every rollout is scored by a future-space-quality term 
+
+Q = 8 .0 f + 2 .5 ¯ s + 1 .2 ¯ sside + 0 .08 nfeas 
+
+− 2.8 ˆhmax − 0.02 nsliv − 0.005 nems , (52) where f is the raw absolute density of the rolled-out layout, 
+
+¯s and ¯sside are its mean bottom and side support, ˆhmax is its maximum packing height normalized by H, nfeas is the num-ber of feasible actions available for the next item, nems is the number of raw EMS regions, and nsliv counts those regions satisfying 0 < res x < ε sliv or 0 < res y < ε sliv , so exact fits are excluded. Q is added to the immediate deterministic score with unit weight. These coefficients were set by hand for this exploratory diagnostic and were not tuned. The pro-cedure is a heuristic beam-style rollout (Bertsekas 2020; Ow and Morton 1988), not a rollout driven by the trained policy or critic. Group N orders Baseline eff. ∆ items Helped 226 0.72 +6 .83 
+
+Hurt 125 0.82 −5.47 
+
+Neutral 649 0.96 0.00 
+
+Table 9: Lookahead outcome groups over the first 1000 of the 1500 reporting orders. Baseline packing efficiency is the clearest observed separator between hurt and helped groups (0.82 versus 0.72), although this association is not a causal mechanism test. Condition Abs. dens. Helped/hurt/neutral p
+
+No lookahead 0.51 – –Actor lookahead 0.52 8/5/37 0.42 Critic lookahead 0.53 10/4/36 0.14 Table 10: Exploratory learned-policy lookahead results over 50 orders for seed 5. Each lookahead condition is compared per order against the no-lookahead baseline using a two-sided Wilcoxon signed-rank test without multiple-comparison cor-rection. 
+
+Outcome groups. Table 9 groups orders by the change in absolute density under lookahead relative to the Greedy OG-EMS baseline. Helped orders have a positive change, hurt 
+
+orders have a negative change, and neutral orders have no change. The mean change in placed-item count is reported as a descriptive characteristic of each group; it does not define group membership. 
+
+Why it helps or hurts. Orders for which the greedy base-line already has high packing efficiency are more likely to be hurt by lookahead, whereas orders with lower baseline efficiency are more likely to benefit. Across the 1000-order subset, mean absolute density increases from 0.46 without lookahead to 0.48 with lookahead, a gain of 0.014. Item-volume heterogeneity and product-group count do not clearly separate the outcome groups, whereas baseline packing effi-ciency does. This is an association rather than evidence of a causal threshold mechanism. 
+
+Lookahead over the learned policy. We also test two ex-ploratory variants that apply lookahead after policy-based shortlisting. The actor-driven variant shortlists candidates by the policy logits, while the critic-preranked variant uses one-step value estimates before applying the same future-space-quality score. Because both variants require additional policy evaluations per decision, we evaluate them without retraining on 50 orders for seed 5, using k = 3 shortlisted candidates and lookahead depth dLA = 2 .As shown in Table 10, both exploratory conditions have positive mean differences, and the critic-preranked condition has the larger observed difference. Neither is statistically con-firmed at ntest = 50 ; a full multi-seed evaluation is required before drawing a comparative conclusion. 
+
+## Pallet-Footprint Sensitivity: Full Methodology 
+
+Compatibility verification. Pallet dimensions are param-eterized at evaluation time, and the candidate features of Supplementary Material are recomputed in the active envi-ronment. The heightmap encoder uses adaptive average pool-ing to produce a fixed-size representation. Alternative foot-prints therefore require no architectural changes, although the numerical ranges of the unnormalized geometric features change with the pallet dimensions. 
+
+Target footprints and feasibility. Every reporting order passes the item-level footprint screen at 1200 ×1000 mm and 800 ×600 mm. At 600 ×400 mm, an order is retained only if every item fits in at least one horizontal orientation, leaving 1463 of the 1500 reporting orders (97.5%) and 8228 of the 8503 training orders (96.8%) from which the reporting set is held out. This screen establishes individual item fit rather than complete-order packability. The 600 ×400 mm row of Table 4 is therefore computed over 1463 orders, whereas the remaining rows use all 1500. OPAL and OPAL w/ Base-EMS share the remaining architecture and evaluation settings. 
+
+## Robustness to Sequence Ordering 
+
+The primary configuration presents items in descending foot-print area (Section ), matching the CUT-1/CUT-2 conven-tion (Zhao, Yu, and Xu 2022; Xiong et al. 2024). We test dependence on this ordering by evaluating OPAL without retraining on the same 1500 orders under two alternatives: a fixed random permutation and the reverse of the primary sequence. Absolute density decreases from 0.491 under the primary ordering to 0.445 under random ordering ( −0.046 ,a relative decrease of 9.4% ) and 0.450 under reversed or-dering ( −0.041 , 8.4% ). OPAL is therefore sensitive to item presentation order.

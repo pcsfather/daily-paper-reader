@@ -1,0 +1,25 @@
+{
+  "date": "20260724-20260802",
+  "date_label": "2026-07-24 ~ 2026-08-02",
+  "generated_at": "2026-08-02 08:15:14 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2607.28257v1",
+      "route": "20260724-20260802/2607.28257v1-operationally-guided-placement-aware-learning-for-industrial-online-3d-bin-packing",
+      "title": "Operationally Guided Placement-Aware Learning for Industrial Online 3D Bin Packing",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向工业在线3D装箱的操作引导与放置感知学习",
+      "first_seen_at": "2026-08-02 08:15:14 UTC",
+      "updated_at": "2026-08-02 08:15:14 UTC"
+    }
+  ]
+}
