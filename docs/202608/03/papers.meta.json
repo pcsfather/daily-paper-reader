@@ -1,0 +1,39 @@
+{
+  "label": "2026-08-03",
+  "date": "2026-08-03",
+  "generated_at": "2026-08-03T21:12:00",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202608/03/2607.28820v1-whats-in-a-queue-an-experimental-study-of-job-ordering-autonomy-and-queue-visibility",
+      "section": "deep",
+      "title_en": "What's in a Queue? An Experimental Study of Job Ordering, Autonomy and Queue Visibility",
+      "authors": "Evgeny Kagan",
+      "date": "2026-07-30",
+      "pdf": "https://arxiv.org/pdf/2607.28820v1",
+      "score": "9.0",
+      "evidence": "针对订单拣选任务的作业排序、自主权和可见性实验研究",
+      "tldr": "在服务运作中，工作队列的排序、自主权和可见性设计深刻影响工人绩效。本研究通过在线实验模拟动态订单拣选，分析队列设计对速度和质量的影响。结果显示，工人自主选择易先处理简单任务（EF）会导致绩效下降，但外生施加EF排序能提高拣选准确度却可能降低高能力者的速度，且工作到达信息仅产生短期生产率脉冲。研究成果为物流拣选等场景的队列策略提供指导，并提出了基于人格的差错工人筛选方法。",
+      "tags": "query:wo",
+      "abstract_en": "Problem Definition: How a queue of jobs is arranged and presented to workers is an important design problem in service operations. This includes choosing the order in which jobs are performed, how much say workers have in setting that order, and how much queue and arrival information workers receive. Methodology/Results: To better understand how queue design (job ordering, autonomy, visibility) affects worker performance (speed, quality), we run a series of pre-registered online experiments. We use a new, real-effort task in which workers fulfill order-picking jobs of varying complexity that arrive dynamically over time. Our results are as follows: (1) When workers choose their own picking order, we reproduce the field finding that Easy First (EF) ordering is associated with worse performance than First-in-first-out (FIFO), and show that this is mainly due to worker self-selection rather than due to the ordering itself; (2) Exogenously imposed EF ordering improves work quality (picking accuracy) relative to both FIFO and discretionary ordering; (3) Imposing an ordering may reduce speed for the most capable workers; (4) Seeing a new job arrival leads to a short-term productivity burst; however, removing job arrival and queue information altogether does not affect performance in the long term. Managerial implications: Our results provide guidance on which queue design works best for a given performance goal (speed or quality) and worker ability level. We also identify personality measures that can help managers screen for error-prone workers.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/03/2607.28879v1-raresense-rarity-aware-similarity-search-for-anomaly-retrieval-in-transactional-data",
+      "section": "quick",
+      "title_en": "RareSense: Rarity-Aware Similarity Search for Anomaly Retrieval in Transactional Data",
+      "authors": "Sidahmed Benabderrahmane, Talal Rahwan",
+      "date": "2026-07-30",
+      "pdf": "https://arxiv.org/pdf/2607.28879v1",
+      "score": "6.0",
+      "evidence": "从事务数据中挖掘稀有关联规则的稀有感知相似性框架，可应用于商品关联分析",
+      "tldr": "传统事务数据相似性搜索依赖特征重叠，易受高频背景属性主导，IDF加权仍缺乏高阶信息。RareSense框架通过挖掘最小稀有项集提取可靠稀有规则，构建对象稀有规则剖面，以加权Jaccard度量稀有感知相似性。实验在多个基准上取得最高的宏平均查询条件检索性能，在全局异常排名中也表现强劲。该方法为异常检索提供了新颖的稀有结构驱动范式，强化了对可重复稀有模式的识别能力。",
+      "tags": "query:wo",
+      "abstract_en": "Similarity search over sparse set-valued data is often dominated by frequent background attributes because classical measures such as Jaccard, cosine, and Hamming compare objects through atomic overlap. IDF (Inverse document frequency) weighting partially reduces this effect but remains atom-wise and cannot explicitly represent informative higher-order co-occurrences. We introduce RareSense, a rarity-aware similarity framework for sparse transactional anomaly data. RareSense mines minimal rare itemsets as intermediate structures, derives reliable rare association rules, maps objects into sparse rare-rule profiles, and compares them using weighted Jaccard similarity. Rule weights combine inverse support, confidence, lift, structural complexity, and stability, so that neighborhoods are determined by shared rare evidence rather than uniform feature overlap. We show that IDF-weighted Jaccard is a restricted singleton case of RareSense, and that the induced distance is a pseudometric on the original objects and a metric over equivalence classes defined by identical rule profiles. Experiments across four benchmark families spanning cybersecurity and general categorical domains show that RareSense attains the highest observed macro-average query-conditioned retrieval performance among the evaluated similarity measures. The statistical analysis indicates significant overall differences, with corrected paired comparisons favoring RareSense over the atomic baselines. The gains remain workload-dependent and are strongest when anomalies share repeatable rare higher-order structure. For global anomaly ranking, RareSense achieves the highest observed macro-average performance while remaining statistically comparable to several strong dedicated detectors.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

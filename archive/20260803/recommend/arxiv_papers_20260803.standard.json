@@ -1,0 +1,90 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-03T21:06:04.817865+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2607.28820v1",
+      "source": "arxiv",
+      "title": "What's in a Queue? An Experimental Study of Job Ordering, Autonomy and Queue Visibility",
+      "abstract": "Problem Definition: How a queue of jobs is arranged and presented to workers is an important design problem in service operations. This includes choosing the order in which jobs are performed, how much say workers have in setting that order, and how much queue and arrival information workers receive. Methodology/Results: To better understand how queue design (job ordering, autonomy, visibility) affects worker performance (speed, quality), we run a series of pre-registered online experiments. We use a new, real-effort task in which workers fulfill order-picking jobs of varying complexity that arrive dynamically over time. Our results are as follows: (1) When workers choose their own picking order, we reproduce the field finding that Easy First (EF) ordering is associated with worse performance than First-in-first-out (FIFO), and show that this is mainly due to worker self-selection rather than due to the ordering itself; (2) Exogenously imposed EF ordering improves work quality (picking accuracy) relative to both FIFO and discretionary ordering; (3) Imposing an ordering may reduce speed for the most capable workers; (4) Seeing a new job arrival leads to a short-term productivity burst; however, removing job arrival and queue information altogether does not affect performance in the long term. Managerial implications: Our results provide guidance on which queue design works best for a given performance goal (speed or quality) and worker ability level. We also identify personality measures that can help managers screen for error-prone workers.",
+      "authors": [
+        "Evgeny Kagan"
+      ],
+      "primary_category": "econ.GN",
+      "categories": [
+        "econ.GN"
+      ],
+      "published": "2026-07-30T20:23:05+00:00",
+      "link": "https://arxiv.org/pdf/2607.28820v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "experimental study of job ordering, autonomy, and visibility in order-picking tasks",
+      "llm_evidence_cn": "针对订单拣选任务的作业排序、自主权和可见性实验研究",
+      "llm_evidence": "针对订单拣选任务的作业排序、自主权和可见性实验研究",
+      "canonical_evidence": "针对订单拣选任务的作业排序、自主权和可见性实验研究",
+      "llm_tldr_en": "Studies how queue design (job ordering, worker autonomy, queue visibility) impacts order-picking speed and quality through online experiments, finding that easier-first ordering and higher autonomy can improve performance but may reduce quality under certain conditions.",
+      "llm_tldr_cn": "针对仓库订单拣选中作业排序、工人自主权及队列可见性如何影响拣选效率与质量的问题，通过在线实验再现了实际拣选场景。实验发现，优先处理简单订单和赋予工人拣选顺序选择权可提升速度，但单纯增加可见性或自主权可能在特定条件下降低工作质量。研究为设计更高效的仓库作业管理界面与任务分配规则提供了行为证据，有助于改善订单拣选策略和工人激励。",
+      "llm_tldr": "针对仓库订单拣选中作业排序、工人自主权及队列可见性如何影响拣选效率与质量的问题，通过在线实验再现了实际拣选场景。实验发现，优先处理简单订单和赋予工人拣选顺序选择权可提升速度，但单纯增加可见性或自主权可能在特定条件下降低工作质量。研究为设计更高效的仓库作业管理界面与任务分配规则提供了行为证据，有助于改善订单拣选策略和工人激励。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.28879v1",
+      "source": "arxiv",
+      "title": "RareSense: Rarity-Aware Similarity Search for Anomaly Retrieval in Transactional Data",
+      "abstract": "Similarity search over sparse set-valued data is often dominated by frequent background attributes because classical measures such as Jaccard, cosine, and Hamming compare objects through atomic overlap. IDF (Inverse document frequency) weighting partially reduces this effect but remains atom-wise and cannot explicitly represent informative higher-order co-occurrences. We introduce RareSense, a rarity-aware similarity framework for sparse transactional anomaly data. RareSense mines minimal rare itemsets as intermediate structures, derives reliable rare association rules, maps objects into sparse rare-rule profiles, and compares them using weighted Jaccard similarity. Rule weights combine inverse support, confidence, lift, structural complexity, and stability, so that neighborhoods are determined by shared rare evidence rather than uniform feature overlap. We show that IDF-weighted Jaccard is a restricted singleton case of RareSense, and that the induced distance is a pseudometric on the original objects and a metric over equivalence classes defined by identical rule profiles. Experiments across four benchmark families spanning cybersecurity and general categorical domains show that RareSense attains the highest observed macro-average query-conditioned retrieval performance among the evaluated similarity measures. The statistical analysis indicates significant overall differences, with corrected paired comparisons favoring RareSense over the atomic baselines. The gains remain workload-dependent and are strongest when anomalies share repeatable rare higher-order structure. For global anomaly ranking, RareSense achieves the highest observed macro-average performance while remaining statistically comparable to several strong dedicated detectors.",
+      "authors": [
+        "Sidahmed Benabderrahmane",
+        "Talal Rahwan"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-30T22:48:26+00:00",
+      "link": "https://arxiv.org/pdf/2607.28879v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "rarity-aware similarity framework mining rare association rules from transactional data, applicable to item affinity analysis",
+      "llm_evidence_cn": "从事务数据中挖掘稀有关联规则的稀有感知相似性框架，可应用于商品关联分析",
+      "llm_evidence": "从事务数据中挖掘稀有关联规则的稀有感知相似性框架，可应用于商品关联分析",
+      "canonical_evidence": "从事务数据中挖掘稀有关联规则的稀有感知相似性框架，可应用于商品关联分析",
+      "llm_tldr_en": "RareSense introduces a rarity-aware similarity framework that mines rare itemsets and rare association rules from sparse transactional data, maps objects into rare-rule profiles, and compares them using weighted Jaccard similarity, which can enhance item affinity analysis for warehouse optimization by capturing infrequent but informative product relationships.",
+      "llm_tldr_cn": "传统相似性搜索在处理稀疏事务数据时过度依赖高频属性。本文提出RareSense稀有感知相似性框架，通过挖掘最小稀有项集、推导可靠稀有关联规则，将对象映射为稀疏稀有规则轮廓，并使用加权Jaccard相似度进行比较。该方法在异常检索场景下优于标准方法，能捕捉稀有但信息丰富的模式，为仓库优化中的商品关联分析提供了发现非频繁但重要产品关联的途径。",
+      "llm_tldr": "传统相似性搜索在处理稀疏事务数据时过度依赖高频属性。本文提出RareSense稀有感知相似性框架，通过挖掘最小稀有项集、推导可靠稀有关联规则，将对象映射为稀疏稀有规则轮廓，并使用加权Jaccard相似度进行比较。该方法在异常检索场景下优于标准方法，能捕捉稀有但信息丰富的模式，为仓库优化中的商品关联分析提供了发现非频繁但重要产品关联的途径。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "item affinity analysis for warehouse optimization",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "date": "20260803",
+  "date_label": "",
+  "generated_at": "2026-08-03 21:11:53 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2607.28820v1",
+      "route": "202608/03/2607.28820v1-whats-in-a-queue-an-experimental-study-of-job-ordering-autonomy-and-queue-visibility",
+      "title": "What's in a Queue? An Experimental Study of Job Ordering, Autonomy and Queue Visibility",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "针对订单拣选任务的作业排序、自主权和可见性实验研究",
+      "first_seen_at": "2026-08-03 21:11:53 UTC",
+      "updated_at": "2026-08-03 21:11:53 UTC"
+    },
+    {
+      "paper_id": "2607.28879v1",
+      "route": "202608/03/2607.28879v1-raresense-rarity-aware-similarity-search-for-anomaly-retrieval-in-transactional-data",
+      "title": "RareSense: Rarity-Aware Similarity Search for Anomaly Retrieval in Transactional Data",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "从事务数据中挖掘稀有关联规则的稀有感知相似性框架，可应用于商品关联分析",
+      "first_seen_at": "2026-08-03 21:11:53 UTC",
+      "updated_at": "2026-08-03 21:11:53 UTC"
+    }
+  ]
+}
