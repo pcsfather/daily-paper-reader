@@ -1,0 +1,848 @@
+Title: Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses
+
+URL Source: https://arxiv.org/pdf/2608.01024v1
+
+Published Time: Tue, 04 Aug 2026 01:06:45 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses 
+
+# Xiangjie Luo 1, Yulun Zhang 2, Miyuki Koshimura 1, Makoto Yokoo 1, Jiaoyang Li 2
+
+> 1
+
+Graduate School of Information Science and Electrical Engineering, Kyushu University 
+
+> 2
+
+Robotics Institute, Carnegie Mellon University luo.xiangjie.239@s.kyushu-u.ac.jp, yulunzhang@cmu.edu, koshi@inf.kyushu-u.ac.jp, yokoo@kyudai.jp, jiaoyangli@cmu.edu 
+
+Abstract 
+
+We study the problem of optimizing physical layouts for auto-mated warehouses, where hundreds to thousands of robots are coordinated to transport packages. Previous works have shown that optimizing the warehouse layout (e.g., the physical loca-tion of the storage shelves) significantly improves throughput. However, state-of-the-art layout optimization approaches are based on evolutionary optimization methods, which treat the entire warehouse as a black box and rely on random muta-tion to search for high-quality layouts. While the optimization outcomes are promising, these methods require a massive number of simulations to evaluate candidate solutions, mak-ing them sample-inefficient. In this paper, we present Stress-
+
+Relief Annealing (SRA), a polynomial-time simulation-free 
+
+layout optimization algorithm. SRA turns the task demand into a per-vertex stress field that predicts where traffic will concentrate in the warehouse; the field’s peak provably caps the throughput. Our experimental results show that (1) SRA improves both the throughput and the scalability of a human-designed ware-house, roughly doubling the number of robots it can sustain, (2) it matches or exceeds the throughput of the evolutionary baselines while taking only 19 minutes on one CPU core, against their 25 ,000 simulations and 25 hours on a 64 -core machine, and (3) the gain generalizes across different Multi-Agent Path Finding algorithms, non-uniform task demands, and a warehouse with doubled dimensions. 
+
+Our code will be publicly available upon acceptance. 
+
+# 1 Introduction 
+
+In an automated warehouse (Wurman, D’Andrea, and Mountz 2007; Kou et al. 2020), hundreds to thousands of robots are coordinated to continuously pick up goods from shelves and deliver them to workstations. The key perfor-mance metric is throughput, computed as the number of tasks completed by all robots per timestep. Where the robot traffic concentrates is set jointly by the Multi-Agent Path Finding (MAPF) (Stern et al. 2019) planner and the layout: the planner plans collision-free paths from the robots’ start to goal locations, and the layout fixes which aisles they can use. Under a fixed planner, the layout decides whether the traffic spreads out or funnels into bottlenecks—and with it, how many robots the system can sustain. Prior work has shown that optimizing the layout signifi-cantly improves throughput (Zhang et al. 2023b,a). However, human design  
+
+> (deadlocks at  N = 200)
+> predicted stress simulated traffic
+> SRA
+> (flows at  N = 350)
+> low
+> high
+> stress
+
+Figure 1: The stress field is predicted from the shelf demand alone; the simulated traffic is one RHCR (PBS) run at w =10 : N = 150 on the original layout, N = 300 on the SRA layout. state-of-the-art layout optimizers are evolutionary meth-ods (Bhatt et al. 2022; Fontaine and Nikolaidis 2023). They treat the warehouse as a black box: candidate layouts are pro-duced by random mutation, and each candidate is evaluated by a computationally expensive multi-robot simulation that returns the throughput. These methods are therefore sample-inefficient: Zhang et al. (2023b) reports optimizing a 33 × 36 
+
+layout with 200 robots on a 64 -core machine in 24 hours. At real-world scales—up to 4,000 robots in a single ware-house (Brown 2022) and maps as large as 179 × 69 (Yu and Wolf 2023)—simulation-driven search only becomes less af-fordable. Moreover, the shelf demand —how often each shelf is requested—is skewed in practice: a small set of high-frequency shelves absorbs most of the requests, while the 
+
+low-frequency majority is rarely visited. While the evolution-ary methods can in principle be run under such non-uniform demand, their search is not informed by it: random mutation does not know which shelves are requested frequently, so placing the high-frequency shelves well is left to chance. We close this gap with a cheap congestion estimate that is explicitly informed by the shelf demand. From this de-arXiv:2608.01024v1 [cs.MA] 2 Aug 2026 mand alone, we compute a stress field : an estimate of how the robot traffic will spread over the warehouse, obtained by repeatedly running single-agent planning between shelves and workstations—no multi-robot simulation involved. The field serves as a surrogate for simulation: it predicts a can-didate layout’s congestion without running simulations. Fig-ure 1 previews the idea: the field, computed before any robot moves, marks the same corridors that later become congested in simulation. Building on this surrogate, we present Stress-Relief 
+
+Annealing (SRA), which repeats a simple cycle: compute the stress field of the current layout, then relocate shelves away from the most stressed regions, accepting or rejecting each change by simulated annealing (Kirkpatrick, Gelatt Jr, and Vecchi 1983) (Sec. 4.2). The procedure calls no simula-tion and provably runs in polynomial time. We validate SRA in simulation with the state-of-the-art lifelong MAPF algorithms. Our experimental results show that (1) SRA improves both the throughput and the scalability of a human-designed warehouse, roughly doubling the num-ber of robots it can sustain, (2) SRA matches or exceeds the throughput of the evolutionary baselines—which consume 
+
+25 ,000 simulations and 25 hours per run on average using 64 CPU cores in parallel—in 19 minutes on one CPU core, and (3) the gain generalizes across different MAPF planners— the search-based RHCR (Li et al. 2021) and the rule-based PIBT (Okumura et al. 2022)—across non-uniform demand, and to a warehouse with doubled dimensions. The gain gener-alizes because the field is faithful: the predicted field closely matches the traffic realized in simulation (Sec. 5.3). 
+
+# 2 Problem Formulation 
+
+Following Zhang et al. (2023b), we first define warehouse layout and then the problem of layout optimization. 
+
+Definition 1 (Warehouse layout) . A warehouse layout is a four-neighbor grid graph G, with V being the set of all ver-tices. Every vertex is a shelf, a workstation, an endpoint, or an empty space. Robots can traverse non-shelf vertices. Figure 2 shows an example. The grid splits into a storage area , which holds all shelves, and a fixed non-storage mar-gin , which holds the workstations and is not optimized. The shelf set is S, and the workstation set is W with |W | = M .A traversable vertex adjacent to a shelf s ∈ S is an endpoint 
+
+of s, where a robot parks to interact with the shelf. We write 
+
+∂s for the endpoint set of s ∈ S. Endpoints are induced by shelf placement—every traversable face of a shelf is one of its endpoints. Note that prior works (Zhang et al. 2023b,a) optimize the locations of both endpoints and shelves; our decision variables are the shelf positions alone. 
+
+Definition 2 (Valid layout) . A layout is valid iff (1) the traversable vertices form a single connected component, and (2) every shelf has at least one adjacent endpoint. Condition (1) makes G connected, and condition (2) keeps every shelf accessible. 
+
+Robot Tasks. The task structure simulates an automated fulfillment warehouse (Hönig et al. 2019; Zhang et al. 2023b; workstation 
+
+> low-frequency shelf
+> high-frequency shelf
+> endpoint
+> storage area
+
+Figure 2: The human-designed original layout. Shelves inside the red dashed box (storage area) are the decision variables; endpoints are the traversable vertices adjacent to each shelf. Li et al. 2021): the goals of each robot alternate between endpoints and workstations—a robot picks up a package at a shelf’s endpoint, delivers at a workstation, and then heads to the next endpoint. 
+
+Definition 3 (Non-uniform shelf demand) . Each shelf s car-ries a fixed demand weight ws, where ws = w for high-frequency shelves and ws = 1 for low-frequency ones; we call w the demand skew . When a goal is sampled from the endpoints, it is drawn by weight: shelf s splits ws equally over its endpoints, an endpoint shared by several shelves sums the shares, and an endpoint is drawn with probability propor-tional to its weight. The visit rate of a shelf is ws no matter how many faces it exposes. When a goal is sampled from the workstations, workstation j is drawn with probability ωj ,where P 
+
+> j
+
+ωj = 1 . {ws} and {ωj } together form the demand structure .
+
+Definition 4 (Throughput) . A robot finishes a task when it reaches its currently assigned goal. Throughput λ is the aver-age number of finished tasks per timestep. We write ¯λ(G, N )
+
+for the throughput of layout G operated with N robots under a fixed planner, and call λ∗(G) = max N ¯λ(G, N ) the peak throughput of G under that planner. 
+
+Congestion collapse and capacity. Throughput grows with N , but a layout that funnels flow into a few aisles has a critical point: past it, congestion feeds on itself, the sys-tem deadlocks, and throughput drops to zero (Li et al. 2021; Zhang et al. 2023b). For example, the layout of Figure 1 (top) sustains about 5 tasks per timestep at N = 150 ; at N = 200 
+
+eight of ten runs collapse (Sec. 5). The peak throughput 
+
+λ∗ is therefore attained just before this collapse. Measuring throughput requires a computationally expensive multi-robot simulation (Sec. 3.1), and the prior layout optimization meth-ods need a massive number of such evaluations (Zhang et al. 2023b,a). 
+
+Definition 5 (Layout optimization) . Given the storage area, the shelf counts ( nH high-frequency and nC low-frequency, both fixed), the demand structure {ws}, {ωj }, and the robot count N , layout optimization asks for a valid layout G that maximizes the throughput ¯λ(G, N ).3 Preliminaries 
+
+3.1 Lifelong MAPF 
+
+Multi-Agent Path Finding (MAPF) (Stern et al. 2019) plans collision-free paths for a team of agents from their corre-sponding start to goal locations. Lifelong MAPF (Ma et al. 2017; Li et al. 2021) is a variant of MAPF that continuously assigns new goals to agents. In this work, we adopt the classi-cal lifelong MAPF definition for the operation of the robots, where (1) all robots move in discrete timesteps on a ware-house layout, (2) at each timestep, each robot can either stay at its current vertex or move to an adjacent vertex, (3) robots cannot be in the same vertex or swap vertices at the same timestep, and (4) the objective is to maximize throughput. Lifelong MAPF algorithms broadly fall into two cate-gories. Search-based methods (Wan et al. 2018; Li et al. 2021) decompose the problem into a sequence of MAPF problems and solve each using a MAPF planner. These meth-ods produce high-quality solutions but lack scalability. Rule-based methods (Wang and Botea 2011, 2008; Okumura et al. 2022; Yu and Wolf 2023) decide the robots’ moves one step at a time with a pre-defined rule, trading solution-quality guar-antees for speed and scale. We conduct experiments with RHCR (Li et al. 2021) and PIBT (Okumura et al. 2022), the state-of-the-art representatives of the two categories. 
+
+Congestion Approximation in Lifelong MAPF Several lines of work inside lifelong MAPF approximate where con-gestion will arise and use the result to steer the robots. Han and Yu (2022) penalizes the vertices occupied by the already-planned paths, so that later single-agent paths spread over the map. Chen et al. (2024) repeatedly runs single-agent plan-ning with congestion-aware edge costs and turns the resulting flows into guidance. Yu and Wolf (2023) predicts congestion for large robot fleets with data-driven methods. Ewing et al. (2022) computes the betweenness centrality of the map—the construction closest to our stress field—and relates it to the empirical hardness of the map’s MAPF instances. The stress field of Sec. 4 likewise aggregates single-agent shortest paths into a per-vertex congestion surrogate. It differs in what the surrogate is for: these works steer the robots or predict solver performance, both on a fixed layout, whereas we use it to optimize the layout itself and tie its peak to a throughput bound. 
+
+3.2 Warehouse Layout Optimization 
+
+Operations research evaluates warehouse layouts analyt-ically: queuing-network models estimate the throughput of regular, template-like layouts (Lamballais, Roy, and De Koster 2017; Wu et al. 2020), and integer program-ming places workstations to minimize average travel dis-tance (Yang et al. 2021). These models need no simulation, but their travel times are free-flow: robots do not interfere with each other, so the congestion collapse of Sec. 2 is in-visible to them. They also keep the shelves fixed: the layout follows a fixed template, and only a few design choices— the length-to-width ratio of the storage area, the workstation locations—are tuned. The state-of-the-art layout optimization methods— DSAGE (Zhang et al. 2023b) and NCA (Zhang et al. 2023a)—are based on evolutionary optimization (Mouret and Clune 2015; Zhang et al. 2022; Fontaine and Niko-laidis 2023): mutation proposes candidate layouts and a life-long MAPF simulation scores each one, which makes them impractical at real-world scales. SRA requires no lifelong MAPF simulation during optimization. The analytical models and the evolutionary methods have complementary weaknesses: the former need no simulation but are blind to traffic congestion, while the latter are sensi-tive to congestion but pay for every candidate with a simula-tion. The stress field of Sec. 4 combines their strengths: an analytical congestion surrogate that requires no simulation. 
+
+# 4 Method 
+
+4.1 Stress Field and the Bottleneck Law 
+
+We turn the demand structure of Definition 3 into a per-vertex stress field. Each shelf–workstation pair (s, j ) carries a flow of volume ws ωj from the endpoints of s to workstation 
+
+j; we spread this flow evenly over their shortest paths and superpose all pairs. Let F : V → R be the flow function. Then the flow at vertex v ∈ V is: 
+
+F (v) = X
+
+> s∈S
+
+X
+
+> j∈W
+
+ws ωj bs,j (v). (1) 
+
+bs,j (v) is the average, over the endpoints of s, of the fraction of shortest paths from each endpoint to workstation j that pass through v:
+
+bs,j (v) = 1
+
+|∂s |
+
+X
+
+> e∈∂s
+
+σej (v)
+
+σej 
+
+, (2) 
+
+σej (v) = 
+
+σev σvj , d(e, v ) + d(v, j ) = d(e, j ),
+
+0, otherwise. (3) In Equation (2), ∂s is the set of adjacent endpoints of shelf 
+
+s (Definition 1); the prefactor 1/|∂s | keeps the total con-tribution of s at ws regardless of how many endpoints it exposes. σej is the number of shortest paths between e and 
+
+j, σej (v) the number of such paths that pass v, and d the shortest-path distance; the ratio σej (v)/σ ej is the probabil-ity that a robot on a uniformly random shortest path from e
+
+to j passes through v. Equation (3) is the standard shortest-path counting identity: v lies on some shortest e → j path iff 
+
+d(e, v ) + d(v, j ) = d(e, j ).Therefore, F in Equation (1) is a variant of vertex be-tweenness centrality (Freeman 1977) in which the sum runs only over endpoint–workstation pairs, each weighted by its demand ws ωj ; one BFS per workstation, followed by a Brandes-style dependency accumulation (Brandes 2001), can compute it at total cost O(M |V |). Normalizing F to unit demand gives the stress field ℓ:
+
+ℓ(v) = F (v)
+
+Wtotal 
+
+, Wtotal = X
+
+> s∈S
+
+ws. (4) 
+
+ℓ(v) is the probability that a random task’s route passes through v; a shortest path crosses v at most once, so this probability also equals the expected number of times that vis traversed per task. The denominator Wtotal is determined by the demand structure alone; a layout-independent denomina-tor keeps the optimizer from diluting the congestion reading by lengthening paths globally. The construction above assumes that all traffic follows shortest routes—the all-or-nothing assignment of traffic anal-ysis (Wardrop 1952; Sheffi 1985)—ignoring that robots may detour around congestion. Appendix A.1 tests where this construction’s guidance holds and finds it faithful over the robot counts studied here. Congestion concentrates at the most loaded vertex. We define the bottleneck load :
+
+ℓ∗ = max  
+
+> v
+
+ℓ(v). (5) At throughput λ, the traversal demand at v is λ ℓ (v). A traver-sal of a vertex is one robot entering it. A vertex holds one robot at a time, so the traversals it sustains per timestep are bounded; we write c for the highest traversal rate a vertex sustains. We model c as a constant of the MAPF algorithm, independent of the layout, the robot count, and the demand structure, which enter only through ℓ(v). We calibrate it once, as the highest per-vertex traversal rate observed before col-lapse, over RHCR runs spanning layouts and robot counts (Sec. 5.3 gives the value used here). Sustaining throughput 
+
+λ therefore requires λ ℓ (v) ≤ c at every vertex, the tightest at the most loaded one, which gives the bottleneck law 
+
+λ ℓ ∗ ≤ c =⇒ λ ≤ cℓ∗ . (6) This is the classical bottleneck bound of queuing analy-sis (Lazowska et al. 1984), applied to the vertices of the grid. Lowering ℓ∗ raises the throughput ceiling, giving the basis for optimizing ℓ∗. Only this analysis needs the value of 
+
+c: lowering ℓ∗ raises the ceiling whatever c is, so the opti-mizer of Sec. 4.2 never uses it. In our experiments, layouts with a lower ℓ∗ attain a higher peak throughput (Sec. 5), the qualitative prediction of the bound. SRA optimizes ℓ∗ jointly with the weighted trip length 
+
+Lw = 1
+
+Wtotal 
+
+X
+
+> s∈S
+
+X
+
+> j∈W
+
+ws ωj
+
+1
+
+|∂s |
+
+X
+
+> e∈∂s
+
+d(e, j ). (7) Given a random task drawn as in Definition 3, Lw is the expected shortest-path distance between the endpoint and the workstation of the task. The optimization lowers ℓ∗ while keeping Lw small. All these quantities depend on the layout. When comparing layouts, we write ℓ∗(G) and Lw(G).
+
+4.2 Stress-Relief Annealing 
+
+A congestion peak in a layout is a stress concentration, and the standard process for removing stress concentrations is annealing (Kirkpatrick, Gelatt Jr, and Vecchi 1983), which names the method SRA (Stress-Relief Annealing). Algo-rithm 1 lists the full procedure; the rest of this section walks through it. The two objectives combine into a single energy 
+
+E(G) = α ℓ ∗(G) + Lw(G), (8) where the congestion term α ℓ ∗ penalizes a high bottleneck load, and the trip term Lw penalizes long trips. α sets their relative strength. A fixed α drifts across maps and demand structures, because ℓ∗ and Lw differ in magnitude across w
+
+and scale. To compute α, we first set K, the desired ratio of the initial congestion term αℓ ∗ 
+
+> 0
+
+to the initial trip term Lw, 0
+
+on the original layout, and derive α from it (lines 1–2 of Algorithm 1): 
+
+α = K Lw, 0
+
+ℓ∗
+
+> 0
+
+, (9) We set K = 1 : the two terms start equal. α is computed once at the start and frozen throughout; K transfers across maps and demand structures without per-setting tuning. SRA iteratively selects a shelf and relocates it to a different position to optimize E. At each step, SRA relocates one shelf in two stages: (1) select a source shelf (line 6), and (2) select a target vertex (line 7). While selecting the source shelf, we first score every shelf s by its felt stress :
+
+felt( s) = α max  
+
+> e∈∂s
+
+ρ(e) + ws
+
+1
+
+|∂s |
+
+X
+
+> e∈∂s
+
+D(e). (10) Here ρ(e) = N F (e)/ P 
+
+> u∈V
+
+F (u) denotes the expected occupancy of e, i.e., the expected number of robots at e when the N robots are distributed over the map in proportion to the flow F (Equation (1)). D(e) is the mean distance from e
+
+to the workstations. Both terms aggregate over the endpoints of s: the maximum for ρ and the average for D.The source is then sampled from a softmax over the z-scored felt values ( getSource , Appendix B): high-stress shelves are chosen more often, and the randomness breaks cyclic stalls. We then select the target vertex. Since endpoints are in-duced by adjacency (Definition 1), a shelf may be relocated to any non-shelf vertex in the storage area, including vertices that currently serve as endpoints of other shelves. We try the non-shelf vertices in the storage area in ascending order of placement cost: 
+
+cost( v) = α ρ (v) + ws D(v), (11) where ws is the demand weight of the relocated shelf. Each candidate target vertex must pass the veto : the lay-out must remain valid after relocating the source shelf to the candidate target (Definition 2). The first vertex that passes is the proposal ( getTarget , Appendix B). Acceptance of the relocation proposed at step k follows the Metropolis rule (Metropolis et al. 1953) (lines 8–12): 
+
+Paccept = min  1, e −∆E/T k
+
+, ∆E = E(G′) − E(G),
+
+(12) where G′ is the layout after the relocation proposed at step k and G the current layout, under geometric cooling 
+
+Tk+1 = γT k (line 16) with γ = (0 .01) 1/steps , from T0 to 
+
+0.01 T0. initializeTemperature (line 3) calibrates 
+
+T0 = |∆E| over trial relocations that are scored but never applied (Appendix B). Line 4 initializes the energy and the best layout found so far. During annealing, SRA keeps track of the lowest-energy layout encountered and returns it (lines 13–15 and 18). Algorithm 1: Stress-Relief Annealing (SRA) 
+
+Require: original layout G, demand structure {ws}, {ωj },robot count N , step count steps , ratio K
+
+1: ℓ∗
+
+> 0
+
+, L w, 0 ← computeStressField (G)
+
+2: α ← K L w, 0/ℓ ∗
+
+> 0
+
+3: T ← initializeTemperature (G) {T : annealing temperature} 
+
+4: E ← α ℓ ∗ 
+
+> 0
+
++ Lw, 0; G⋆ ← G; E⋆ ← E {G⋆, E ⋆:best so far} 
+
+5: for k = 1 to steps do 
+
+6: s ← getSource (G)
+
+7: v ← getTarget (G, s )
+
+8: G′ ← G with s relocated to v
+
+9: ℓ∗(G′), L w(G′) ← computeStressField (G′);
+
+E′ ← α ℓ ∗(G′) + Lw(G′)
+
+10: if rand() < P accept then 
+
+11: G ← G′; E ← E′
+
+12: end if 
+
+13: if E < E ⋆ then 
+
+14: G⋆ ← G; E⋆ ← E
+
+15: end if 
+
+16: T ← γ T 
+
+17: end for 
+
+18: return G⋆
+
+Runtime Complexity. Our implementation recomputes the stress field per endpoint, at O(|S| M |V |) per step; the Brandes-style accumulation of Sec. 4.1 would lower this to 
+
+O(M |V |), which we have not implemented. The felt and cost scores are read on the same pass, and each veto check is a connectivity test in O(|V |). In the worst case every empty vertex of the storage area is checked before one passes, and a run of steps iterations costs O(steps · (|S| M |V | + |V |2)) ,still polynomial. The bound involves no lifelong MAPF sim-ulation. 
+
+# 5 Experiments 
+
+5.1 Setup 
+
+Following prior works (Zhang et al. 2023a,b), experiments use the warehouse of Figure 2: a 33 ×36 layout with M = 22 
+
+workstations on the left and right margins and 240 shelves (36 high-frequency, 204 low-frequency) in the storage area. The original layout is a commonly used human-designed layout (Li et al. 2021; Liu et al. 2019), with bottleneck load 
+
+ℓ∗ 
+
+> 0
+
+= 0 .139 . The scaling experiment doubles both dimen-sions of this layout, keeping its aisle structure and its shelf and workstation densities: 66 × 69 , 960 shelves ( 144 high-frequency), M = 44 , with ℓ∗ 
+
+> 0
+
+= 0 .084 (construction detailed in Appendix C). We compare SRA with DSAGE (Zhang et al. 2023b) and NCA (Zhang et al. 2023a) (parameters detailed in Appendix D) across demand skews w ∈ { 1, 5, 10 } and across lifelong MAPF algorithms: RHCR (Li et al. 2021) with PBS (Ma et al. 2019) as its solver, and PIBT (Okumura et al. 2022). 
+
+SRA parameters. SRA optimizes for N = 300 robots and runs 3500 steps with K = 1 and the calibrated T0, on a Table 1: Throughput at N = 300 , and search cost per run. Original is the human-designed original layout. Each method’s best layout is evaluated over 10 simulation seeds: mean ± one standard deviation. In the PIBT block, DSAGE and NCA use the best layouts of their searches re-run with PIBT evaluations; SRA uses the same layouts as in the RHCR block. Time is mean ± 95% CI over search runs.                                                                                                                    
+
+> λ@N=300 search cost Method w=1 w=5 w=10 sims time
+> RHCR (PBS)
+> Original 0.73 ±0.32 0.24 ±0.10 0.13 ±0.06 ––DSAGE 8.23 ±0.90 7.64 ±1.87 8.26 ±1.16 25000 19 .2±1.0hNCA 9.24 ±0.06 8.76 ±1.50 8.53 ±1.98 25000 29 .6±1.1hSRA 9.25 ±0.05 9.58 ±0.06 9.81 ±0.04 018 .8±0.4min
+> PIBT
+> Original 4.77 ±0.06 4.76 ±0.06 4.45 ±0.14 ––DSAGE 5.96 ±0.09 6.59 ±0.07 6.52 ±0.09 25000 2.5±0.3hNCA 7.11 ±0.05 7.06 ±0.03 7.14 ±0.04 25000 2.6±0.1hSRA 7.16 ±0.06 7.18 ±0.05 7.77 ±0.06 018 .8±0.4min
+
+single CPU core, in 18 .8 ± 0.4 minutes per run. We anneal five seeds at w = 10 and three at each other skew. 
+
+Evaluation. Each optimized layout is evaluated by simula-tion over 1000 timesteps. The planners are RHCR and PIBT. RHCR replans every 5 timesteps with a planning window of 
+
+10 , using PBS as its solver throughout. Unless stated other-wise, evaluations run at N = 300 with 10 simulation seeds. The robot-count sweeps span N = 100 to 400 on the original warehouse and N = 300 to 1500 on the 66 × 69 warehouse. Reported SRA results pool the annealing seeds unless stated otherwise. 
+
+5.2 Main Results 
+
+Comparison with evolutionary search. Table 1 compares SRA with DSAGE and NCA on best-layout throughput. SRA matches the best baseline at w = 1 and outperforms both baselines at w = 5 and w = 10 ; the advantage grows with the demand skew. Every SRA run ends above λ = 9 .1, while DSAGE in every skew and NCA in w = 5 and w = 10 have runs that end at λ = 2 .9–5.9.
+
+Search cost. Figure 4 overlays the best-so-far throughput of SRA and baselines in all three skews. The baselines’ searches cost 25 ,000 simulations and as much as 25 hours on a 64-core machine, while SRA runs on a single CPU core. SRA replaces the per-candidate simulation with a stress-field eval-uation that takes 0.3 seconds: 3500 evaluations, zero simu-lations, and 19 minutes on one CPU core. With RHCR, SRA surpasses the final quality of the baselines in 8 minutes at 
+
+w = 10 and 3 minutes at w = 5 . The PIBT results show a similar trend, with SRA being significantly faster than the baselines while maintaining similar or better throughput. 
+
+The gain is planner-independent. DSAGE and NCA re-quire separate optimizations with RHCR and PIBT, while SRA is planner-agnostic: we can optimize the layouts once and deploy different planners. The PIBT block of Table 1 confirms this at every skew: the original layout saturates at 
+
+λ = 4 .5–4.8, and the SRA layouts reach λ = 7 .2–7.8. Ap-pendix A.2 repeats the comparison under a third planner, original SRA DSAGE NCA RHCR (PBS) PIBT 100 200 300 400  
+
+> robots N
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> throughput (tasks/step)
+
+(a) w = 1 100 200 300 400   
+
+> robots N
+
+(b) w = 5 100 200 300 400   
+
+> robots N
+
+(c) w = 10 300 900 1500   
+
+> robots N
+> 0.0
+> 2.5
+> 5.0
+> 7.5
+> 10.0
+> 12.5
+> 15.0
+
+(d) the 66 × 69 warehouse 
+
+Figure 3: Throughput against robot count N : medians and interquartile ranges. (a)–(c): the 33 × 36 warehouse per demand skew, over 10 RHCR (PBS) and 5 PIBT simulation seeds per layout, SRA pooling its annealing seeds. (d): the 66 × 69 warehouse at 
+
+w = 10 , over 3 simulation seeds per layout, SRA pooling 3 annealing seeds and NCA pooling 5 generated layouts per planner; the RHCR (PBS) points at N = 300 for the original and SRA layouts are single runs. SRA DSAGE NCA             
+
+> w= 10 w= 5 w= 1 10 010 110 210 3
+> optimization time (min)
+> 2
+> 4
+> 6
+> 8
+> 10 best-so-far throughput
+
+(a) RHCR 10 0 10 1 10 2 
+
+> optimization time (min)
+> 2
+> 3
+> 4
+> 5
+> 6
+> 7best-so-far throughput
+
+(b) PIBT 
+
+Figure 4: Best-so-far throughput against optimization wall-clock time (log scale) for RHCR and PIBT at w ∈ { 1, 5, 10 }.SRA curves are means over annealing seeds, 10 RHCR (PBS) and 5 PIBT simulation seeds at N = 300 per snapshot, on one CPU core. DSAGE and NCA curves are the best of their search runs per skew (run set and time normalization in Appendix D). namely RHCR with ECBS (Barer et al. 2014). 
+
+SRA makes lifelong MAPF scale to more robots. Fig-ure 3 compares throughput across various numbers of robots: the best layouts of the baselines follow the SRA layouts up to N = 250 and fall behind at N = 300 –350 in every skew. With w=10 , the original layout climbs to a median λ = 5 .4
+
+at N = 175 ; at N = 200 eight of ten runs end below 1, and every run at N ≥ 250 ends below 0.4. The SRA layouts do not collapse at N = 300 (median λ = 9 .72 ; one of the 50 
+
+runs ends at λ = 2 .9) and hold until N = 350 , where 12 
+
+of 50 runs end between 1 and 6 and the survivors reach a median λ ≈ 11 . The same planner sustains roughly twice as many robots, from N ≈ 175 to N ≈ 300 –350 .w = 1 w = 10 
+
+Figure 5: The SRA layouts at w = 1 and w = 10 (annealing seed 0). 
+
+Visualization of optimized layouts. Figure 5 renders the SRA layouts at w = 1 and w = 10 (annealing seed 0); Appendix A.3 renders one per skew. The structure adapts visibly: at w = 10 the high-frequency shelves form short corridors in the center, and the low-frequency mass moves to the top and bottom edges. The bottleneck load does not change with the skew: while the skew spans 10 ×, the opti-mized ℓ∗ stays within [0 .058 , 0.072] .
+
+Generalization across workstation demands. w only controls demands at the shelves. We next vary the work-station demands ωj : the left-margin workstations are visited twice as often. SRA stays unchanged: every flow of Equa-tion (1) already carries the workstation weight ωj . The results are shown in Appendix A.4. The original layout collapses at 
+
+N = 200 . For the SRA layouts, 37 of 50 runs at N = 250 
+
+(five annealing seeds, 10 simulation seeds each) end above 
+
+λ = 8 with median λ = 8 .4; at N = 300 they collapse. The high-frequency shelves end closer to the left margin: their average distance from it falls from 17 .5 columns in the original layout—the center of the 36 -column-wide grid—to 9.4 columns in the annealed layouts. 
+
+Generalization to a larger warehouse. Neither baseline optimizes at the scale of the 66 × 69 warehouse (Sec. 5.1): both searches run on the 33 × 36 map, and NCA then gener-ates larger layouts with the trained generator, without further optimization (Zhang et al. 2023a). SRA optimizes the 66 ×69 
+
+warehouse directly: the anneal lowers ℓ∗ from 0.084 to 0.033 ,in 12 hours on one CPU core without simulation. Figure 3d sweeps the robot count: under RHCR (PBS) the original lay-out collapses by N = 450 , while the SRA layouts reach 
+
+N = 900 with zero collapses in 36 runs (median λ = 14 .9). Under PIBT the original layout saturates at λ ≈ 6 and dead-locks from N = 1200 on; the SRA layouts reach λ = 14 .4
+
+at N = 1500 and are still climbing. The NCA-generated lay-outs follow the SRA layouts to N = 750 under RHCR (PBS) and to N = 1200 under PIBT; at N = 900 and N = 1500 
+
+they fall to median λ = 4 .7 and λ = 0 (Appendix C). 
+
+5.3 Why SRA Works: The Stress Field Is Faithful 
+
+Having shown that SRA outperforms the baselines, we now ask why. At w = 10 , the right column of Figure 1 compares the predicted field with the traffic realized by an RHCR (PBS) run: the Spearman correlation between the predicted stress and the realized traversal counts is ρ = 0 .91 on the original layout and 0.81 on the SRA optimized layout. The corridors the field predicts to be congested are the ones that congest in simulation. The bottleneck law sharpens this into a number. Calibrating over RHCR simulations on this map—spanning layouts and robot counts—gives the single-vertex capacity 
+
+c = 0 .73 ; the same value is used for all layouts. Throughput then cannot exceed c/ℓ ∗, which gives 5.2 for the original layout and 12 for the SRA layouts. PBS collapses instead of saturating: its throughput touches the ceiling at N = 175 and drops to zero past it, never holding a plateau. PIBT does not collapse: swept up to N = 400 (Figure 3, dashed), it stays flat from N = 250 on at λ ≈ 4.4 on the original layout, 85% 
+
+of the ceiling calibrated on RHCR runs. On the SRA layouts throughput is still climbing at 8.8 when the sweep ends. The saturation plateau is the bottleneck law made visible. The collapse points of Figure 3 show the same law: SRA lowers 
+
+ℓ∗ from 0.139 to ≈ 0.060 , the collapse point moves with the ceiling, and the N = 350 survivors sit just beneath c/ℓ ∗.Finally, we ask how far the field can be trusted: we con-tinue annealing well past the point where throughput stops improving and show the results in Appendix A.5. Simulat-ing the intermediate layouts shows throughput saturating by roughly step 1500 , while ℓ∗ falls another 19% over the re-maining 2000 steps; collapse counts across the snapshots show no trend. The field is a guide for the search, not a predictor of throughput, and early stopping is safe. 
+
+5.4 Ablation Study 
+
+All ablations run at w = 10 : five annealing seeds per variant, each evaluated under RHCR (PBS) at N = 300 with 10 sim-ulation seeds, following the evaluation protocol of Sec. 5.1. 
+
+Necessity of Congestion Term To demonstrate the neces-sity of the congestion term in Equation (8), we remove it entirely. Setting α = 0 reduces the energy to pure travel distance, similar to the prior analytical layout optimization methods mentioned in Sec. 3.2. The resulting layouts pack the high-frequency shelves into one dense central band, where the mean distance to the workstations is smallest (rendered in Appendix A.6), and deadlock without exception: all 50 
+
+runs at N = 250 and all 50 at N = 300 collapse, none above 
+
+λ = 0 .7. The full energy turns the same anneal into layouts that reach mean λ = 9 .57 . Distance optimization does not merely miss the congestion gains; it manufactures collapse. 
+
+Target Selection We then ablate the relocation rules, under an equal step budget, keeping the energy and the Metropo-lis rule fixed. We compare (1) relocate (ours), which places the source shelf at the best vertex map-wide, (2) hop , which keeps the source rule but restricts the target to the eight vertices surrounding the source shelf’s current position (the four edge-adjacent and the four diagonal ones), and (3) ran-dom , which draws both the source shelf and the target vertex uniformly at random. At N = 300 , relocate reaches mean 
+
+λ = 9 .57 with 1 collapse in 50 runs; random reaches mean 
+
+λ = 8 .88 with none; hop reaches only mean λ = 6 .48 and collapses in 20 of 50 runs. Random directs nothing and still beats hop, so what the gain needs most is the map-wide reach of the relocation; all the guidance together adds the remaining 0.7. Hop gets trapped in configurations that keep the bottleneck. 
+
+Source Selection Replacing the felt-stress rule of 
+
+getSource by a uniformly random source changes nei-ther ℓ∗ nor throughput (Appendix A.7): the felt score is kept for interpretability, not for quality. 
+
+# 6 Conclusion and Future Work 
+
+In this paper, we presented Stress-Relief Annealing (SRA), a polynomial-time simulation-free layout optimization algo-rithm for automated warehouses. SRA turns the task demand into a per-vertex stress field whose peak ℓ∗ caps steady-state throughput at c/ℓ ∗. Guided by this field, SRA relocates shelves to lower ℓ∗ while keeping trips short. Our exper-iments show that SRA makes lifelong MAPF scale from 
+
+N ≈ 175 on a human-designed warehouse to N ≈ 300 –350 
+
+robots, matches or outperforms the evolutionary baselines in 19 minutes on one CPU core against their 25 hours on a 64 -core machine, and generalizes across MAPF planners, demand structures, and a much larger warehouse. Our work is limited in several ways. First, the single-vertex capacity c is calibrated once per simulator setup, and the bound it feeds is validated qualitatively (lower ℓ∗, later col-lapse), with no claim of tightness. Second, our prototype recomputes the field per endpoint, at O(|S| M |V |) per step instead of the O(M |V |) of the Brandes-style accumulation (Sec. 4.1), which we have not implemented; on this prototype the anneal takes 19 minutes on the original warehouse and 
+
+12 hours on the 66 × 69 one. Future work is to scale to warehouses several times larger, building on that accumulation, on incremental field updates after a single relocation, and on batched relocations. References 
+
+Barer, M.; Sharon, G.; Stern, R.; and Felner, A. 2014. Sub-optimal variants of the conflict-based search algorithm for the multi-agent pathfinding problem. In Proceedings of the International Symposium on Combinatorial Search (SoCS) ,19–27. Bhatt, V.; Tjanaka, B.; Fontaine, M.; and Nikolaidis, S. 2022. Deep Surrogate Assisted Generation of Environments. In 
+
+Proceedings of the Advances in Neural Information Process-ing Systems (NeurIPS) , 37762–37777. Brandes, U. 2001. A faster algorithm for betweenness cen-trality. Journal of Mathematical Sociology , 25(2): 163–177. Brown, A. S. 2022. How Amazon Robots Navigate Congestion. https://www.amazon.science/latest-news/how-amazon-robots-navigate-congestion. Accessed: 2023-05-09. Chen, Z.; Harabor, D.; Li, J.; and Stuckey, P. J. 2024. Traf-fic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelli-gence (AAAI) , 20674–20682. Ewing, E.; Ren, J.; Kansara, D.; Sathiyanarayanan, V.; and Ayanian, N. 2022. Betweenness Centrality in Multi-Agent Path Finding. In Proceedings of the International Conference on Autonomous Agents and Multiagent Systems (AAMAS) ,400–408. Fontaine, M.; and Nikolaidis, S. 2023. Covariance matrix adaptation map-annealing. In Proceedings of the Genetic and Evolutionary Computation Conference (GECCO) , 456– 465. Freeman, L. C. 1977. A set of measures of centrality based on betweenness. Sociometry , 40(1): 35–41. Han, S. D.; and Yu, J. 2022. Optimizing Space Utilization for More Effective Multi-Robot Path Planning. In Proceedings of the International Conference on Robotics and Automation (ICRA) , 10709–10715. Hönig, W.; Kiesel, S.; Tinka, A.; Durham, J. W.; and Aya-nian, N. 2019. Persistent and Robust Execution of MAPF Schedules in Warehouses. IEEE Robotics and Automation Letters , 4(2): 1125–1131. Kirkpatrick, S.; Gelatt Jr, C. D.; and Vecchi, M. P. 1983. Optimization by simulated annealing. science , 220(4598): 671–680. Kou, N. M.; Peng, C.; Ma, H.; Kumar, T. K. S.; and Koenig, S. 2020. Idle Time Optimization for Target Assignment and Path Finding in Sortation Centers. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) , 9925– 9932. Lamballais, T.; Roy, D.; and De Koster, M. 2017. Estimating performance in a robotic mobile fulfillment system. Euro-pean Journal of Operational Research , 256(3): 976–990. Lazowska, E. D.; Zahorjan, J.; Graham, G. S.; and Sevcik, K. C. 1984. Quantitative system performance: computer system analysis using queueing network models . Prentice-Hall, Inc. Li, J.; Tinka, A.; Kiesel, S.; Durham, J. W.; Kumar, T. S.; and Koenig, S. 2021. Lifelong multi-agent path finding in large-scale warehouses. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) , 11272–11281. Liu, M.; Ma, H.; Li, J.; and Koenig, S. 2019. Task and Path Planning for Multi-Agent Pickup and Delivery. In Proceed-ings of the International Conference on Autonomous Agents and Multi-Agent Systems (AAMAS) , 1152–1160. Ma, H.; Harabor, D.; Stuckey, P. J.; Li, J.; and Koenig, S. 2019. Searching with consistent prioritization for multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) , 7643–7650. Ma, H.; Li, J.; Kumar, T. S.; and Koenig, S. 2017. Lifelong Multi-Agent Path Finding for Online Pickup and Delivery Tasks. In Proceedings of the Conference on Autonomous Agents and MultiAgent Systems (AAMAS) , 837–845. Metropolis, N.; Rosenbluth, A. W.; Rosenbluth, M. N.; Teller, A. H.; and Teller, E. 1953. Equation of state calculations by fast computing machines. The journal of chemical physics ,21(6): 1087–1092. Mouret, J.-B.; and Clune, J. 2015. Illuminating search spaces by mapping elites. arXiv preprint arXiv:1504.04909 .Okumura, K.; Machida, M.; Défago, X.; and Tamura, Y. 2022. Priority inheritance with backtracking for iterative multi-agent path finding. Artificial Intelligence , 310: 103752. Sheffi, Y. 1985. Urban transportation networks , volume 6. Prentice-Hall, Englewood Cliffs, NJ. Stern, R.; Sturtevant, N. R.; Felner, A.; Koenig, S.; Ma, H.; Walker, T. T.; Li, J.; Atzmon, D.; Cohen, L.; Kumar, T. K. S.; Boyarski, E.; and Barták, R. 2019. Multi-Agent Pathfinding: Definitions, Variants, and Benchmarks. In Proceedings of the International Symposium on Combinatorial Search (SoCS) ,151–159. Wan, Q.; Gu, C.; Sun, S.; Chen, M.; Huang, H.; and Jia, X. 2018. Lifelong Multi-Agent Path Finding in a Dynamic Envi-ronment. In Proceedings of the International Conference on Control, Automation, Robotics and Vision (ICARCV) , 875– 882. Wang, K.; and Botea, A. 2011. MAPP: A Scalable Multi-Agent Path Planning Algorithm with Tractability and Com-pleteness Guarantees. Journal of Artificial Intelligence Re-search , 42: 55–90. Wang, K. C.; and Botea, A. 2008. Fast and Memory-Efficient Multi-Agent Pathfinding. In Proceedings of the Interna-tional Conference on Automated Planning and Scheduling (ICAPS) , 380–387. Wardrop, J. G. 1952. Road paper. some theoretical aspects of road traffic research. Proceedings of the institution of civil engineers , 1(3): 325–362. Wu, S.; Chi, C.; Wang, W.; and Wu, Y. 2020. Research of the layout optimization in robotic mobile fulfillment systems. 
+
+International Journal of Advanced Robotic Systems , 17(6): 1729881420978543. Wurman, P. R.; D’Andrea, R.; and Mountz, M. 2007. Co-ordinating Hundreds of Cooperative, Autonomous Vehicles in Warehouses. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) , 1752–1760. Yang, X.; Liu, X.; Feng, L.; Zhang, J.; and Qi, M. 2021. Non-traditional layout design for robotic mobile fulfillment system with multiple workstations. Algorithms , 14(7): 203. Yu, G.; and Wolf, M. 2023. Congestion prediction for large fleets of mobile robots. In Proceedings of the Inter-national Conference on Robotics and Automation (ICRA) ,7642–7649. Zhang, Y.; Fontaine, M. C.; Bhatt, V.; Nikolaidis, S.; and Li, J. 2023a. Arbitrarily Scalable Environment Generators via Neural Cellular Automata. In Proceedings of the Advances in Neural Information Processing Systems (NeurIPS) , 57212– 57225. Zhang, Y.; Fontaine, M. C.; Bhatt, V.; Nikolaidis, S.; and Li, J. 2023b. Multi-Robot Coordination and Layout Design for Automated Warehousing. In Proceedings of the International Joint Conference on Artificial Intelligence (IJCAI) , 5503– 5511. Zhang, Y.; Fontaine, M. C.; Hoover, A. K.; and Nikolaidis, S. 2022. Deep Surrogate Assisted MAP-Elites for Automated Hearthstone Deckbuilding. In Proceedings of the Genetic and Evolutionary Computation Conference (GECCO) , 158– 167. 
+
+# A Additional Experimental Results 
+
+A.1 Where the Stress Field Fails 
+
+Two layout families test where the field’s guidance holds: layouts derived from the human-designed baseline, and lay-outs derived from a regular lattice. On the human-designed family, the ℓ∗ of an optimized layout correlates +0 .39 (Spear-man) with its count of simulations below λ = 7 : the field ranks fragility in the right direction. On the lattice family the correlation inverts to −0.25 . The traffic prediction is not what fails: against the per-vertex traffic of the RHCR simu-lations that do not collapse, the field reads Spearman 0.80 
+
+on the human-designed family and 0.87 on the lattice family (15 layouts per family, 3 simulation seeds). What fails is the summary statistic: with many alternative corridors the load spreads over them (Figure 6), the most loaded vertex is no longer a binding bottleneck, and ranking layouts by the peak inverts. Realistic warehouse baselines offer few alternative corridors, which is why the paper optimizes ℓ∗ throughout; a statistic that predicts collapse when the load spreads remains open. 
+
+A.2 A Third Planner 
+
+Table 2: Throughput λ at N = 300 , w = 10 under three planners: mean ± one standard deviation. The original layout is evaluated over 10 simulations; the SRA row pools the 
+
+5 annealing seeds, 50 simulations in all, and therefore sits below the best-layout values of Table 1 of the main paper.                     
+
+> RHCR (PBS) RHCR (ECBS) PIBT original 0.13 ±0.06 3.65 ±0.06 4.45 ±0.14
+> SRA 9.57 ±0.98 8.06 ±0.17 7.33 ±0.46
+
+Table 1 of the main paper evaluates the layouts under RHCR (PBS) and PIBT; here RHCR also runs with the bounded-suboptimal ECBS (suboptimality factor 2.0) as its solver, at w = 10 and N = 300 with 10 simulation seeds per layout. Table 2 lists all three. The SRA layouts stay above 
+
+λ = 7 under all three, achieving significantly better through-put than the original layout. The anneal never ran ECBS, PBS, or PIBT; the same layouts serve all three. 
+
+A.3 Demand Skew 
+
+Table 3 gives every layout and skew at N = 300 (3 annealing seeds per skew, 10 simulation seeds each). The original layout collapses at every w; the SRA layouts collapse at none, and their lowest simulations at w ≤ 5 congest at λ = 4 .7–
+
+6.8 without reaching zero. Figure 7 shows the five layouts; Figure 8 overlays their stress fields. Table 3: Throughput λ at N = 300 across demand skew, over 10 simulations: mean ± one standard deviation.                                                       
+
+> w=1 w=2 w=5 w=20
+> original 0.73 ±0.32 0.45 ±0.12 0.24 ±0.10 0.07 ±0.02
+> SRA s08.79 ±0.94 9.33 ±0.04 9.16 ±0.82 10 .05 ±0.04
+> SRA s18.07 ±1.70 9.24 ±0.04 9.50 ±0.08 9.98 ±0.03
+> SRA s29.25 ±0.05 9.34 ±0.05 9.58 ±0.06 9.93 ±0.04
+
+A.4 Non-Uniform Workstation Demands 
+
+With the left-margin workstations visited twice as often, the original layout already collapses at N = 200 (mean λ =0.53 ; Figure 9). The SRA layouts do not collapse at N = 200 
+
+(mean λ = 7 .1) or N = 250 (37 of 50 simulations, median 
+
+λ = 8 .4; 10 of the 13 failures come from one annealing seed) and collapse at N = 300 (6 of 50 simulations do not collapse). The concentrated load also limits how far ℓ∗ can fall: it bottoms out at 0.080 against 0.058 in the uniform setting, which is the bottleneck-law explanation of the earlier collapse point. The high-frequency shelves end closer to the left margin: their average distance from it falls from 17 .5
+
+columns in the start layout—the center of the 36 -column-wide grid—to 9.4 columns in the annealed layouts (mean over the 5 anneals), without any instruction beyond the ωj
+
+weights in the field. 
+
+A.5 Annealing past Saturation 
+
+Figure 10 renders the experiment of the main paper that continues annealing after throughput stops improving: past step 1500 , ℓ∗ keeps falling while the simulated throughput stays flat. 
+
+A.6 The Distance-Only Layouts 
+
+Figure 11 renders a layout annealed with α = 0 against a layout annealed with the full energy ( w = 10 , annealing seed 
+
+0). The distance term alone packs the high-frequency shelves into one dense central band, and the stress concentrates in the corridors that feed it: ℓ∗ = 0 .152 against 0.058 . All 100 
+
+simulations of the distance-only layouts collapse, none above 
+
+λ = 0 .7.human-designed (few corridors) * = 0.139 regular lattice (many corridors) * = 0.101 
+
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> 0.10
+> 0.12
+> (v)
+
+Figure 6: Stress fields of the two start layouts: the human-designed baseline (left) funnels the flow into a few corridors, so its peak marks a binding bottleneck; the regular lattice (right) spreads the load over many equivalent corridors, so its lower peak no longer determines collapse. w = 1 w = 2 w = 5 w = 10 w = 20    
+
+> workstation low-frequency shelf high-frequency shelf endpoint
+
+Figure 7: The SRA layouts of Table 3 (annealing seed 0), shown without the field overlay. w = 1 * = 0.063 w = 2 * = 0.062 w = 5 * = 0.061 w = 10 * = 0.058 w = 20 * = 0.062 
+
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> (v)
+
+Figure 8: The same layouts with their stress fields on a shared color scale. Green vertices: high-frequency shelves; gray: low-frequency shelves; blue outlines: workstations. 
+
+A.7 Source Selection 
+
+We replace the softmax of Algorithm 3 with a uniform draw over all shelves, keeping the placement rule and the en-ergy unchanged. The random-source variant matches the full method on both the surrogate and the simulator ( 5 annealing seeds, 3 simulation seeds each). Its final ℓ∗ is 0.0583 ±0.0006 
+
+against the full method’s 0.0586 ± 0.0004 (Mann–Whitney 
+
+p = 0 .65 ). On the simulator, 4 of its 15 simulations finish be-low λ = 7 , against 5 of 15 for the full method. What matters is the placement ranking; the felt score is a cheap tie-breaker kept for interpretability. original * = 0.173 SRA * = 0.081     
+
+> 100 150 200 250 300
+
+robots N
+
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> throughput (tasks/step)  original
+> SRA
+
+Figure 9: Non-uniform workstation access at w = 10 : the left-margin workstations are visited twice as often. Left and center: the weighted stress fields of the original layout and an SRA layout; the high-frequency shelves migrate toward the busy side. Right: throughput against robot count N , median lines and individual simulations; the original collapses at N = 200 , the SRA layouts at N = 300 .1000 2000 3000 
+
+> annealing step
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> throughput
+> throughput
+> *
+> 0.060
+> 0.062
+> 0.064
+> 0.066
+> 0.068
+> 0.070
+> 0.072
+> 0.074
+> *
+
+Figure 10: Intermediate layouts along the anneal, simulated at N = 300 , w = 10 : individual simulations (dots), mean (line), and ℓ∗ (right axis). Throughput saturates by step 1500 ;
+
+ℓ∗ keeps falling. 
+
+# B Pseudocode of the Relocation Step 
+
+Algorithms 2–5 give the four subroutines called in Algo-rithm 1 of the main paper. Notation follows Sec. 4 of the main paper: ρ is the expected occupancy, D the mean dis-tance to the workstations, α the weight of the congestion term, ws the demand weight of shelf s, ∂s its endpoint set, 
+
+ωj the workstation weight, d the shortest-path distance, σ the shortest-path counts, Wtotal the total demand weight, and E
+
+the energy. Lines 6–11 are the per-endpoint recomputation named in the runtime paragraph of the main paper: one BFS and one 
+
+M |V | accumulation per endpoint, O(|S| M |V |) in all. If no vertex passes the validity check, the step proposes no relocation. The failure is specific to the sampled source shelf: the softmax of getSource can draw a different shelf at the next step, for which valid targets can exist. Every trial in initializeTemperature relocates to Algorithm 2: computeStressField (G) — compute ℓ∗
+
+and Lw
+
+1: for each workstation j do 
+
+2: one BFS from j: the distance d(v, j ) and the shortest-path count σvj for every vertex v
+
+3: end for 
+
+4: Lw ← the weighted trip length of Sec. 4 of the main paper, from the distances of line 2 
+
+5: F (v) ← 0 for every vertex v
+
+6: for each endpoint e, carrying we ← P  
+
+> s:e∈∂s
+
+ws/|∂s |
+
+do 
+
+7: one BFS from e: the distance d(e, v ) and the count 
+
+σev for every vertex v
+
+8: for each workstation j and each vertex v with d(e, v )+ 
+
+d(v, j ) = d(e, j ) do 
+
+9: F (v) ← F (v) + we ωj σev σvj /σ ej 
+
+10: end for 
+
+11: end for 
+
+12: return ℓ∗ ← max v F (v)/W total , Lw
+
+Algorithm 3: getSource (G) — sample the shelf to relo-cate 
+
+1: for each shelf s in G do 
+
+2: felt( s) ← α max e∈∂s ρ(e) + ws 1
+
+> |∂s |
+
+P 
+
+> e∈∂s
+
+D(e)
+
+3: end for 
+
+4: z(s) ← z-score of felt( s) over all shelves 
+
+5: return one shelf sampled with probability ∝ ez(s)
+
+one of the 8 vertices surrounding the source shelf, whatever target rule the anneal itself uses, so the temperature scale does not depend on that choice. distance only ( = 0) * = 0.152 full energy (SRA) * = 0.058    
+
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> 0.10
+> 0.12
+> 0.14
+> (v)
+> workstation low-frequency shelf high-frequency shelf endpoint
+
+Figure 11: A distance-only ( α = 0 ) layout against a full-energy SRA layout ( w = 10 , annealing seed 0): each layout is followed by its stress field, on a shared color scale. Algorithm 4: getTarget (G, s ) — first valid destination  
+
+> 1:
+
+for each empty storage vertex v, in ascending cost( v) = 
+
+α ρ (v) + ws D(v) do  
+
+> 2:
+
+G′ ← G with s relocated to v 
+
+> 3:
+
+if G′ is valid (Definition 2 of the main paper) then  
+
+> 4:
+
+return v 
+
+> 5:
+
+end if  
+
+> 6:
+
+end for  
+
+> 7:
+
+return failure Algorithm 5: initializeTemperature (G) — cali-brate T0 
+
+> 1:
+
+E0 ← E(G) 
+
+> 2:
+
+for i = 1 to 40 do  
+
+> 3:
+
+if 10 values recorded then  
+
+> 4:
+
+break  
+
+> 5:
+
+end if  
+
+> 6:
+
+s ← getSource (G) 
+
+> 7:
+
+v ← getTarget (G, s ) with the candidates re-stricted to the 8 vertices surrounding s 
+
+> 8:
+
+if no candidate passes then  
+
+> 9:
+
+continue  
+
+> 10:
+
+end if  
+
+> 11:
+
+G′ ← G with s relocated to v; record |E(G′) − E0|
+
+{G′ is discarded}  
+
+> 12:
+
+end for  
+
+> 13:
+
+return T0 ← the mean of the recorded values 
+
+# C The 66 × 69 Warehouse 
+
+This map doubles both dimensions of the warehouse of the main paper while preserving its structure: shelf rows every fourth row, 10 -wide shelf blocks separated by one-wide ver-tical aisles (six blocks per row), and a workstation every third row on both margins. This gives a 66 ×69 grid with four times the shelves ( 960 , density 0.211 against 0.202 ) and twice the workstations ( M = 44 ). The high-frequency region is the center cross of the original map upsampled 2×: 144 shelves, the same 15% share. The anneal runs the protocol of the main paper re-anchored on this map ( α′ = Lw, 0/ℓ ∗
+
+> 0
+
+, K = 1 )at N = 1200 for 10 ,000 steps; it saturates near step 6,000 ,consistent with the 4× shelf count over the saturation near step 1,500 on the original map. Three annealing seeds give 
+
+ℓ∗ ∈ [0 .032 , 0.034] . Figure 13 shows the start layout and one optimized layout. 
+
+The NCA Generators at This Scale Each generator trained on the 33 × 36 warehouse grows a 66 × 69 layout in a single generator run, repaired by the same MILP as at training scale. The RHCR (PBS) and PIBT sweeps run on these gener-ated 66 ×69 layouts, 5 per planner, from the w = 10 searches behind Table 1 of the main paper: the RHCR-evaluated search for the RHCR (PBS) sweep, the PIBT-evaluated search for the PIBT sweep. At N = 750 under RHCR (PBS), 12 of the 15 simulations end at λ = 12 .1–12 .6, against median 
+
+λ = 12 .7 for SRA; at N = 900 , 11 of the 15 congest at 
+
+λ = 2 .9–6.5 without reaching zero, and one generator stays at λ = 14 .2–14 .4, the SRA level. Under PIBT the generated layouts reach median λ = 11 .0 at N = 1200 ; at N = 1500 ,
+
+11 of the 15 simulations exceed the wall clock, as the simula-tions of the original layout do from N = 1200 on. Figure 12 renders the generated layout that holds at N = 900 and one that congests, with their stress fields. The ℓ∗ of the 5 gen-erated layouts spans [0 .051 , 0.060] against [0 .032 , 0.034] for the annealing seeds, which is the bottleneck-law explanation of the earlier fall. 
+
+# D Baseline Parameters 
+
+DSAGE and NCA run the implementations released by their authors, configured on the warehouse of the main paper. Both maximize throughput minus a Hamming-distance penalty (weight 5) toward the human-designed start layout, evalu-ating each candidate with five RHCR (PBS) simulations of 
+
+1,000 timesteps at N = 300 under the target skew, with the holds at N = 900 * = 0.057 congests at N = 900 * = 0.060    
+
+> 0.00
+> 0.01
+> 0.02
+> 0.03
+> 0.04
+> 0.05
+> (v)
+> workstation low-frequency shelf high-frequency shelf endpoint
+
+Figure 12: Two NCA-generated 66 × 69 layouts: the one whose RHCR (PBS) simulations hold at N = 900 and one whose simulations congest, each followed by its stress field, on a shared color scale. Endpoints are the generators’ own endpoint cells. same replanning period ( 5) and planning window ( 10 ) as the evaluations in the main paper. Both are quality-diversity searches over a 100 × 100 archive spanning the number of shelf components and the layout entropy, with a budget of 
+
+5,000 simulated candidates. DSAGE proposes layouts by tile mutation (batch 50 ) and accelerates the search with its convo-lutional surrogate, retrained on the accumulated simulations and exploited for 10 ,000 archive iterations between simula-tion rounds. NCA searches the 2,372 weights of its generator network with CMA-MAE ( 5 CMA-ES emitters, batch 10 ,
+
+σ0 = 0 .2), each layout grown from a fixed seed pattern in 
+
+50 generator steps. Per-run search times: DSAGE 19 .2 ± 1.0
+
+hours over 10 runs on 64 cores, NCA 29 .6 ± 1.1 hours over 
+
+15 runs, with NCA’s four 16 -core runs rescaled to the 64 -core reference by the core ratio. Six further DSAGE runs on 
+
+16 cores took 33 –37 hours; rescaling them by the core ratio would place them below every measured 64 -core run, so we exclude them from the mean. The PIBT rows of Table 1 of the main paper come from the same searches with the five evaluation simulations run by PIBT instead of RHCR (PBS): DSAGE 2.5 ± 0.3 hours and NCA 2.6 ± 0.1 hours, 15 runs each. 
+
+# E Compute Configuration 
+
+SRA and every simulation reported in this paper—RHCR (PBS and ECBS) and PIBT, across all tables and figures— run on one desktop machine with an 8-core AMD Ryzen 7 9700X and 32 GB of RAM. Each anneal uses a single core; the search times of 18 .8 minutes on the original warehouse and 12 hours on the 66 × 69 warehouse are single-core times on this machine. Evaluation simulations run as independent single-core processes, up to eight in parallel. The DSAGE and NCA require massive parallelization, and therefore run on the following machines: (1) a local machine with a 64-core AMD Ryzen Threadripper 7980X CPU, 256GB of RAM, and an Nvidia GTX 1080Ti GPU, (2) a local machine with a 64-core AMD Ryzen Threadripper 3990X CPU and 128 GB of RAM, and (3) a high-performing cluster with numerous 64-core AMD EPYC 7742 CPUs, each with 256 GB of RAM. original (2 × ) SRA (2 × , seed 0)  
+
+> *
+
+= 0.084 * = 0.033 
+
+> 0.00
+> 0.01
+> 0.02
+> 0.03
+> 0.04
+> 0.05
+> 0.06
+> 0.07
+> 0.08
+> (v)
+
+Figure 13: The start layout of the 66 × 69 warehouse and the seed-0 SRA layout: layouts (top) and stress fields on a shared color scale (bottom).

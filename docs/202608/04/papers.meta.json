@@ -1,0 +1,39 @@
+{
+  "label": "2026-08-04",
+  "date": "2026-08-04",
+  "generated_at": "2026-08-04T20:40:04",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202608/04/2608.01024v1-stress-relief-annealing-polynomial-time-simulation-free-layout-optimization-for-automated-warehouses",
+      "section": "deep",
+      "title_en": "Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses",
+      "authors": "Xiangjie Luo, Yulun Zhang, Miyuki Koshimura, Makoto Yokoo, Jiaoyang Li",
+      "date": "2026-08-02",
+      "pdf": "https://arxiv.org/pdf/2608.01024v1",
+      "score": "9.0",
+      "evidence": "优化自动化仓库物理布局以提高吞吐量",
+      "tldr": "自动化仓库布局优化通常依赖进化算法，需大量仿真导致样本效率低。本文提出Stress-Relief Annealing (SRA)算法，将任务需求转化为应力场预测交通热点，实现多项式时间无仿真优化。实验表明，SRA仅用19分钟单核CPU即达到或超越基线25小时64核的吞吐量，使仓库可支持机器人数量翻倍，且算法通用性强。",
+      "tags": "query:wo",
+      "abstract_en": "We study the problem of optimizing physical layouts for automated warehouses, where hundreds to thousands of robots are coordinated to transport packages. Previous works have shown that optimizing the warehouse layout (e.g., the physical location of the storage shelves) significantly improves throughput. However, state-of-the-art layout optimization approaches are based on evolutionary optimization methods, which treat the entire warehouse as a black box and rely on random mutation to search for high-quality layouts. While the optimization outcomes are promising, these methods require a massive number of simulations to evaluate candidate solutions, making them sample-inefficient. In this paper, we present Stress-Relief Annealing (SRA), a polynomial-time simulation-free layout optimization algorithm. SRA turns the task demand into a per-vertex \\emph{stress field} that predicts where traffic will concentrate in the warehouse; the field's peak provably caps the throughput.   Our experimental results show that (1) SRA improves both the throughput and the scalability of a human-designed warehouse, roughly doubling the number of robots it can sustain, (2) it matches or exceeds the throughput of the evolutionary baselines while taking only $19$ minutes on one CPU core, against their $25{,}000$ simulations and $25$ hours on a $64$-core machine, and (3) the gain generalizes across different Multi-Agent Path Finding algorithms, non-uniform task demands, and a warehouse with doubled dimensions.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/04/2608.02343v1-hard-constraints-smooth-gradients-learning-feasible-inventory-policies-via-differentiable-projection",
+      "section": "deep",
+      "title_en": "Hard Constraints, Smooth Gradients: Learning Feasible Inventory Policies via Differentiable Projection",
+      "authors": "Patrick Helm, Jan-Niklas Doerr, Joren Gijsbrechts, Stefan Minner",
+      "date": "2026-08-03",
+      "pdf": "https://arxiv.org/pdf/2608.02343v1",
+      "score": "8.0",
+      "evidence": "使用深度强化学习和可微投影学习库存策略",
+      "tldr": "在共享资源和物料约束的多级供应链库存规划中，传统MILP难以应对随机环境，深度强化学习面临硬约束执行难题。本文提出可微投影策略，嵌入凸优化模块将动作投影到可行域并恢复整数解，实现端到端训练。在小型实例上最优性差距低于1%，在大规模网络中相比基库存策略成本降低最高9.75%，在ASML工业案例中降低3.22%。表明该方法能在紧容量高波动场景下有效处理相互依赖的硬约束，为物流优化提供显著经济效益。",
+      "tags": "query:wo",
+      "abstract_en": "Many operational problems are constrained sequential decision processes with large, combinatorial action spaces and interdependent feasibility constraints. Mixed-integer linear programs (MILPs) handle such constraints flexibly but scale poorly in stochastic environments. Deep reinforcement learning (DRL) promises scalable decision rules, but existing methods either penalize constraints rather than enforce them, or rely on feasibility mechanisms that break down once constraints interact. We bridge this gap by embedding a differentiable convex optimization module inside the policy: a neural network proposes continuous action targets, a quadratic program projects them onto the relaxed feasible set, and a dual-informed integer mapping restores integrality while preserving feasibility. Given a differentiable simulator, the policy trains end to end from sampled trajectories using pathwise gradients, while handling hard constraints with similar flexibility to MILPs. We show that our feasibility enforcement has bounded error relative to an exact integer projection and ensures the entire feasible action space is reachable. We apply the method to multi-echelon production-inventory planning under shared resource and material constraints. Our policy attains an average optimality gap below 1% on small instances. It further outperforms state-of-the-art echelon base-stock policies by up to 9.75% and a rolling-horizon multi-stage stochastic program by at least 7.7% in larger networks. On an industry-scale case study from ASML, it reduces average cost by up to 3.22% relative to the best-known benchmark policy. The savings are largest where planning is hardest: in tightly capacitated systems with high demand variability. More broadly, our work shows that DRL can deliver economically significant savings in sequential decision problems with interdependent hard constraints, which are widespread in practice.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

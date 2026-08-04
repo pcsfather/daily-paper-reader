@@ -1,0 +1,41 @@
+{
+  "date": "20260804",
+  "date_label": "",
+  "generated_at": "2026-08-04 20:39:59 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.01024v1",
+      "route": "202608/04/2608.01024v1-stress-relief-annealing-polynomial-time-simulation-free-layout-optimization-for-automated-warehouses",
+      "title": "Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "优化自动化仓库物理布局以提高吞吐量",
+      "first_seen_at": "2026-08-04 20:39:59 UTC",
+      "updated_at": "2026-08-04 20:39:59 UTC"
+    },
+    {
+      "paper_id": "2608.02343v1",
+      "route": "202608/04/2608.02343v1-hard-constraints-smooth-gradients-learning-feasible-inventory-policies-via-differentiable-projection",
+      "title": "Hard Constraints, Smooth Gradients: Learning Feasible Inventory Policies via Differentiable Projection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "使用深度强化学习和可微投影学习库存策略",
+      "first_seen_at": "2026-08-04 20:39:59 UTC",
+      "updated_at": "2026-08-04 20:39:59 UTC"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-04T20:36:21.931922+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.01024v1",
+      "source": "arxiv",
+      "title": "Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses",
+      "abstract": "We study the problem of optimizing physical layouts for automated warehouses, where hundreds to thousands of robots are coordinated to transport packages. Previous works have shown that optimizing the warehouse layout (e.g., the physical location of the storage shelves) significantly improves throughput. However, state-of-the-art layout optimization approaches are based on evolutionary optimization methods, which treat the entire warehouse as a black box and rely on random mutation to search for high-quality layouts. While the optimization outcomes are promising, these methods require a massive number of simulations to evaluate candidate solutions, making them sample-inefficient. In this paper, we present Stress-Relief Annealing (SRA), a polynomial-time simulation-free layout optimization algorithm. SRA turns the task demand into a per-vertex \\emph{stress field} that predicts where traffic will concentrate in the warehouse; the field's peak provably caps the throughput.   Our experimental results show that (1) SRA improves both the throughput and the scalability of a human-designed warehouse, roughly doubling the number of robots it can sustain, (2) it matches or exceeds the throughput of the evolutionary baselines while taking only $19$ minutes on one CPU core, against their $25{,}000$ simulations and $25$ hours on a $64$-core machine, and (3) the gain generalizes across different Multi-Agent Path Finding algorithms, non-uniform task demands, and a warehouse with doubled dimensions.",
+      "authors": [
+        "Xiangjie Luo",
+        "Yulun Zhang",
+        "Miyuki Koshimura",
+        "Makoto Yokoo",
+        "Jiaoyang Li"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-08-02T05:59:24+00:00",
+      "link": "https://arxiv.org/pdf/2608.01024v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "layout optimization for automated warehouses",
+      "llm_evidence_cn": "优化自动化仓库物理布局以提高吞吐量",
+      "llm_evidence": "优化自动化仓库物理布局以提高吞吐量",
+      "canonical_evidence": "优化自动化仓库物理布局以提高吞吐量",
+      "llm_tldr_en": "Proposes a simulation-free layout optimization method for automated warehouses using stress-relief annealing, achieving polynomial-time complexity.",
+      "llm_tldr_cn": "针对自动化仓库物理布局优化需大量仿真评估候选方案导致效率低下的问题，提出应力消除退火方法。该方法将拥堵建模为应力，通过退火直接计算最优货架位置，避免了反复仿真，实现多项式时间求解。实验表明，新方法在保持高吞吐量的同时，大幅降低了计算开销，为大规模自动化仓库的快速布局优化提供了实用工具。",
+      "llm_tldr": "针对自动化仓库物理布局优化需大量仿真评估候选方案导致效率低下的问题，提出应力消除退火方法。该方法将拥堵建模为应力，通过退火直接计算最优货架位置，避免了反复仿真，实现多项式时间求解。实验表明，新方法在保持高吞吐量的同时，大幅降低了计算开销，为大规模自动化仓库的快速布局优化提供了实用工具。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "optimizing warehouse layout and operations",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.02343v1",
+      "source": "arxiv",
+      "title": "Hard Constraints, Smooth Gradients: Learning Feasible Inventory Policies via Differentiable Projection",
+      "abstract": "Many operational problems are constrained sequential decision processes with large, combinatorial action spaces and interdependent feasibility constraints. Mixed-integer linear programs (MILPs) handle such constraints flexibly but scale poorly in stochastic environments. Deep reinforcement learning (DRL) promises scalable decision rules, but existing methods either penalize constraints rather than enforce them, or rely on feasibility mechanisms that break down once constraints interact. We bridge this gap by embedding a differentiable convex optimization module inside the policy: a neural network proposes continuous action targets, a quadratic program projects them onto the relaxed feasible set, and a dual-informed integer mapping restores integrality while preserving feasibility. Given a differentiable simulator, the policy trains end to end from sampled trajectories using pathwise gradients, while handling hard constraints with similar flexibility to MILPs. We show that our feasibility enforcement has bounded error relative to an exact integer projection and ensures the entire feasible action space is reachable. We apply the method to multi-echelon production-inventory planning under shared resource and material constraints. Our policy attains an average optimality gap below 1% on small instances. It further outperforms state-of-the-art echelon base-stock policies by up to 9.75% and a rolling-horizon multi-stage stochastic program by at least 7.7% in larger networks. On an industry-scale case study from ASML, it reduces average cost by up to 3.22% relative to the best-known benchmark policy. The savings are largest where planning is hardest: in tightly capacitated systems with high demand variability. More broadly, our work shows that DRL can deliver economically significant savings in sequential decision problems with interdependent hard constraints, which are widespread in practice.",
+      "authors": [
+        "Patrick Helm",
+        "Jan-Niklas Doerr",
+        "Joren Gijsbrechts",
+        "Stefan Minner"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-08-03T14:57:21+00:00",
+      "link": "https://arxiv.org/pdf/2608.02343v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "learns inventory policies with deep RL and differentiable projection",
+      "llm_evidence_cn": "使用深度强化学习和可微投影学习库存策略",
+      "llm_evidence": "使用深度强化学习和可微投影学习库存策略",
+      "canonical_evidence": "使用深度强化学习和可微投影学习库存策略",
+      "llm_tldr_en": "Proposes a differentiable projection method to enforce hard inventory constraints within deep reinforcement learning, enabling scalable learning of feasible inventory policies for constrained sequential decision problems.",
+      "llm_tldr_cn": "针对库存管理中的硬约束决策问题，提出可微投影方法将深度强化学习与凸优化融合。策略网络输出候选动作后，通过二次规划投影到可行空间，并利用对偶信息进行梯度更新，实现约束严格满足下的策略学习。实验表明，该方法能够在复杂组合动作空间中学习到可行且高效的库存策略，为资源受限的物流系统提供了新的优化工具。",
+      "llm_tldr": "针对库存管理中的硬约束决策问题，提出可微投影方法将深度强化学习与凸优化融合。策略网络输出候选动作后，通过二次规划投影到可行空间，并利用对偶信息进行梯度更新，实现约束严格满足下的策略学习。实验表明，该方法能够在复杂组合动作空间中学习到可行且高效的库存策略，为资源受限的物流系统提供了新的优化工具。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}
