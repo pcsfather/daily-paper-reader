@@ -1,9 +1,9 @@
 {
   "date": "20260807",
   "date_label": "",
-  "generated_at": "2026-08-07 02:06:37 UTC",
+  "generated_at": "2026-08-07 21:00:53 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
     {
       "paper_id": "2608.04721v1",
@@ -16,10 +16,26 @@
           "label": "wo"
         }
       ],
-      "score": 8.0,
-      "evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
+      "score": 9.0,
+      "evidence": "利用智能物联网标签实现紧急感知的机器人群体内部物流，通过优先处理紧急物品提高订单拣选效率。",
       "first_seen_at": "2026-08-07 02:06:37 UTC",
-      "updated_at": "2026-08-07 02:06:37 UTC"
+      "updated_at": "2026-08-07 21:00:53 UTC"
+    },
+    {
+      "paper_id": "2608.05588v1",
+      "route": "202608/07/2608.05588v1-search-aided-joint-agent-environment-reinforcement-learning-for-robust-lifelong-multi-agent-path-finding-with-rotations",
+      "title": "Search-Aided Joint Agent-Environment Reinforcement Learning for Robust Lifelong Multi-Agent Path Finding with Rotations",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "针对自动化仓库系统的终身多智能体路径规划，通过考虑真实运动约束提高订单拣选效率。",
+      "first_seen_at": "2026-08-07 21:00:53 UTC",
+      "updated_at": "2026-08-07 21:00:53 UTC"
     }
   ]
 }

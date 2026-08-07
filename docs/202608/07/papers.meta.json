@@ -1,8 +1,8 @@
 {
   "label": "2026-08-07",
   "date": "2026-08-07",
-  "generated_at": "2026-08-07T02:06:42",
-  "count": 1,
+  "generated_at": "2026-08-07T21:00:57",
+  "count": 2,
   "papers": [
     {
       "paper_id": "202608/07/2608.04721v1-enabling-urgency-aware-robot-swarm-intralogistics-using-smart-iot-tags",
@@ -16,6 +16,21 @@
       "tldr": "仓库物流中，部分货物（如生鲜、药品、准时制物料）需要优先配送，但现有去中心化机器人群体系统缺乏物品级紧急区分能力。本研究引入配备超低功耗物联网标签的智能货箱，标签通过蓝牙低功耗广播紧急度，使机器人在选择搬运任务时综合权衡紧急度与行驶距离。物理实验证实，紧急货物优先服务率从0.41升至0.64，吞吐量近乎持平；仿真显示随系统规模扩大，P95交付延迟降幅达5.2%~11.8%，优先对齐率提升高达51.6%。该方案在保持群体系统低基础设施成本的同时，有效提高了仓储内时间敏感物品的响应速度，为动态优先级物流提供了去中心化实现路径。",
       "tags": "query:wo",
       "abstract_en": "Warehouse items differ in how urgently they must be moved: perishable goods, pharmaceutical shipments, and just-in-time production materials must be delivered sooner than the rest of the stock. Decentralised robot swarms suit warehouses that cannot justify fixed automation infrastructure, but current swarm controllers treat all items alike or rely on an external scheduler to set priorities, so urgent items wait as long as ordinary ones. This paper presents a swarm logistics system in which each warehouse carrier holds an ultra-low-power Internet-of-Things (IoT) tag that broadcasts the urgency of its item over Bluetooth Low Energy (BLE). Robots read these broadcasts directly and weigh urgency against travel distance when choosing which carrier to serve, so prioritisation happens at the item level without central scheduling. The system is evaluated in simulation and validated on real robots and IoT-tagged carriers against a proximity-only baseline. In the physical trials, priority alignment (i.e. proportion of urgent items served first), improved from 0.41 to 0.64, with a nonsignificant trend toward lower 95th-percentile (P95) delivery latency and throughput within 1.2% of the baseline. In simulation, the benefit grew with system size: across three larger configurations, P95 latency fell by 5.2% to 11.8% and priority alignment improved by 41.7% to 51.6%. Attaching urgency to the items themselves therefore allows a decentralised swarm to serve time-critical stock sooner while keeping the low infrastructure requirements that make swarm systems attractive for warehouse automation.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/07/2608.05588v1-search-aided-joint-agent-environment-reinforcement-learning-for-robust-lifelong-multi-agent-path-finding-with-rotations",
+      "section": "deep",
+      "title_en": "Search-Aided Joint Agent-Environment Reinforcement Learning for Robust Lifelong Multi-Agent Path Finding with Rotations",
+      "authors": "He Jiang, Jingtian Yan, Yulun Zhang, Yimin Tang, Tanishq Duhan, Rishi Veerapaneni, Guillaume Sartoretti, Jiaoyang Li",
+      "date": "2026-08-06",
+      "pdf": "https://arxiv.org/pdf/2608.05588v1",
+      "score": "9.0",
+      "evidence": "针对自动化仓库系统的终身多智能体路径规划，通过考虑真实运动约束提高订单拣选效率。",
+      "tldr": "终身多智能体路径规划在自动化仓库中受限于严格安全约束与原地旋转约束,现有学习模型多简化运动学导致高密度空间协同困难。本研究提出搜索辅助联合强化学习SJRL,结合Causal-PIBT即时解决碰撞并联合优化智能体与环境策略,后者通过学习图边成本提供全局引导。实验表明SJRL在多个高密度地图上显著优于强基线Causal-PIBT,并在8台物理机器人与248台虚拟机器人混合现实仓库中成功验证,提升了密集仓储环境下多智能体协同的鲁棒性与实用性。",
+      "tags": "query:wo",
+      "abstract_en": "Lifelong Multi-Agent Path Finding (LMAPF) requires repeatedly planning collision-free paths for agents that continuously receive new goals upon reaching their current ones. While many learning-based planners have been proposed for LMAPF, most rely on oversimplified kinematic assumptions that may overlook motion constraints critical to real-world performance. In this work, we study a more realistic LMAPF model derived from many real-world automated warehouse systems, termed LMAPF-R2, which incorporates robust safety constraints and in-place rotation constraints. These constraints substantially increase coordination difficulty, particularly in highly constrained spaces. To address these challenges, we propose Search-Aided Joint Reinforcement Learning (SJRL). We first augment neural policies with Causal PIBT, a single-step search-based planner that resolves agents' collisions and propagates their intentions. We then introduce a unified RL formulation that jointly optimizes agent and environment policies, where the environment policy learns graph edge costs to provide global movement guidance via backward Dijkstra search. Experiments demonstrate that SJRL achieves significant improvements over the strong search-based planner, Causal-PIBT, across multiple high-density maps. We further validate SJRL in a challenging mixed-reality warehouse environment with 8 physical robots and 248 virtual robots.",
       "source": "arxiv",
       "selection_source": "fresh_fetch"
     }

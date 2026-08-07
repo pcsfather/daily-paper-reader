@@ -1,12 +1,12 @@
 {
   "mode": "standard",
-  "generated_at": "2026-08-07T02:04:24.690654+00:00",
+  "generated_at": "2026-08-07T20:59:01.795690+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 1,
+    "deep_divecandidates": 2,
     "deep_cap": 6,
-    "deep_selected": 1,
+    "deep_selected": 2,
     "quick_candidates": 0,
     "quick_skim_target": 11,
     "quick_selected": 0
@@ -38,14 +38,57 @@
         "keyword:wo",
         "query:wo"
       ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "warehouse robot swarms prioritize urgent items using IoT tags to boost order picking efficiency",
-      "llm_evidence_cn": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
-      "llm_evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
-      "canonical_evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
-      "llm_tldr_en": "Proposes a decentralized robot swarm intralogistics system where IoT tags on carriers broadcast item urgency over BLE, enabling robots to prioritize urgent items based on urgency-distance trade-offs, improving order picking efficiency for time-sensitive goods.",
-      "llm_tldr_cn": "针对仓库中紧急物品（如易腐品、药品）需要优先处理的问题，提出一种去中心化机器人群体内部物流系统。每个仓库载具配备低功耗物联网标签，通过BLE广播物品紧急程度，机器人直接读取并根据紧急度与行驶距离自主选择任务。实验表明，该系统能有效区分紧急与普通物品，减少紧急物品等待时间，提升订单拣选效率，为无固定自动化基础设施的仓库提供了低成本、灵活且紧急感知的解决方案。",
-      "llm_tldr": "针对仓库中紧急物品（如易腐品、药品）需要优先处理的问题，提出一种去中心化机器人群体内部物流系统。每个仓库载具配备低功耗物联网标签，通过BLE广播物品紧急程度，机器人直接读取并根据紧急度与行驶距离自主选择任务。实验表明，该系统能有效区分紧急与普通物品，减少紧急物品等待时间，提升订单拣选效率，为无固定自动化基础设施的仓库提供了低成本、灵活且紧急感知的解决方案。",
+      "llm_score": 9.0,
+      "llm_evidence_en": "Urgency-aware robot swarm intralogistics for warehouses improves order picking efficiency by prioritizing urgent items using IoT tags.",
+      "llm_evidence_cn": "利用智能物联网标签实现紧急感知的机器人群体内部物流，通过优先处理紧急物品提高订单拣选效率。",
+      "llm_evidence": "利用智能物联网标签实现紧急感知的机器人群体内部物流，通过优先处理紧急物品提高订单拣选效率。",
+      "canonical_evidence": "利用智能物联网标签实现紧急感知的机器人群体内部物流，通过优先处理紧急物品提高订单拣选效率。",
+      "llm_tldr_en": "The paper proposes a swarm logistics system where warehouse carriers have IoT tags broadcasting urgency, enabling robots to prioritize urgent items for improved order picking efficiency.",
+      "llm_tldr_cn": "针对去中心化机器人群体内部物流中缺乏紧急感知导致紧急物品延误的问题，提出在每个仓库运载工具上搭载低功耗物联网标签，通过蓝牙广播物品紧急程度，机器人直接读取并权衡紧急性与行驶距离选择服务对象。实验表明，该方法能有效减少紧急物品等待时间，提升仓库整体拣选效率，为灵活自动化物流系统提供了低成本解决方案。",
+      "llm_tldr": "针对去中心化机器人群体内部物流中缺乏紧急感知导致紧急物品延误的问题，提出在每个仓库运载工具上搭载低功耗物联网标签，通过蓝牙广播物品紧急程度，机器人直接读取并权衡紧急性与行驶距离选择服务对象。实验表明，该方法能有效减少紧急物品等待时间，提升仓库整体拣选效率，为灵活自动化物流系统提供了低成本解决方案。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.05588v1",
+      "source": "arxiv",
+      "title": "Search-Aided Joint Agent-Environment Reinforcement Learning for Robust Lifelong Multi-Agent Path Finding with Rotations",
+      "abstract": "Lifelong Multi-Agent Path Finding (LMAPF) requires repeatedly planning collision-free paths for agents that continuously receive new goals upon reaching their current ones. While many learning-based planners have been proposed for LMAPF, most rely on oversimplified kinematic assumptions that may overlook motion constraints critical to real-world performance. In this work, we study a more realistic LMAPF model derived from many real-world automated warehouse systems, termed LMAPF-R2, which incorporates robust safety constraints and in-place rotation constraints. These constraints substantially increase coordination difficulty, particularly in highly constrained spaces. To address these challenges, we propose Search-Aided Joint Reinforcement Learning (SJRL). We first augment neural policies with Causal PIBT, a single-step search-based planner that resolves agents' collisions and propagates their intentions. We then introduce a unified RL formulation that jointly optimizes agent and environment policies, where the environment policy learns graph edge costs to provide global movement guidance via backward Dijkstra search. Experiments demonstrate that SJRL achieves significant improvements over the strong search-based planner, Causal-PIBT, across multiple high-density maps. We further validate SJRL in a challenging mixed-reality warehouse environment with 8 physical robots and 248 virtual robots.",
+      "authors": [
+        "He Jiang",
+        "Jingtian Yan",
+        "Yulun Zhang",
+        "Yimin Tang",
+        "Tanishq Duhan",
+        "Rishi Veerapaneni",
+        "Guillaume Sartoretti",
+        "Jiaoyang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-08-06T04:17:38+00:00",
+      "link": "https://arxiv.org/pdf/2608.05588v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Lifelong Multi-Agent Path Finding for automated warehouse systems to improve order picking efficiency with realistic motion constraints.",
+      "llm_evidence_cn": "针对自动化仓库系统的终身多智能体路径规划，通过考虑真实运动约束提高订单拣选效率。",
+      "llm_evidence": "针对自动化仓库系统的终身多智能体路径规划，通过考虑真实运动约束提高订单拣选效率。",
+      "canonical_evidence": "针对自动化仓库系统的终身多智能体路径规划，通过考虑真实运动约束提高订单拣选效率。",
+      "llm_tldr_en": "The paper introduces a realistic LMAPF model with rotations for warehouses and a search-aided RL method to improve order picking efficiency by enabling robust, collision-free navigation in constrained spaces.",
+      "llm_tldr_cn": "针对自动化仓库中多智能体路径规划忽视旋转和真实运动约束的问题，提出了一种考虑旋转和鲁棒安全约束的终身多智能体路径规划模型LMAPF-R2，并设计了搜索辅助的联合智能体-环境强化学习方法。实验表明，该方法在高度受限空间中能有效提高路径规划的成功率和效率，为提升仓库订单拣选自动化水平提供了关键技术支持。",
+      "llm_tldr": "针对自动化仓库中多智能体路径规划忽视旋转和真实运动约束的问题，提出了一种考虑旋转和鲁棒安全约束的终身多智能体路径规划模型LMAPF-R2，并设计了搜索辅助的联合智能体-环境强化学习方法。实验表明，该方法在高度受限空间中能有效提高路径规划的成功率和效率，为提升仓库订单拣选自动化水平提供了关键技术支持。",
       "llm_tags": [
         "query:wo"
       ],
