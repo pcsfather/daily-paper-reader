@@ -1,0 +1,59 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-07T02:04:24.690654+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.04721v1",
+      "source": "arxiv",
+      "title": "Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags",
+      "abstract": "Warehouse items differ in how urgently they must be moved: perishable goods, pharmaceutical shipments, and just-in-time production materials must be delivered sooner than the rest of the stock. Decentralised robot swarms suit warehouses that cannot justify fixed automation infrastructure, but current swarm controllers treat all items alike or rely on an external scheduler to set priorities, so urgent items wait as long as ordinary ones. This paper presents a swarm logistics system in which each warehouse carrier holds an ultra-low-power Internet-of-Things (IoT) tag that broadcasts the urgency of its item over Bluetooth Low Energy (BLE). Robots read these broadcasts directly and weigh urgency against travel distance when choosing which carrier to serve, so prioritisation happens at the item level without central scheduling. The system is evaluated in simulation and validated on real robots and IoT-tagged carriers against a proximity-only baseline. In the physical trials, priority alignment (i.e. proportion of urgent items served first), improved from 0.41 to 0.64, with a nonsignificant trend toward lower 95th-percentile (P95) delivery latency and throughput within 1.2% of the baseline. In simulation, the benefit grew with system size: across three larger configurations, P95 latency fell by 5.2% to 11.8% and priority alignment improved by 41.7% to 51.6%. Attaching urgency to the items themselves therefore allows a decentralised swarm to serve time-critical stock sooner while keeping the low infrastructure requirements that make swarm systems attractive for warehouse automation.",
+      "authors": [
+        "Youssef Alboraei",
+        "Murray Groves",
+        "Shane Wen",
+        "Wenda Zhao",
+        "Senhui Qiu",
+        "Mohammud J. Bocus",
+        "Robert Piechocki",
+        "Sabine Hauert",
+        "Kerstin Eder"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-08-05T11:39:29+00:00",
+      "link": "https://arxiv.org/pdf/2608.04721v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "warehouse robot swarms prioritize urgent items using IoT tags to boost order picking efficiency",
+      "llm_evidence_cn": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
+      "llm_evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
+      "canonical_evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
+      "llm_tldr_en": "Proposes a decentralized robot swarm intralogistics system where IoT tags on carriers broadcast item urgency over BLE, enabling robots to prioritize urgent items based on urgency-distance trade-offs, improving order picking efficiency for time-sensitive goods.",
+      "llm_tldr_cn": "针对仓库中紧急物品（如易腐品、药品）需要优先处理的问题，提出一种去中心化机器人群体内部物流系统。每个仓库载具配备低功耗物联网标签，通过BLE广播物品紧急程度，机器人直接读取并根据紧急度与行驶距离自主选择任务。实验表明，该系统能有效区分紧急与普通物品，减少紧急物品等待时间，提升订单拣选效率，为无固定自动化基础设施的仓库提供了低成本、灵活且紧急感知的解决方案。",
+      "llm_tldr": "针对仓库中紧急物品（如易腐品、药品）需要优先处理的问题，提出一种去中心化机器人群体内部物流系统。每个仓库载具配备低功耗物联网标签，通过BLE广播物品紧急程度，机器人直接读取并根据紧急度与行驶距离自主选择任务。实验表明，该系统能有效区分紧急与普通物品，减少紧急物品等待时间，提升订单拣选效率，为无固定自动化基础设施的仓库提供了低成本、灵活且紧急感知的解决方案。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

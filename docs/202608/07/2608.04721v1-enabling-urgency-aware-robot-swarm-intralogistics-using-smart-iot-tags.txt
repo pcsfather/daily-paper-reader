@@ -1,0 +1,490 @@
+Title: Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags
+
+URL Source: https://arxiv.org/pdf/2608.04721v1
+
+Published Time: Thu, 06 Aug 2026 00:50:00 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags 
+
+A P REPRINT 
+
+Youssef Alboraei 
+
+School of Engineering Mathematics and Technology Bristol Robotics Laboratory University of Bristol, UK 
+
+youssef.alboraei@bristol.ac.uk 
+
+Murray Groves 
+
+School of Computer Science Trustworthy Systems Laboratory University of Bristol, UK 
+
+murray.groves.2022@bristol.ac.uk 
+
+Shane Wen 
+
+School of Computer Science Trustworthy Systems Laboratory University of Bristol, UK 
+
+cc23766@alumni.bristol.ac.uk 
+
+Wenda Zhao 
+
+School of Computer Science Trustworthy Systems Laboratory University of Bristol, UK 
+
+ed20979@bristol.ac.uk 
+
+Senhui Qiu 
+
+School of Computer Science Trustworthy Systems Laboratory University of Bristol, UK 
+
+senhui.qiu@bristol.ac.uk 
+
+Mohammud J. Bocus 
+
+School of Computer Science Trustworthy Systems Laboratory University of Bristol, UK 
+
+junaid.bocus@bristol.ac.uk 
+
+Robert Piechocki 
+
+School of Electrical, Electronic and Mechanical Engineering University of Bristol, UK 
+
+r.j.piechocki@bristol.ac.uk 
+
+Sabine Hauert 
+
+School of Engineering Mathematics and Technology Bristol Robotics Laboratory University of Bristol, UK 
+
+sabine.hauert@bristol.ac.uk 
+
+Kerstin Eder 
+
+School of Computer Science Trustworthy Systems Laboratory University of Bristol, UK 
+
+kerstin.eder@bristol.ac.uk 
+
+ABSTRACT 
+
+Warehouse items differ in how urgently they must be moved: perishable goods, pharmaceutical shipments, and just-in-time production materials must be delivered sooner than the rest of the stock. Decentralised robot swarms suit warehouses that cannot justify fixed automation infrastructure, but current swarm controllers treat all items alike or rely on an external scheduler to set priorities, so urgent items wait as long as ordinary ones. This paper presents a swarm logistics system in which each warehouse carrier holds an ultra-low-power Internet-of-Things (IoT) tag that broadcasts the urgency of its item over Bluetooth Low Energy (BLE). Robots read these broadcasts directly and weigh urgency against travel distance when choosing which carrier to serve, so prioritisation happens at the item level without central scheduling. The system is evaluated in simulation and validated on real robots and IoT-tagged carriers against a proximity-only baseline. In the physical trials, priority alignment (i.e. proportion of urgent items served first), improved from 0.41 to 0.64, with a non-significant trend toward lower 95th-percentile (P95) delivery latency and throughput within 1.2% of arXiv:2608.04721v1 [cs.RO] 5 Aug 2026 the baseline. In simulation, the benefit grew with system size: across three larger configurations, P95 latency fell by 5.2% to 11.8% and priority alignment improved by 41.7% to 51.6%. Attaching urgency to the items themselves therefore allows a decentralised swarm to serve time-critical stock sooner while keeping the low infrastructure requirements that make swarm systems attractive for warehouse automation. 
+
+1 INTRODUCTION 
+
+Logistics and warehouse operations are facing increasing pressure to become more responsive, flexible, and cost-effective [1]. While large-scale facilities can justify highly engineered automation stacks, dense sensing infrastruc-ture, and tightly integrated warehouse management systems, many warehouses, distribution hubs, and back-room storage spaces remain either manual or only partially automated. In such settings, deploying fixed conveyors, cen-tralised scheduling platforms, or dedicated localisation infrastructure may be economically unjustified, operationally disruptive, or insufficiently adaptable to changing layouts, inventories, and workloads. Infrastructure-light automation solutions that can be deployed rapidly, integrated with existing practices, and reconfigured with minimal setup effort are therefore needed [2]. Swarm robotics is well suited to such settings. Swarm systems rely on large numbers of relatively simple robots that coordinate through local interactions rather than centralised control, providing robustness, scalability, and flexibility in uncertain or evolving environments [3, 4]. In logistics, these properties are attractive because they enable mobile and reconfigurable material-handling systems that can operate without extensive fixed infrastructure [5] and can scale with operational demand [6]. However, despite these advantages, effective coordination in logistics-oriented swarms remains challenging [7]. Warehousing tasks are not merely spatial; they are also semantic and time-sensitive. Items may differ in urgency, handling requirements, or service priority, yet many decentralised swarm approaches treat tasks as largely homogeneous or assume that task priorities are assigned and managed externally. This limitation motivates a shift from viewing warehouse items as passive objects to treating them as active information carriers. In this paper, we propose a decentralised logistics architecture in which item-specific semantics and urgency are embedded directly on carriers through smart tags. Rather than relying on a central server or fixed infrastructure to maintain global knowledge of task priorities, the proposed approach allows each tagged carrier to advertise its identity, urgency level, and status locally to nearby robots. As a result, robots can make context-aware, item-relevant decisions directly at the edge. The ultra-low-power IoT tag is central to this shift: unlike passive identifiers, it carries computation, state, and wireless communication on the item itself, which is what makes item-specific urgency available to robots without any supporting infrastructure, while keeping that information readable and adjustable by human operators. To investigate this, we evaluate the proposed urgency-aware architecture in both simulation and physical experiments using Distributed Organisation and Transport System (DOTS) robots in a warehouse-inspired laboratory arena [8]. We further examine scalability in simulation by analysing how the decentralised coordination mechanism behaves as swarm size increases. Across these studies, we assess performance using logistics-relevant metrics including delivery latency, throughput, and priority responsiveness. The main contributions of this paper are as follows: • We propose a decentralised swarm-logistics architecture in which smart IoT tags encode item urgency on car-riers, together with a carrier-selection mechanism that combines this urgency with proximity in each robot’s local decision, requiring no centralised scheduling. • We evaluate the system in simulation and in physical experiments with real robots and IoT tags, showing that urgency-aware selection improves the prioritisation of urgent items relative to a proximity-only baseline while preserving throughput. • We analyse scalability in simulation, showing that the benefits grow with swarm size while the throughput cost shrinks. 
+
+2 Related Work 
+
+Swarm robotics has attracted growing interest for warehouse automation because it enables robust, scalable, and flexible material handling through self-organisation and decentralised control [3, 9]. Local interaction rather than centralised coordination lets swarms tolerate failures and adapt to dynamic environments with little fixed infrastructure. Figure 1: Swarm arena setup. 7 carriers arranged in pick-up zone (left), 3 DOTS robots start from drop-off zone (right). Drop-off zone identified by ArUco markers on right side. A key challenge in such systems is distributed task allocation. Decentralised approaches allow robots to select tasks based on local sensing and limited communication, thereby preserving operation under partial failures or commu-nication loss [10, 11]. Market-based and auction-based methods have shown that competitive bidding can achieve efficient allocations while retaining decentralisation [12, 13]. More recently, methods that incorporate task importance or deadlines into the allocation objective have been shown to improve service for high-priority tasks [14, 15]. Low-power wireless communication is central to this capability: Bluetooth Low Energy (BLE) combines low energy consumption, moderate range, and reliable operation in congested 2.4 GHz industrial settings [16, 17]. Equipping items with communicating tags therefore enables robots to obtain task-relevant information locally, reducing reliance on centralised schedulers [18, 19]. Smart Internet-of-Things (IoT) tags extend this idea: unlike passive identifiers, they integrate sensing, computation, and wireless communication into physical assets, and can store and transmit information such as stock status, handling constraints, and deadlines [20]. However, the use of smart tags as active coordinating elements in decentralised robotic logistics remains insufficiently explored. Conventional warehouse automation often relies on centralised scheduling, which can provide efficient allocation but requires denser infrastructure and introduces single points of failure [21]. In contrast, decentralised swarm approaches are inherently more robust and scalable, but they often neglect item-specific information, limiting responsiveness to time-sensitive items [22]. Existing decentralised methods typically represent urgency through heuristics such as shortest-distance-first or earliest-deadline-first selection [23, 24], or through utility functions that balance travel cost and estimated task value [25]. However, urgency is often assumed to be globally known, statically encoded, or centrally assigned, which restricts adaptation to changing item conditions. Prior studies have shown that urgency-aware task allocation can improve service quality and reduce delays in multi-agent systems [26]. However, many of these studies remain simulation-based or assume continuous, high-bandwidth communication infrastructures [27]. Related work on event-driven and semantic communication in swarms further supports transmitting only the information that is relevant to collective behaviour [28, 29]. Experimental evaluations that combine decentralised swarm coordination, ultra-low-power smart tags, and dynamically adjustable priorities in realistic logistics environments are still limited. 
+
+3 Methodology 
+
+3.1 Research Questions 
+
+This study is guided by the following research questions: 0 1 2 3
+
+# x (m) 
+
+# 0
+
+# 1
+
+# 2
+
+# 3
+
+> y (m)
+
+Figure 2: Snapshot from the 2D simulator, with axes in metres (the arena matches the 3.75 ×3.75 m physical arena): robots (circles), carriers (squares) displaying their urgency value (0–9), and dotted circles marking each carrier’s tag-detection range. 
+
+RQ1: Does embedding item urgency directly into carriers improve the prioritisation of urgent items in decentralised swarm logistics, and reduce tail delivery latency (P95), while preserving overall throughput? 
+
+RQ2: How does the proposed urgency-aware coordination mechanism scale with increasing swarm size and workload relative to a proximity-based baseline? 
+
+RQ3: How does the urgency weight affect the trade-off between prioritising urgent carriers and selecting carriers closer to the robot in decentralised robot-carrier assignment? 
+
+3.2 Experimental Scenario 
+
+We consider an infrastructure-light warehouse scenario in which items are stored on four-legged carriers located in a pickup area (see left-hand side of Fig. 1) and must be transported to a designated drop-off area (see right-hand side of Fig. 1) by a decentralised robot swarm. Each carrier is equipped with a smart IoT tag that stores and broadcasts its identity, item-specific urgency, operational status and destination. The tag also shows the same information on an E-ink display, so that human operators can read and adjust item priorities at a glance, and each carrier additionally bears ArUco markers on its sides and underside that robots use to identify, approach and dock with it (Fig. 3). Robots explore the environment independently and use locally available information to select, collect and deliver carriers without task assignments from a central scheduler. Two carrier-selection approaches are considered. Under the proximity-only baseline , robots select the nearest avail-able carrier using its relative position, without considering the urgency information broadcast by its tag. Under the proposed urgency-aware approach , robots combine carrier proximity with the item-specific urgency advertised by the tag. The hardware, navigation behaviour, environment and remaining controller functions are common to both approaches, such that the principal difference is how carriers are selected. A typical task cycle begins when a robot Figure 3: A carrier with its smart IoT tag. ArUco markers on the four sides (and underside) are used by robots for identification and docking. The tag broadcasts the carrier’s ID and urgency level via BLE; the E-ink display shows the same information for human readability. detects one or more available carriers during exploration. The robot obtains the carrier state and urgency from its BLE advertisement, selects a carrier according to the applicable policy, docks underneath it, activates its lifting mechanism and transports it to the drop-off area. The carrier status is updated throughout this process so that other robots can determine whether it remains available for collection. 
+
+3.3 Controller Design 3.3.1 Robot Behaviour Controller 
+
+Each robot operates autonomously using a modular behaviour-tree controller. The controller executes the following sequence: • Random Walk: move on a random heading until an obstacle or boundary is detected, then pick a new heading. • Select Carrier: select an available carrier using the proximity-only or urgency-aware policy. • Predock: move in front of the selected carrier and rotate to face it. • Dock and Centre: drive underneath the carrier and align with its centre using the underside ArUco marker. • Transport and Release: lift the carrier, transport it to the drop-off area, release it and resume exploration. The tag state changes from AWAITING PICKUP to PICKED UP at collection and to IDLE on delivery, preventing other robots from selecting a carrier already being transported. 
+
+3.3.2 Carrier-Selection Algorithm 
+
+Each robot ranks candidate carriers using a score that combines the urgency broadcast by the tag with the carrier proximity. When urgency awareness is enabled, the score assigned by robot r to carrier c is defined as 
+
+sr,c = uc (α + ud(r, c )) (1) Figure 4: The DOTS robots use time-of-flight sensors for obstacle avoidance and cameras for ArUco markers process-ing to identify and localise the carriers and the drop-off zone. where uc ∈ [0 , 9] denotes the carrier urgency level, α is a tunable urgency-weighting parameter, and ud(r, c ) is a distance-dependent proximity term. The latter is given by 
+
+ud(r, c ) = 9 
+
+
+
+1 − min 
+
+ dr,c 
+
+3.6 , 1
+
+ 
+
+(2) where dr,c = ∥tr,c ∥2 is the Euclidean distance to the carrier, with tr,c the carrier position relative to robot r in the robot-centred camera frame. The proximity term in (2) is clipped and scaled to the range 0 to 9, corresponding to the urgency scale used by the smart tags. Nearby carriers therefore receive a larger proximity contribution, whereas carriers at distances greater than or equal to 3.6 m receive no additional proximity benefit. Representing urgency and proximity on the same numerical scale provides an interpretable basis for combining the two quantities. The parameter, α, controls the trade-off between urgency responsiveness and spatial efficiency. Increasing α gives greater influence to carrier urgency, whereas decreasing it gives greater influence to spatial proximity. Under urgency-aware operation, the robot selects the available carrier with the highest score in (1). Under the proximity-only baseline, urgency is ignored and the robot selects the carrier with the largest value of ( ud(r, c )), which is equivalent to selecting the nearest available carrier. 
+
+3.4 Evaluation Metrics 
+
+System performance was evaluated across the following KPIs: • P95 Latency: The 95th percentile of per-carrier delivery latency, pooled across all deliveries of a condition. Each carrier’s latency is measured relative to its target delivery time, which precedes the trial start by (uc/9) ·
+
+240 s, so that more urgent carriers accrue lateness sooner (Sec. 4). • Mean Latency: The mean of the same per-carrier delivery latency across all deliveries of a condition. • Throughput: The number of carriers delivered per 100 units of elapsed run time between a run’s first and last delivery. Physical experiments use seconds, whereas simulations use simulator ticks. For fixed-duration scalability simulations, total deliveries provide an equivalent measure of throughput. • Priority Alignment (PA): The extent to which high-urgency carriers are delivered before lower-urgency carriers. For an urgency threshold, x, this is calculated as the proportion of carriers within the top x% by urgency that are also included within the first x% of completed deliveries. Priority alignment is evaluated across thresholds from 5% to 50%. The proximity-only (baseline) condition provides the reference for all comparisons. The same carrier and robot con-figuration is used for both approaches; however, the baseline controller ignores the urgency broadcast by the smart tags and selects carriers solely according to proximity. Front Back   
+
+> E-ink display attached to P1
+> Power  nRF52833 NBVLC RX NBVLC TX E-ink driver Wake-up & sensor Photodiode IR emitter
+
+Figure 5: Custom-engineered reconfigurable IoT node. 
+
+3.5 Software Environment 3.5.1 Robot Software 
+
+The DOTS robots are controlled through Robot Operating System 2 (ROS 2) using behaviour trees; each robot executes an independent controller and selects carriers using locally available sensing and communication, with no global task list or centralised scheduler. A custom BLE library, running in its own thread, detects nearby tag advertisements and extracts carrier identity, urgency, status and destination, and camera-based ArUco processing provides carrier identification and relative localisation for docking [30]. 
+
+3.5.2 Simulation Environment 
+
+A custom low-fidelity two-dimensional Python simulator was developed to represent the essential behaviour of the physical swarm-logistics system, as illustrated in Fig. 2. The simulator models holonomic robot motion, robot-robot, robot-wall and robot-carrier collisions, random-walk exploration, range-limited tag detection and carrier pickup and delivery cycles. The simulated robots execute the same proximity-only and urgency-aware carrier-selection rules as the physical robots. The simulator supports configurable numbers of robots and carriers, enabling experiments beyond the capacity of the physical platform. 
+
+3.6 Hardware Platform 3.6.1 DOTS Robot Platform 
+
+The Distributed Organisation and Transport System (DOTS) is an open-source industrial swarm-robotics platform designed for decentralised logistics research [8]. Each DOTS robot, shown in Fig. 4, has a diameter of 250 mm and uses three omniwheels arranged at 120 ◦ intervals, providing holonomic motion and rapid omnidirectional movement at speeds of up to 2 m/s. Its lifting mechanism supports payloads of up to 2 kg. Onboard computation (a six-core ARM single-board computer with GPU) supports local perception, decision-making and control. Each robot carries four perimeter cameras, an upward-facing camera, 16 infrared time-of-flight sensors, Wi-Fi, two BLE 5 radios and an ultra-wideband radio. In the present study, the time-of-flight sensors support obstacle avoidance, and the cameras process ArUco markers to identify and localise carriers and the drop-off area (Fig. 1). 3.6.2 Custom Smart IoT Tags 
+
+The reconfigurable IoT node shown in Fig. 5 was custom designed and implemented within the SUPERIOT project as a prototype of its sustainable and reconfigurable IoT-node concept [31]. SUPERIOT investigates IoT systems combining radio and optical connectivity, low-power operation, sensing and adaptable node functionality. The node is centred on an nRF52833 BLE system-on-chip and additionally carries a visible-light-communication transceiver, an environmental sensor, a light-based wake-up circuit and a 2.13-inch E-ink display; only the BLE and E-ink functions are used in this study. The node broadcasts its state through BLE advertisements containing manufacturer-specific data. Each advertise-ment includes the following six-byte payload: [0xFF, 0xFF, urgency, status, destination, ArUco ID] .Urgency is encoded on a scale from 0 to 9. The status field indicates whether a carrier is IDLE (0x00) , AWAITING PICKUP (0x01) or PICKED UP (0x02) . The remaining fields encode destination and visual-identifier information. This compact representation allows nearby robots to obtain item-specific priority and state information directly from periodic advertisements. The node state can also be updated remotely through a BLE Generic Attribute Profile (GATT) characteristic, after which the advertising payload is refreshed. This write path is what makes item priorities dynam-ically adjustable: an operator or warehouse management system can re-prioritise an item mid-operation (e.g., when an order becomes urgent), and the experiment infrastructure uses the same mechanism to record status transitions at pickup and delivery. 
+
+3.6.3 Physical Environment 
+
+Physical experiments were conducted in a 3.75 m × 3.75 m arena representing a simplified warehouse environment with designated pickup and drop-off areas, as shown in Fig. 1. Three DOTS robots operate as mobile transport agents, while seven carriers, each measuring 355 mm × 355 mm, serve as proxies for warehouse items. Each carrier is fitted with a custom smart IoT tag and ArUco markers on its sides and underside (Fig. 3); ArUco markers also identify the drop-off area. The same environment and robot-control functions are used for both conditions. 
+
+4 Results 
+
+4.1 Experimental Configurations and Analysis 
+
+The experiments were conducted in three stages: simulation-based controller selection, physical validation, and simulation-based scalability analysis. Results are presented with the two simulation studies first, followed by the physical validation. First, the influence of the urgency-weighting parameter ( α) in the controller score defined in Eq (1) was investigated in simulation. Intuitively, increasing α gives greater importance to carrier urgency relative to robot–carrier proximity. Candidate values were evaluated using a configuration of three robots and seven carriers. The urgency–distance balance was explored in two stages. A preliminary sweep varied the relative weight of urgency against distance from 0 to 1 in increments of 0.1, identifying mild urgency weighting as the most promising regime. Candidate weightings from this region (0.3, 0.5, 0.7 and 0.9) were then evaluated as settings of α under the scoring rule of (1), with α=0.7 outperforming the neighbouring setting α=0.9 in both tail latency and completed deliveries. It was therefore carried forward, together with α=3.0 and α=9.0 as representative moderate and strong weightings on the 0–9 urgency scale. The simulated robots moved at a maximum speed of 0.5 m/s within a 3.75 m × 3.75 m arena. Each simulated trial ran for a fixed duration of 3,000 simulator ticks. Simulated carriers were initialised with waiting times sampled uniformly over this window, and carrier urgency grew linearly with waiting time up to the maximum value of 9. In the physical experiments, required delivery times were instead sampled uniformly between 0 and 240 s and mapped to static integer urgency values from 0 to 9, with shorter required delivery times corresponding to higher urgency. These three conditions were compared with the proximity-based baseline controller, which did not use carrier urgency. Each of the four retained conditions was evaluated over 100–101 simulation runs with controlled random seeds. The selected controller settings were subsequently evaluated on the physical platform using three robots and seven carriers. Each of the four controller conditions (baseline, α=0.7, α=3.0, and α=9.0) was evaluated in 15 to 17 valid runs (66 in total); a small number of additional runs were discarded due to hardware faults such as docking accidents. The number of runs per condition was set by the testbed time available for the study. At the beginning of each run, the carriers were positioned in the pickup area and the robots in the drop-off area. Carrier positions and urgency values were rearranged between runs using controlled randomisation. The robot speed was limited to 0.5 m/s. The system was fully reset between runs, including tag reinitialization and the relaunching of the robot controllers and BLE communication. Performance was recorded using both visual observations and ROS 2 logs. Tags remained present in 0% 
+
+# 50% 
+
+# 100% (a) Simulation 
+
+# 0% 20% 40% 60% 80% 100% 
+
+# Top x% most urgent 
+
+# 0% 
+
+# 50% 
+
+# 100% (b) Physical 
+
+> Delivered in fastest x%
+
+# =0.7 =3.0 =9.0 Baseline Figure 6: Priority alignment as a function of the most urgent carrier subset for (a) simulation-based controller selection using three robots and seven carriers (100–101 runs per condition) and (b) physical validation using three robots and seven carriers (15–17 valid runs per condition). Curves show the mean across runs, and shaded bands show 95% bootstrap confidence intervals (trial resampling). Higher values indicate stronger alignment between robot assignments and carrier urgency. Urgency-aware assignment improves priority alignment in both environments, with α = 0 .7
+
+providing the strongest improvement on the physical platform. the baseline condition, but their urgency information was ignored by the controller. All other experimental parameters were held constant. Finally, scalability was evaluated in simulation using configurations of 5 robots and 10 carriers, 10 robots and 20 carriers, and 20 robots and 40 carriers. For each configuration, the baseline controller was compared with the mild urgency-aware controller, α=0.7, over 21 runs per condition using controlled random seeds, with fixed trial durations of 3,000, 6,000 and 12,000 simulator ticks for the three scales, respectively. Tables 1 to 3 retain the principal numerical results, while Figs. 6 to 8 illustrate the corresponding distributions and trends. The figure curves represent means across repeated runs, with shaded bands showing 95% bootstrap confidence intervals (CIs). The following analysis focuses on the direction, magnitude, and consistency of the observed effects rather than individual experimental observations. 
+
+4.2 Simulation-Based Controller Selection: The Urgency–Distance Trade-off (RQ3) 
+
+The simulation experiments show that incorporating urgency into the robot–carrier assignment policy improves prior-itization of urgent carriers and reduces tail delivery latency. However, increasing the urgency weight also introduces a trade-off between prioritization and average system performance. 2000 
+
+# 4000 
+
+# 6000 
+
+> Latency (ticks)
+
+# (a) Simulation 
+
+# 0% 20% 40% 60% 80% 100% 
+
+# Percentile 
+
+# 200 
+
+# 400 
+
+> Latency (s)
+
+# (b) Physical 
+
+# =0.7 =3.0 =9.0 Baseline Figure 7: Delivery-latency distributions for (a) simulation-based controller selection (100–101 runs per condition) and (b) physical validation (15–17 valid runs per condition). Curves show the mean percentile latency, and shaded bands show 95% bootstrap confidence intervals (trial resampling). Lower latency is preferable. Urgency-aware assignment shows a consistent trend toward lower upper-tail latency, although the most favourable urgency weight differs between the simulated and physical environments. As shown in Table 1 and Fig. 6(a), each urgency-aware condition produced greater priority alignment than the baseline. The improvement was most pronounced for α=9.0, indicating that stronger urgency weighting increased the likelihood that robots selected carriers from the most urgent subset. A similar trend is visible in the upper tail of the latency distributions in Fig. 7(a). P95 delivery latency decreased as α
+
+increased, showing that urgency-aware assignment particularly benefited carriers that would otherwise experience long delivery delays. However, mean latency increased with stronger urgency weighting. This indicates that prioritizing urgent carriers can delay less urgent carriers, even while improving the upper tail of the latency distribution. Throughput did not change monotonically with α. The moderate urgency setting, α=3.0, produced the highest simu-lated throughput, whereas the mild and strong settings produced slightly lower throughput than the baseline. The three selected values were retained for physical evaluation because they represent distinct levels of urgency sensitivity and expose the trade-off between priority alignment, tail latency, and overall efficiency. In terms of statistical reliability, the priority-alignment gains in simulation are significant for all three weightings (bootstrap p = 0 .03 , p < 0.01 , and p < 0.001 for α = 0 .7, 3.0, 9.0, respectively), whereas the P95 latency reduction reaches significance only at the strongest weighting ( α = 9 .0: −514 ticks, 95% CI [−835 , −80] , p = 0 .02 ). Table 1: Simulation results for controller selection using three robots and seven carriers. Values summarize 100–101 runs per controller condition; brackets give 95% bootstrap confidence intervals (trial resampling). 
+
+# Metric Baseline α=0.7 α=3.0 α=9.0 
+
+# P95 Latency (ticks) 4979 
+
+[4640, 5086] 
+
+# 4765 
+
+[4390, 4913] 
+
+# 4608 
+
+[4385, 4912] 
+
+# 4390 
+
+[4164, 4733] 
+
+# Mean Latency (ticks) 2638 
+
+[2531, 2738] 
+
+# 2767 
+
+[2663, 2869] 
+
+# 2820 
+
+[2721, 2918] 
+
+# 2947 
+
+[2853, 3037] 
+
+# Throughput (/100 ticks) 0.266 
+
+[0.250, 0.285] 
+
+# 0.251 
+
+[0.235, 0.268] 
+
+# 0.276 
+
+[0.258, 0.296] 
+
+# 0.258 
+
+[0.243, 0.275] 
+
+# PA (5–50%) 0.27 
+
+[0.22, 0.31] 
+
+# 0.35 
+
+[0.30, 0.40] 
+
+# 0.36 
+
+[0.31, 0.42] 
+
+# 0.41 
+
+[0.36, 0.47] 
+
+Table 2: Scalability results comparing the baseline and urgency-aware ( α=0.7) controllers. Each configuration was evaluated over 21 simulation runs per condition. R and C denote robots and carriers, respectively. Positive relative changes indicate improvement in the desired direction, including reductions in latency. Brackets give 95% bootstrap confidence intervals (trial resampling); ∗ marks changes significant at p < 0.05 (two-sided trial-level bootstrap). 
+
+# Scale Metric Baseline α=0.7 ∆
+
+# 5R/10C Total Deliveries 160 
+
+[145, 174] 
+
+# 145 
+
+[129, 160] −9.4% 
+
+# P95 Lat. (ticks) 4,441 
+
+[3,981, 4,928] 
+
+# 4,208 
+
+[3,633, 4,454] +5 .2% 
+
+# PA (5–50%) 0.39 
+
+[0.30, 0.48] 
+
+# 0.55 
+
+[0.46, 0.63] +41 .7% ∗
+
+# 10R/20C Total Deliveries 394 
+
+[378, 407] 
+
+# 394 
+
+[381, 405] +0 .0% 
+
+# P95 Lat. (ticks) 8,790 
+
+[8,301, 9,279] 
+
+# 7,893 
+
+[7,492, 8,535] +10 .2% ∗
+
+# PA (5–50%) 0.30 
+
+[0.23, 0.39] 
+
+# 0.45 
+
+[0.38, 0.52] +47 .9% ∗
+
+# 20R/40C Total Deliveries 840 
+
+[840, 840] 
+
+# 834 
+
+[830, 838] −0.7% ∗
+
+# P95 Lat. (ticks) 14,097 
+
+[13,705, 14,889] 
+
+# 12,428 
+
+[12,180, 12,771] +11 .8% ∗
+
+# PA (5–50%) 0.33 
+
+[0.27, 0.41] 
+
+# 0.50 
+
+[0.45, 0.56] +51 .6% ∗
+
+Answering RQ3: the exploration of α shows a trade-off between urgency responsiveness and spatial efficiency: moderate weighting reduces tail latency without degrading mean performance, and the non-monotonic relationship means urgency must be balanced against proximity. 0% 
+
+# 50% 
+
+# 100% (a) 5R/10C 
+
+# 0% 
+
+# 50% 
+
+# 100% (b) 10R/20C 
+
+# 0% 20% 40% 60% 80% 100% 
+
+# Top x% most urgent 
+
+# 0% 
+
+# 50% 
+
+# 100% (c) 20R/40C 
+
+> Delivered in fastest x%
+
+# =0.7 Baseline Figure 8: Priority alignment for the baseline and urgency-aware ( α=0.7) controllers at three simulated scales: (a) 5R/10C, (b) 10R/20C, and (c) 20R/40C, where R and C denote robots and carriers, respectively. Curves show the mean across 21 runs per condition, and shaded bands show 95% bootstrap confidence intervals (trial resampling); panels are labelled by scale only and axes are reported as in Fig. 6. The improvement produced by urgency-aware assignment becomes more pronounced as system size increases. 
+
+4.3 Simulation-Based Scalability Analysis (RQ2) 
+
+The principal result of the scalability analysis is that the benefit of urgency-aware assignment becomes more evident as the numbers of robots and carriers increase. In particular, improvements in priority alignment and P95 latency grew with system size, while the associated throughput penalty decreased. Before evaluating scalability, the simulation baseline was compared qualitatively with the physical baseline reported in Sec. 4.4: their absolute values lie on different time scales, but both produced similar latency-distribution and priority-alignment behaviour, supporting the use of the simulator for trend analysis rather than exact prediction. As summarised in Table 2, the reduction in P95 latency increased from 5.2% in the smallest configuration to 11.8% in the largest configuration. Priority alignment improved by between 41.7% and 51.6%, with the greatest relative improvement occurring in the largest system. The priority-alignment improvement is statistically significant at all three scales (trial-level bootstrap p = 0 .013 , p = 0 .012 and p = 0 .001 ), and the P95 reduction is significant at the two larger scales ( p = 0 .023 and p < 0.001 ) but not at 5R/10C ( p = 0 .45 ). Table 3: Physical experimental results using three robots and seven carriers. Values summarize 15–17 valid runs per controller condition; brackets give 95% bootstrap confidence intervals (trial resampling). 
+
+# Metric Baseline α=0.7 α=3.0 α=9.0 
+
+# P95 Latency (s) 424 
+
+[387, 462] 
+
+# 386 
+
+[361, 411] 
+
+# 422 
+
+[401, 453] 
+
+# 400 
+
+[372, 434] 
+
+# Mean Latency (s) 260 
+
+[244, 278] 
+
+# 258 
+
+[243, 273] 
+
+# 263 
+
+[246, 282] 
+
+# 261 
+
+[243, 279] 
+
+# Throughput (/100 s) 3.84 
+
+[3.30, 4.49] 
+
+# 3.79 
+
+[3.38, 4.27] 
+
+# 3.48 
+
+[2.99, 4.05] 
+
+# 3.60 
+
+[3.15, 4.14] 
+
+# PA (5–50%) 0.41 
+
+[0.30, 0.54] 
+
+# 0.64 
+
+[0.54, 0.74] 
+
+# 0.52 
+
+[0.41, 0.63] 
+
+# 0.54 
+
+[0.46, 0.62] 
+
+The effect on throughput (total deliveries) also became less pronounced with scale. The smallest configuration ex-hibited a 9.4% reduction in completed deliveries (not statistically significant, p = 0 .19 ), whereas the difference was negligible for the two larger configurations. Mean and median latency likewise remained close to the baseline at the larger scales. These results indicate that larger systems provide more opportunities for the controller to assign nearby robots to urgent carriers without substantially reducing the service available to other carriers. 
+
+Answering RQ2: the benefit increases as the system grows. Priority-alignment gains exceed 40% and are significant at every scale, and P95 latency improvements progress from 5.2% to 11.8%, reaching significance at the two larger scales. The throughput penalty observed at the smallest scale ( −9.4% at 5R/10C, not significant) vanishes at the larger scales, indicating that the cost of prioritising urgent carriers is amortised as the swarm grows. 
+
+4.4 Physical Validation: Significant Priority-Alignment Gains Without Throughput Cost (RQ1) 
+
+The physical experiments reproduced the principal trend observed in simulation: incorporating urgency improved priority alignment and could reduce tail delivery latency without materially changing mean delivery latency. However, the mild urgency setting, rather than the strongest setting, produced the most favourable overall balance on the physical platform. As shown in Table 3 and Fig. 6(b), all three urgency-aware settings increased priority alignment relative to the baseline. The largest improvement was obtained with α=0.7, for which priority alignment increased from 0.41 to 0.64; this improvement is statistically significant ( +0 .22 , 95% CI [0 .06 , 0.38] , bootstrap p < 0.01 ; Mann–Whitney on per-trial values p = 0 .015 ). This result demonstrates that even mild urgency weighting can substantially improve the controller’s ability to prioritize urgent carriers. The mild urgency setting also showed a trend toward lower P95 delivery latency (a 9.1% reduction, from 424 s to 386 s), although this difference is not statistically significant at the achieved sample size (bootstrap difference −31 s, 95% CI [−81 , +16] , p = 0 .24 ); mean latency and throughput remained close to their baseline values (throughput 
+
+−1.2%, n.s.). The higher urgency weights produced smaller, non-significant improvements in P95 latency and larger throughput penalties. These results indicate that excessively strong urgency weighting can impair overall coordination by directing several robots towards highly urgent carriers while giving insufficient consideration to spatial efficiency. The physical and simulation experiments therefore agree on the main effect: urgency-aware assignment improves priority alignment and can reduce tail latency, but the physical platform favoured a lower α, likely because of ef-fects simplified or absent in the simulator (robot-robot interactions, localisation and communication uncertainty, and congestion around urgent carriers). The results support α=0.7 as the most appropriate setting for the tested physical configuration. 
+
+Answering RQ1: physical experiments show that urgency-aware coordination significantly improves the order in which urgent items are served (priority alignment +0 .22 , p < 0.01 at α = 0 .7) while maintaining throughput within 1.2% of baseline. Tail latency improved by 9.1% in aggregate, a trend consistent with the simulation results, though not individually significant at 15–17 trials per condition; confirming the size of this effect will require larger-scale trials. 5 Discussion 
+
+This work demonstrates that embedding urgency information within carriers through smart IoT tags enables a robot swarm to respond more effectively to time-sensitive intralogistics tasks while retaining decentralised coordination. 
+
+5.1 Implications and Future Opportunities 
+
+The proposed approach extends decentralised proximity-based coordination by incorporating item-specific urgency into each robot’s local carrier-selection decision, requiring only a modification to the selection score while the broader coordination architecture remains unchanged. Future work will evaluate the system in larger warehouse environments with increased numbers of physical robots and carriers. It will also investigate live updates to the information stored on the tags and adaptive tuning of the urgency weight according to system and environmental conditions. 
+
+6 Conclusion 
+
+This paper presents the design, implementation, and experimental validation of an urgency-aware swarm logistics system integrating smart IoT tags with decentralised DOTS robots. Carriers are fitted with ultra-low-power IoT nodes that broadcast item urgency via BLE, so that priority information travels with the items themselves rather than through a central scheduler. Physical trials showed a significant improvement in the prioritisation of urgent items, together with a trend toward lower tail latency, while maintaining throughput close to the baseline. Simulation-based scalability assessments re-vealed consistent reductions in tail latency and improvements in priority alignment across the evaluated scales. The throughput trade-off diminished as the system grew, demonstrating that urgency-driven coordination can enhance ser-vice quality with limited impact on overall output. The approach requires no fixed infrastructure, which makes it suitable for warehouses where conventional automation is not justified. 
+
+Acknowledgements 
+
+This work was supported by the Engineering and Physical Sciences Research Council (EPSRC) through the Co-AIMS project [UKRI1890]. This work was also conducted as part of the SUPERIOT project. The SUPERIOT project has received funding from the Smart Networks and Services Joint Undertaking (SNS JU) un-der the European Union’s Horizon Europe research and innovation programme under Grant Agreement No 101096021, including funding under the UK government’s Horizon Europe funding guarantee, UKRI Grant Reference Number 10053751. Views and opinions expressed are however those of the authors only and do not necessarily reflect those of the Euro-pean Union, SNS JU or UKRI. The European Union, SNS JU or UKRI cannot be held responsible for them. 
+
+References                                        
+
+> [1] R. G. Richey, A. S. Roath, F. G. Adams, and A. Wieland, “A Responsiveness View of logistics and supply chain management,” Journal of Business Logistics ,vol. 43, no. 1, pp. 62–91, 2022. [Online]. Available: https://onlinelibrary.wiley.com/doi/abs/10.1111/jbl.12290 [2] A. Dhaliwal, “The rise of automation and robotics in warehouse management,” in Transforming management using artificial intelligence techniques .CRC Press, 2020, pp. 63–72. [3] M. Brambilla, E. Ferrante, M. Birattari, and M. Dorigo, “Swarm robotics: a review from the swarm engineering perspective,”
+> Swarm Intelligence , vol. 7, pp. 1–41, 2013. [4] G. Aguzzi and C. Savaglio, “Engineering distributed collective intelligence in cyber-physical swarms,” in 2024 20th Interna-tional Conference on Distributed Computing in Smart Systems and the Internet of Things (DCOSS-IoT) .IEEE, 2024, pp. 570–575. [5] L. Zhen, Z. Tan, R. de Koster, X. He, S. Wang, and H. Wang, “Optimizing warehouse operations with autonomous mobile robots,” Transportation Science , vol. 59, no. 5, pp. 1130–1152, 2025. [6] H. Hamann, Swarm Robotics: A Formal Approach .Cham: Springer International Publishing, 2018.
+
+[7] O. M. Ikumapayi, O. T. Laseinde, R. R. Elewa, T. S. Ogedengbe, and E. T. Akinlabi, “Swarm robotics in a sustainable warehouse automation: Opportunities, challenges and solutions,” in E3S Web of Conferences , vol. 552. EDP Sciences, 2024, p. 01080. [8] S. Jones, E. Milner, M. Sooriyabandara, and S. Hauert, “DOTS: An open testbed for industrial swarm robotic solutions,” arXiv preprint arXiv:2203.13809 , 2022. [9] E. S ¸ ahin, “Swarm Robotics: From Sources of Inspiration to Domains of Application,” in Swarm Robotics , E. S ¸ ahin and W. M. Spears, Eds. Berlin, Heidelberg: Springer, 2005, pp. 10–20. [10] Y. Chen, U. Rosolia, and A. D. Ames, “Decentralized Task and Path Planning for Multi-Robot Systems,” IEEE Robotics and Automation Letters , vol. 6, no. 3, pp. 4337–4344, Jul. 2021. [11] S. Jones, E. Milner, M. Sooriyabandara, and S. Hauert, “Distributed situational awareness in robot swarms,” Advanced Intel-ligent Systems , vol. 2, no. 11, p. 2000110, 2020. [12] M. Dias, R. Zlot, N. Kalra, and A. Stentz, “Market-Based Multirobot Coordination: A Survey and Analysis,” Proceedings of the IEEE , vol. 94, no. 7, pp. 1257–1270, Jul. 2006. [Online]. Available: https://ieeexplore.ieee.org/document/1677943 [13] N. Fazal, M. T. Khan, S. Anwar, J. Iqbal, and S. Khan, “Task allocation in multi-robot system using resource sharing with dynamic threshold approach,” PLoS ONE , vol. 17, no. 5, p. e0267982, May 2022. [14] G. Notomista, S. Mayya, S. Hutchinson, and M. Egerstedt, “An optimal task allocation strategy for heterogeneous multi-robot systems,” in 2019 18th European control conference (ECC) . IEEE, 2019, pp. 2071–2076. [15] J. Zhang, Q. Jia, S. Zhang, and G. Chen, “Dynamic and prioritized task scheduling of heterogeneous multi-robot systems using deep reinforcement learning,” Neurocomputing , vol. 638, p. 130184, Jul. 2025. [16] K. Szyc, M. Nikodem, and M. Zdunek, “Bluetooth low energy indoor localization for large industrial areas and limited infrastructure,” Ad Hoc Networks , vol. 139, p. 103024, 2023. [17] C. Gomez, J. Oller, and J. Paradells, “Overview and evaluation of Bluetooth Low Energy: An emerging low-power wireless technology,” Sensors , vol. 12, no. 9, pp. 11 734–11 753, 2012. [Online]. Available: https://www.mdpi.com/1424-8220/12/9/11734 [18] S. Na, Y. Qiu, A. E. Turgut, J. Ulrich, T. Krajn´ ık, S. Yue, B. Lennox, and F. Arvin, “Bio-inspired artificial pheromone system for swarm robotics applications,” Adaptive Behavior , vol. 29, no. 4, pp. 395–415, 2021. [19] S. Garnier, J. Gautrais, and G. Theraulaz, “The biological principles of swarm intelligence,” Swarm Intelligence , vol. 1, no. 1, pp. 3–31, Jun. 2007. [20] M. S. Khan, M. S. Islam, and H. Deng, “Design of a reconfigurable RFID sensing tag as a generic sensing platform toward the future internet of things,” IEEE Internet of Things Journal , vol. 1, no. 4, pp. 300–310, 2014. [21] K. Azadeh, R. De Koster, and D. Roy, “Robotized and automated warehouse systems: Review and recent developments,” 
+
+Transportation Science , vol. 53, no. 4, pp. 917–945, 2019. [22] M. Schranz, M. Umlauft, M. Sende, and W. Elmenreich, “Swarm Robotic Behaviors and Current Applications,” 
+
+Frontiers in Robotics and AI , vol. 7, Apr. 2020. [Online]. Available: https://www.frontiersin.org/journals/robotics-and-ai/articles/10.3389/frobt.2020.00036/full [23] P. Ghassemi and S. Chowdhury, “Multi-robot task allocation in disaster response: Addressing dynamic tasks with deadlines and robots with range and payload constraints,” Robotics and Autonomous Systems , vol. 147, p. 103905, Jan. 2022. [Online]. Available: https://www.sciencedirect.com/science/article/pii/S0921889021001901 [24] H.-L. Choi, L. Brunet, and J. P. How, “Consensus-Based Decentralized Auctions for Robust Task Allocation,” IEEE Transac-tions on Robotics , vol. 25, no. 4, pp. 912–926, Aug. 2009. [Online]. Available: https://ieeexplore.ieee.org/document/5072249 [25] W. Kang, E. Jeong, S. Shim, and S. Ha, “Optimization of task allocation for resource-constrained swarm robots,” IEEE Transactions on Automation Science and Engineering , vol. 22, pp. 3068–3085, 2025. [26] V. C. Kalempa, L. Piardi, M. Limeira, and A. S. de Oliveira, “Multi-Robot Preemptive Task Scheduling with Fault Recovery: A Novel Approach to Automatic Logistics of Smart Factories,” Sensors , vol. 21, no. 19, p. 6536, Jan. 2021. [Online]. Available: https://www.mdpi.com/1424-8220/21/19/6536 [27] R. M. Kazim, G. Wang, Z. Ming, J. K. Allen, and F. Mistree, “Design and deployment of swarm engineering systems: Insights, challenges, and innovations,” IEEE Access , vol. 13, pp. 139 345–139 376, 2025. [28] B. Anuraj, D. Calvaresi, J.-M. Aerts, and J.-P. Calbimonte, “Dynamic swarm orchestration and semantics in IoT edge devices: A systematic literature review,” IEEE Access , vol. 12, pp. 116 917–116 938, 2024. [29] H. Hickson, S. Hauert, and A. Mavromatis, “Back to bee-sics: Learning information sharing strategies for robot swarms through the hive,” in ALIFE 2025: Ciphers of Life: Proceedings of the Artificial Life Conference 2025 , vol. 37. MIT Press, 2025, p. 78. [30] S. Jones and S. Hauert, “Frapp´ e: Fast fiducial detection on low cost hardware,” Journal of Real-Time Image Processing ,vol. 20, no. 6, p. 119, 2023. [31] M. Katz, T. Paso, K. Mikhaylov, L. Pessoa, H. Fontes, L. Hakola, J. Lepp¨ aniemi, E. Carlos, G. Dolmans, J. Rufo, M. Drzewiecki, H. Sallouha, B. Napier, A. Branquinho, and K. Eder, “Towards truly sustainable IoT systems: The SUPERIOT project,” Journal of Physics: Photonics , vol. 6, no. 1, p. 011001, jan 2024. [Online]. Available: https://doi.org/10.1088/2515-7647/ad1c6a

@@ -1,0 +1,25 @@
+{
+  "date": "20260807",
+  "date_label": "",
+  "generated_at": "2026-08-07 02:06:37 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.04721v1",
+      "route": "202608/07/2608.04721v1-enabling-urgency-aware-robot-swarm-intralogistics-using-smart-iot-tags",
+      "title": "Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
+      "first_seen_at": "2026-08-07 02:06:37 UTC",
+      "updated_at": "2026-08-07 02:06:37 UTC"
+    }
+  ]
+}

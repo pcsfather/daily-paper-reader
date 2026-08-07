@@ -1,0 +1,24 @@
+{
+  "label": "2026-08-07",
+  "date": "2026-08-07",
+  "generated_at": "2026-08-07T02:06:42",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202608/07/2608.04721v1-enabling-urgency-aware-robot-swarm-intralogistics-using-smart-iot-tags",
+      "section": "deep",
+      "title_en": "Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags",
+      "authors": "Youssef Alboraei, Murray Groves, Shane Wen, Wenda Zhao, Senhui Qiu, Mohammud J. Bocus, Robert Piechocki, Sabine Hauert, Kerstin Eder",
+      "date": "2026-08-05",
+      "pdf": "https://arxiv.org/pdf/2608.04721v1",
+      "score": "8.0",
+      "evidence": "仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率",
+      "tldr": "仓库物流中，部分货物（如生鲜、药品、准时制物料）需要优先配送，但现有去中心化机器人群体系统缺乏物品级紧急区分能力。本研究引入配备超低功耗物联网标签的智能货箱，标签通过蓝牙低功耗广播紧急度，使机器人在选择搬运任务时综合权衡紧急度与行驶距离。物理实验证实，紧急货物优先服务率从0.41升至0.64，吞吐量近乎持平；仿真显示随系统规模扩大，P95交付延迟降幅达5.2%~11.8%，优先对齐率提升高达51.6%。该方案在保持群体系统低基础设施成本的同时，有效提高了仓储内时间敏感物品的响应速度，为动态优先级物流提供了去中心化实现路径。",
+      "tags": "query:wo",
+      "abstract_en": "Warehouse items differ in how urgently they must be moved: perishable goods, pharmaceutical shipments, and just-in-time production materials must be delivered sooner than the rest of the stock. Decentralised robot swarms suit warehouses that cannot justify fixed automation infrastructure, but current swarm controllers treat all items alike or rely on an external scheduler to set priorities, so urgent items wait as long as ordinary ones. This paper presents a swarm logistics system in which each warehouse carrier holds an ultra-low-power Internet-of-Things (IoT) tag that broadcasts the urgency of its item over Bluetooth Low Energy (BLE). Robots read these broadcasts directly and weigh urgency against travel distance when choosing which carrier to serve, so prioritisation happens at the item level without central scheduling. The system is evaluated in simulation and validated on real robots and IoT-tagged carriers against a proximity-only baseline. In the physical trials, priority alignment (i.e. proportion of urgent items served first), improved from 0.41 to 0.64, with a nonsignificant trend toward lower 95th-percentile (P95) delivery latency and throughput within 1.2% of the baseline. In simulation, the benefit grew with system size: across three larger configurations, P95 latency fell by 5.2% to 11.8% and priority alignment improved by 41.7% to 51.6%. Attaching urgency to the items themselves therefore allows a decentralised swarm to serve time-critical stock sooner while keeping the low infrastructure requirements that make swarm systems attractive for warehouse automation.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

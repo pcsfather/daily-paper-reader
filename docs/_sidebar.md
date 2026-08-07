@@ -1,6 +1,9 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
 * Daily Papers
+  * 2026-08-07 <!--dpr-date:20260807-->
+    * 精读区
+      * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/07/2608.04721v1-enabling-urgency-aware-robot-swarm-intralogistics-using-smart-iot-tags" data-sidebar-item="{&quot;title&quot;: &quot;Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.04721v1-enabling-urgency-aware-robot-swarm-intralogistics-using-smart-iot-tags&quot;, &quot;score&quot;: &quot;8.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wo&quot;}], &quot;evidence&quot;: &quot;仓库机器人集群利用物联网标签优先处理紧急物品，提高拣选效率&quot;}">Enabling Urgency-aware Robot Swarm Intralogistics using Smart IoT Tags</a>
   * 2026-08-04 <!--dpr-date:20260804-->
     * 精读区
       * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/04/2608.01024v1-stress-relief-annealing-polynomial-time-simulation-free-layout-optimization-for-automated-warehouses" data-sidebar-item="{&quot;title&quot;: &quot;Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.01024v1-stress-relief-annealing-polynomial-time-simulation-free-layout-optimization-for-automated-warehouses&quot;, &quot;score&quot;: &quot;9.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wo&quot;}], &quot;evidence&quot;: &quot;优化自动化仓库物理布局以提高吞吐量&quot;}">Stress-Relief Annealing: Polynomial-Time Simulation-Free Layout Optimization for Automated Warehouses</a>
