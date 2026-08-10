@@ -1,0 +1,25 @@
+{
+  "date": "20260810",
+  "date_label": "",
+  "generated_at": "2026-08-10 21:04:36 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.07011v1",
+      "route": "202608/10/2608.07011v1-linguistic-pattern-based-optimization-of-economic-and-spatial-uniformity-criteria-in-facility-layout-problems",
+      "title": "Linguistic Pattern Based Optimization of Economic and Spatial Uniformity Criteria in Facility Layout Problems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "具有空间均匀性准则的设施布局优化",
+      "first_seen_at": "2026-08-10 21:04:36 UTC",
+      "updated_at": "2026-08-10 21:04:36 UTC"
+    }
+  ]
+}

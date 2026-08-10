@@ -1,0 +1,54 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-10T21:02:29.529198+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.07011v1",
+      "source": "arxiv",
+      "title": "Linguistic Pattern Based Optimization of Economic and Spatial Uniformity Criteria in Facility Layout Problems",
+      "abstract": "This paper extends prior work on linguistic pattern based facility layout optimization by enhancing the LP Alinks framework with an explicit spatial uniformity criterion. While earlier studies demonstrated that linguistic patterns can effectively encode expert knowledge and guide agent based layout emergence, their optimization scope remained limited to cost oriented objectives. To address this gap, we introduce the Normalized Coverage Score (NCS), a scale adjusted measure of spatial evenness that complements the classical flow distance economic objective and enables systematic exploration of cost uniformity trade offs. A full factorial experiment comprising 324 conditions evaluates the combined effects of problem size, link density, virtual force scaling, and two families of membership functions on both objectives. Five way and nested three way ANOVAs reveal that structural factors (number of objects and link density) exert a dominant baseline influence on both economic performance and spatial uniformity. However, while economic cost is overwhelmingly governed by these structural characteristics, uniformity is substantially more sensitive to the linguistic pattern parameters, which control the dispersion compaction dynamics of the emerging layouts within the structural constraints. Based on these interactions, we derive a parameter-selection matrix that prescribes settings for cost minimization, uniformity maximization, or balanced compromise. Comparative analyses with Drezner's method, MDS, and non metric MDS demonstrate that the extended LP Alinks framework consistently attains superior uniformity while maintaining competitive economic performance, making it a robust and interpretable decision support tool for early stage facility layout design.",
+      "authors": [
+        "Jerzy Grobelny",
+        "Rafał Michalski"
+      ],
+      "primary_category": "cs.CE",
+      "categories": [
+        "cs.CE",
+        "econ.GN",
+        "math.OC"
+      ],
+      "published": "2026-08-07T09:23:00+00:00",
+      "link": "https://arxiv.org/pdf/2608.07011v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "facility layout optimization with spatial uniformity criterion",
+      "llm_evidence_cn": "具有空间均匀性准则的设施布局优化",
+      "llm_evidence": "具有空间均匀性准则的设施布局优化",
+      "canonical_evidence": "具有空间均匀性准则的设施布局优化",
+      "llm_tldr_en": "Extends linguistic pattern based facility layout optimization with a spatial uniformity criterion, enabling trade-off exploration between cost and spatial evenness for warehouse layout.",
+      "llm_tldr_cn": "针对设施布局优化中仅关注经济目标而忽略空间均匀性的不足，本文提出标准化的空间均匀性度量指标（NCS），并将其集成到基于语言模式的布局优化框架中。通过全因子实验，系统探索了搬运距离成本与空间均匀性之间的权衡，证明了该框架能够有效生成兼顾经济与均匀性的布局方案，为设施布局（含仓库）的多目标决策提供了新方法。",
+      "llm_tldr": "针对设施布局优化中仅关注经济目标而忽略空间均匀性的不足，本文提出标准化的空间均匀性度量指标（NCS），并将其集成到基于语言模式的布局优化框架中。通过全因子实验，系统探索了搬运距离成本与空间均匀性之间的权衡，证明了该框架能够有效生成兼顾经济与均匀性的布局方案，为设施布局（含仓库）的多目标决策提供了新方法。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "optimizing warehouse layout and operations",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

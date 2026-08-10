@@ -1,0 +1,24 @@
+{
+  "label": "2026-08-10",
+  "date": "2026-08-10",
+  "generated_at": "2026-08-10T21:04:39",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202608/10/2608.07011v1-linguistic-pattern-based-optimization-of-economic-and-spatial-uniformity-criteria-in-facility-layout-problems",
+      "section": "deep",
+      "title_en": "Linguistic Pattern Based Optimization of Economic and Spatial Uniformity Criteria in Facility Layout Problems",
+      "authors": "Jerzy Grobelny, Rafał Michalski",
+      "date": "2026-08-07",
+      "pdf": "https://arxiv.org/pdf/2608.07011v1",
+      "score": "8.0",
+      "evidence": "具有空间均匀性准则的设施布局优化",
+      "tldr": "设施布局优化需权衡经济成本和空间均匀性，本文在基于语言模式的LP Alinks框架中引入归一化覆盖得分(NCS)作为空间均匀性准则，通过324种工况的全析因实验分析问题规模、连接密度、虚拟力缩放及隶属函数的影响，发现结构因素主导经济成本，而语言模式参数显著控制均匀性，据此给出参数选择矩阵；与Drezner方法等比较显示该方法均匀性更优且经济成本有竞争力，为早期设施布局设计提供决策支持。",
+      "tags": "query:wo",
+      "abstract_en": "This paper extends prior work on linguistic pattern based facility layout optimization by enhancing the LP Alinks framework with an explicit spatial uniformity criterion. While earlier studies demonstrated that linguistic patterns can effectively encode expert knowledge and guide agent based layout emergence, their optimization scope remained limited to cost oriented objectives. To address this gap, we introduce the Normalized Coverage Score (NCS), a scale adjusted measure of spatial evenness that complements the classical flow distance economic objective and enables systematic exploration of cost uniformity trade offs. A full factorial experiment comprising 324 conditions evaluates the combined effects of problem size, link density, virtual force scaling, and two families of membership functions on both objectives. Five way and nested three way ANOVAs reveal that structural factors (number of objects and link density) exert a dominant baseline influence on both economic performance and spatial uniformity. However, while economic cost is overwhelmingly governed by these structural characteristics, uniformity is substantially more sensitive to the linguistic pattern parameters, which control the dispersion compaction dynamics of the emerging layouts within the structural constraints. Based on these interactions, we derive a parameter-selection matrix that prescribes settings for cost minimization, uniformity maximization, or balanced compromise. Comparative analyses with Drezner's method, MDS, and non metric MDS demonstrate that the extended LP Alinks framework consistently attains superior uniformity while maintaining competitive economic performance, making it a robust and interpretable decision support tool for early stage facility layout design.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
