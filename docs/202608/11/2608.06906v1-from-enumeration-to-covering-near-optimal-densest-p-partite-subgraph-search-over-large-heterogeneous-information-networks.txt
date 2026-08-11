@@ -1,0 +1,2039 @@
+Title: From Enumeration to Covering: Near-Optimal Densest P-Partite Subgraph Search over Large Heterogeneous Information Networks
+
+URL Source: https://arxiv.org/pdf/2608.06906v1
+
+Published Time: Mon, 10 Aug 2026 00:43:05 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# From Enumeration to Covering: Near-Optimal Densest P-Partite Subgraph Search over Large Heterogeneous Information Networks 
+
+## Technical Report 
+
+## Lu Chen, Chengfei Liu, Rui Zhou 
+
+Swinburne University of Technology Melbourne, Australia {luchen, cliu, rzhou}@swin.edu.au 
+
+## Jiajie Xu 
+
+Soochow University Suzhou, China xujj@suda.edu.cn 
+
+## Jianxin Li 
+
+Edith Cowan University Perth, Australia jianxin.li@ecu.edu.au 
+
+## ABSTRACT 
+
+Given a heterogeneous information network (HIN) and a query meta-path P of length 𝑖 , the densest P-partite subgraph problem finds the subgraph, spanning the 𝑖 typed layers of P, that maximizes a parameter-free density: the number of meta-path instances over the geometric mean of the layer sizes. It has applications across bibliographic, e-commerce, and biomedical networks. The state-of-the-art approximation linearizes the geometric-mean objective by fixing per-layer weights, but solves one subproblem for every feasi-ble weight set, of which there are O ( ( 𝑛 /𝑖 )𝑖 ), and on each achieves only a 1/𝑖 approximation. We show that neither the exhaustive enu-meration nor the loose guarantee is necessary. First, we replace enumeration by covering: polylogarithmically many representative weight sets, localized further by a data-dependent bound, cover all feasible ones while losing only a tunable factor 1+𝜂 in density. Second, we cast each fixed-weight subproblem as a weighted su-permodular densest-subgraph instance and solve it near-optimally, lifting the overall guarantee to (1−𝛿 )/( 1+𝜂 ). To our knowledge, this is the first near-optimal density approximation beyond the bipartite (𝑖 =2) case, and it yields a PTAS for every fixed 𝑖 . Algorithmically, our solver is an adaptive peeling scheme that never materializes the meta-path instances, whose number can exceed the graph size by orders of magnitude. Incumbent-driven pruning further discards representative weight sets before their subproblems are solved. Experiments on five real HINs show that our algorithms achieve substantial speedups over enumeration-based baselines, and can further certify the near-optimality of the returned subgraph. 
+
+PVLDB Artifact Availability: 
+
+The source code, data, and/or other artifacts have been made available at 
+
+> https://github.com/S1mpleCod/Near-optimal-approximation-for-DPPS
+
+.
+
+## 1 INTRODUCTION 
+
+Heterogeneous information networks. A heterogeneous in-formation network (HIN) [25] carries a schema 𝑇 =( A ,R ) of object types A and relation types R: a graph 𝐺 =(𝑉 ,𝐸 ) with a vertex-type map 𝜙 :𝑉 →A and edge-type map 𝜓 :𝐸 →R , | A |+| R | >2. HINs model bib-liographic, e-commerce, knowledge-graph, and biomedical data such as Hetionet [16], which links compounds, genes, diseases, anatomies, and others (Figure 1). The schema lets one query at the type level through a meta-path [27]: a path 𝐴 1
+
+> 𝑅 1
+
+−−→𝐴 2
+
+> 𝑅 2
+
+−−→··· 𝑅 𝑖 −1
+
+−−−→𝐴 𝑖 on the schema 𝑇 that alternates object types 𝐴 ∈ A and relation types 𝑅 ∈ R ,composing them into a single typed relation between its endpoints. When the connecting relations are understood we abbreviate it by its sequence of vertex types P=⟨𝐴 1,...,𝐴 𝑖 ⟩; e.g. over Hetionet P=⟨C,G,D⟩
+
+(compound–gene–disease) links a drug to diseases via the genes it binds, of interest to drug repurposing. 
+
+Cohesive P-partite subgraphs. A P-family is a tuple of vertex sets, one per type in P; the subgraph it induces, the P-partite graph, is typically large and sparse, while its meaningful information is hidden in the dense regions. Mining cohesion across multiple vertex sets has driven a long line of models, from multipartite cliques [12] and cross-graph quasi-cliques [24] to multilayer cores and dens-est subgraphs [4, 10], the relational community [17] and influen-tial community [31]. Among these models, the densest P-partite subgraph is especially appealing: a simple, parameter-free query surfacing cohesive structure across every type in P, with no size, degree, or pattern threshold to tune. It stands to the pattern-based 
+
+> (𝑘, P)
+
+-core [9] as the densest subgraph does to the 𝑘 -core. 
+
+Densest P-partite subgraph search ( DPSS ). Given a meta-path P,
+
+DPSS [4] seeks a cohesive and semantically meaningful subgraph within the corresponding P-partite graph. Its density is defined as the ratio between the number of P-instances contained in the subgraph and the geometric mean of the sizes of its vertex sets across all vertex types. Mathematically, for a P-family V=(𝑉 1,...,𝑉 𝑖 )
+
+of 𝑖 typed layers,       
+
+> 𝜌 (V) =|F (V) |
+> Î𝑖 𝑗 =1|𝑉 𝑗 |
+> 1/𝑖 ,(1)
+
+where F ( V ) is the set of P-instances induced by V, and DPSS returns the family of maximum density 𝜌 ∗. The geometric-mean normal-ization is what makes the objective parameter-free: it balances all 𝑖 
+
+layers simultaneously, so that a high-density family must concen-trate many meta-path instances among relatively few vertices of 
+
+every type. 
+
+Applications. Each densest family is a cohesive group spanning 
+
+every type on the meta-path. Prior work motivates DPSS with such groups across HINs [4], exposing fraud rings over user–device– merchant networks, finding research communities over author– paper–venue networks, etc. We broaden the case to biomedical drug repurposing. Take P=⟨C,G,D⟩ (compound–gene–disease) over a biomedical network such as Hetionet: a densest family is a set of compounds, genes, and diseases all densely interlinked across the three layers. In Figure 2, the solid (4,2,2) block V∗ is four kinase inhibitors acting through two genes ( ABL1 , KIT ) on two cancers, CML and GIST. This block suggests drug-repurposing candidates: because imatinib , developed for CML via ABL1 , shares the dense arXiv:2608.06906v1 [cs.DS] 7 Aug 2026 Gene Compound Disease Anatomy Ph. Class Side Eff. Symptom Pathway Biol.Proc. Mol.Func. Cell.Comp.                           
+
+> 16234578910 11 12 13 14 15 1compound binds /regulates a gene ; 2treats/palliates a disease ; 3causes a side effect ;
+> 4drug class includes a compound ; 5resembles a compound ; 6disease associates /regulates a gene ; 7localizes to an anatomy ; 8presents a symptom ; 9resembles a disease ;
+> 10 anatomy expresses/regulates a gene ; 11–14 gene participates in a pathway, process, etc. ;
+> 15 gene interacts a gene.
+
+Figure 1: Schema of the Hetionet biomedical HIN 
+
+subgraph with GIST through KIT , the result identifies it as a can-didate, a repurposing that in fact holds [5]. Pairwise, edge-based methods are likely to miss it: the query places no edge between a compound and a disease; such a connection therefore tends to surface only through the joint density across all three layers. 
+
+State of the art. DPSS is polynomial-time solvable for fixed 𝑖 , but only inefficiently, through costly flow computations; approximation is the more promising direction. The state-of-the-art approxima-tion [4] fixes a per-layer weight set with product one, the iRM set , to linearize the coupling geometric-mean denominator, turning DPSS 
+
+into a weighted densest-subgraph subproblem. Two weaknesses remain: the optimal weight set is unknown, forcing a search over    
+
+> O ( ( 𝑛 /𝑖 )𝑖 )
+
+of them, and each is solved only to the loose 1/𝑖 factor of peeling. Both are already overcome at 𝑖 =2, the directed/bipartite densest subgraph [2, 19]: there the weight set collapses to a single scalar ratio that is geometrically scanned, and each fixed-ratio sub-problem is supermodular and solved near-optimally. This relies on one-dimensionality and does not survive 𝑖 >2.
+
+Open problems and challenges. The obstacle is twofold: for 𝑖 >2
+
+the weight sets form a (𝑖 −1)-dimensional hyperplane with no total order to sweep, and the numerator turns from the edge count into the meta-path instance count | F ( 𝑆 ) | , implicit and far larger than the graph size. Three challenges result. (C1) The enumeration of weight sets is O ( Î𝑗 |𝑉 (𝐴 𝑗 ) | ) , exponential in 𝑖 ; can approximation avoid it? 
+
+(C2) The 1/𝑖 worst-case factor of peeling is often near-optimal in practice, yet never certified to be; can a fixed-weight subproblem, with its per-type-weighted denominator, be solved with a certified near-optimal guarantee? (C3) The materialized instances number   
+
+> O ( Î𝑗 |𝑉 𝑗 | )
+
+; can peeling avoid them? 
+
+Our approach. We answer all three. (C1) We replace enumeration with covering. In logarithmic coordinates we flatten the feasibility    
+
+> Î𝑗 𝑚 𝑗 =1
+
+to the hyperplane Í𝑗 ln 𝑚 𝑗 =0, where the feasible weights fill a bounded (𝑖 −1)-dimensional polytope; a single 𝜂 -net covers it. We space that net at the coarse √𝜂 pitch of the second-order net , which the curvature of the AM–GM gap justifies, keeping only      
+
+> O ( ( log 𝑛 /√𝜂 )𝑖 −1)
+
+representatives at a 1+𝜂 loss, 𝜂 − ( 𝑖 −1)/ 2 times fewer than the naive 𝜂 pitch, and we shrink log 𝑛 to log Δ, where Δ is the largest per-vertex instance count, with a data-dependent bound. (C2) We cast each fixed-weight subproblem as a weighted supermodular                                   
+
+> Compounds Genes Diseases
+> 𝑐 2
+> 𝑐 3
+> 𝑐 7
+> 𝑐 4
+> 𝑐 6
+> 𝑐 8
+> 𝑐 5
+> 𝑐 1
+> 𝑔 2
+> 𝑔 4
+> 𝑔 1
+> 𝑔 3
+> 𝑑 1
+> 𝑑 2
+> 𝑑 3
+> 𝑑 4
+> Compounds :𝑐 1masitinib, 𝑐 2avapritinib, 𝑐 3imatinib, 𝑐 4dasatinib, 𝑐 5crenolanib, 𝑐 6axitinib, 𝑐 7
+> ripretinib, 𝑐 8sunitinib. Genes :𝑔 1PDGFRA ,𝑔 2ABL1 ,𝑔 3KDR ,𝑔 4KIT .Diseases :𝑑 1chronic myeloid leukemia (CML), 𝑑 2gastrointestinal stromal tumor (GIST), 𝑑 3hypereosinophilic syndrome,
+> 𝑑 4renal cell carcinoma.
+
+Figure 2: A ⟨C,G,D⟩-partite graph ( 𝑖 =3)
+
+densest-subgraph problem and solve it natively to a certified (1−𝛿 )
+
+under its per-type-weighted denominator, the part the supermodular machinery, built for the cardinality ratio (the 𝑖 =2 case), leaves out. That (1−𝛿 ) lives on the weighted objective, not the density; we prove it crosses over, since the AM–GM factor between them vanishes at a family’s own weights , so at the optimum’s weight our bound attains  
+
+> 𝜌 ∗
+
+itself. (C3) For meta-paths, we factor each per-vertex incidence as   
+
+> 𝐿 (𝑣 )𝑅 (𝑣 )
+
+, so an adaptive peel reads it in O ( | 𝐸 | ) and achieves the same   
+
+> (1−𝛿 )
+
+without ever materializing the O ( Î𝑗 |𝑉 𝑗 | ) instances. Together we get a 1−𝛿  
+
+> 1+𝜂
+
+approximation to 𝜌 ∗: a PTAS for fixed 𝑖 and, to our knowledge, the first near-optimal guarantee past 𝑖 =2. Finally, we add incumbent-driven pruning that removes representatives before we ever solve them. 
+
+Contributions. In summary, this paper makes the following con-tributions.  
+
+> •
+
+Covering, not enumeration (C1): instead of the O ( ( 𝑛 /𝑖 )𝑖 )
+
+weight sets prior work enumerates, an 𝜂 -net of only       
+
+> O ( ( min {log 𝑛, log Δ}/ √𝜂 )𝑖 −1)
+
+representatives, polylogarithmic in 𝑛 and 
+
+> Δ
+
+-adaptive, covers all of them at a 1+𝜂 loss (§5 1).  
+
+> •
+
+Certified near-optimal subproblems (C2): each fixed-weight step is a supermodular densest-subgraph instance, which we solve to a certified (1−𝛿 ) under its per-type-weighted denominator, the part the supermodular machinery leaves out; with the cover, this yields a 1−𝛿  
+
+> 1+𝜂
+
+PTAS for 𝜌 ∗ at fixed 𝑖 (§6).  
+
+> •
+
+Instance-free peeling (C3): for path meta-paths, an 𝐿 (𝑣 )𝑅 (𝑣 ) factor-ization runs the peel in O ( | 𝐸 | ) , without materializing the O ( Î𝑗 |𝑉 𝑗 | ) P-instances (§6.4).  
+
+> •
+
+Pruning : an incumbent-driven test further removes representa-tives and reduces subproblem sizes (§7).  
+
+> •
+
+Experiments on real HINs show consistent gains in efficiency over existing methods with certified effectiveness (§8). 
+
+## 2 PROBLEM FORMULATION 
+
+In §1, we have defined the heterogeneous information network  
+
+> 𝐺 =(𝑉 ,𝐸 )
+
+, the query meta-path P of length 𝑖 =| P | , the P-family V=  
+
+> (𝑉 1,...,𝑉 𝑖 )
+
+and its induced P-partite graph, the instance set F ( V ) , and    
+
+> 1Throughout, § 𝑛 abbreviates Section 𝑛 .
+> 2
+
+Table 1: Summary of notation. 
+
+Symbol Meaning  
+
+> 𝐺 =(𝑉 ,𝐸 )
+
+input HIN (typed graph); 𝑛 =|𝑉 |P, 𝑖 meta-path; length 𝑖 =|P |     
+
+> 𝐴 𝑗 , 𝑉 (𝐴 𝑗 )
+
+position-𝑗 type; its vertex set   
+
+> 𝑈 , 𝜙 ′(𝑣 )
+
+position-expanded Ò𝑗 𝑉 (𝐴 𝑗 ); position of 𝑣 𝜙 (𝑣 ) type of vertex 𝑣  
+
+> VP
+
+-family (𝑉 1,...,𝑉 𝑖 ), 𝑉 𝑗 ⊆𝑉 (𝐴 𝑗 )  
+
+> 𝐺 (V)
+
+subgraph induced by VF (V) P-instances in 𝐺 (V)    
+
+> 𝑃 (𝑣,𝐺 (V) )
+
+# P-instances through 𝑣 𝑔 (V)     
+
+>  Î𝑗 |𝑉 𝑗 |
+> 1/𝑖
+> m, 𝑚 𝑗
+
+iRM set; layer-𝑗 weight 𝑔 (V)/| 𝑉 𝑗 | 
+
+> Π𝑛
+
+polytope of feasible iRM sets (§5)  
+
+> 𝜌, 𝜌 ∗
+
+density; optimum density 
+
+the density 𝜌 . We do not restate them. We introduce the remaining notation and formally state the problem; throughout, 𝑛 =|𝑉 |. Table 1 summarizes all symbols. 
+
+Typed vertices and positions. A meta-path may repeat a vertex type ( 𝐴 𝑗 =𝐴 𝑘 for 𝑗 ≠𝑘 ), as in the gene–disease–gene path ⟨G,D,G⟩, and its repeated positions are filled independently : a family may pick different sets 𝑉 𝑗 ≠𝑉 𝑘 , of different sizes, for them. The type 𝜙 (𝑣 ) then no longer identifies a vertex’s role: when a type recurs, knowing   
+
+> 𝜙 (𝑣 )
+
+leaves it ambiguous which position 𝑣 occupies. We therefore index by position and work over the position-expanded ground set       
+
+> 𝑈 =Ò𝑖 𝑗 =1𝑉 (𝐴 𝑗 ),
+
+one copy of 𝑉 (𝐴 𝑗 ) per position, so every 𝑣 ∈𝑈 carries a definite position 𝜙 ′ (𝑣 ) ∈ [ 𝑖 ] (of required type 𝐴 𝜙 ′ (𝑣 ) ). A P-family is then a subset of 𝑈 , equivalently a tuple V=(𝑉 1,...,𝑉 𝑖 ) with 𝑉 𝑗 ⊆𝑉 (𝐴 𝑗 ),and a vertex whose type recurs appears once per position, chosen freely at each. Every per-position quantity is thereby unambiguous. When all types are distinct, 𝜙 ′ is fixed by 𝜙 and 𝑈 𝑉 .
+
+Induced subgraph and per-vertex instances. A P-family V=  
+
+> (𝑉 1,...,𝑉 𝑖 )
+
+induces the subgraph 𝐺 ( V ) on 𝑉 1∪···∪ 𝑉 𝑖 , and a P-instance of   
+
+> 𝐺 ( V )
+
+is a sequence 𝜋 =(𝑣 1,...,𝑣 𝑖 ) with 𝑣 𝑗 ∈𝑉 𝑗 whose consecutive vertices are joined by the relation that P prescribes; we write 𝑣 ∈𝜋 when 𝑣 is one of its vertices. By convention positions are matched indepen-dently, so a vertex may fill more than one role (i.e. 𝑣 𝑗 =𝑣 𝑘 is allowed when 𝐴 𝑗 =𝐴 𝑘 ) and every position-respecting sequence counts as a dis-tinct instance. The algorithms that will be discussed operate not on  
+
+> F ( V )
+
+directly but on its per-vertex incidence. As such, for a vertex 
+
+> 𝑣
+
+, we write 𝑃 (𝑣,𝐺 ( V ) ) = { 𝜋 ∈ F ( V ) :𝑣 ∈𝜋 } for the number of P-instances of 𝐺 ( V ) passing through 𝑣 .
+
+Example 1. Consider V∗=( { 𝑐 2,𝑐 3,𝑐 4,𝑐 7 },{𝑔 2,𝑔 4 },{𝑑 1,𝑑 2 } ) , the solid edges of Figure 2: 𝑔 2 binds 𝑐 3,𝑐 4 and reaches 𝑑 1,𝑑 2, while 𝑔 4 binds  
+
+> 𝑐 2,𝑐 3,𝑐 7
+
+and reaches 𝑑 2. Its P-instances (the compound–gene–disease paths) number 7. The per-vertex incidences 𝑃 (𝑣,𝐺 ( V ∗ ) ) are 4,3 at 
+
+> 𝑔 2,𝑔 4
+
+; 1,3,2,1 at 𝑐 2,𝑐 3,𝑐 4,𝑐 7; and 2,5 at 𝑑 1,𝑑 2.Problem 1 (Densest P-Partite Subgraph Search, DPSS ). 
+
+Given a HIN 𝐺 =(𝑉 ,𝐸 ) and a meta-path P, return a P-family      
+
+> V∗=arg max V𝜌 ( V ) ,𝜌 ∗=𝜌 ( V ∗),
+
+where 𝜌 ( V ) =| F ( V ) |/ 𝑔 ( V ) is the density of Eq. (1) .
+
+Scope. DPSS is defined for every 𝑖 ≥2, but the case 𝑖 =2 is di-rected/bipartite densest subgraph, already solved near-optimally by existing methods [21, 22]. This paper targets the open general regime 𝑖 >2.
+
+Example 2. The family V∗ of Example 1 has density 𝜌 ( V ∗ )= 73√4·2·2 ≈ 
+
+> 2.78 ,
+
+and it is the densest P-family in Figure 2, so 𝜌 ∗≈2.78 . Enlarging it with the gray decoy ones ( 𝑔 1,𝑔 3 and their compounds 𝑐 1,𝑐 5,𝑐 6,𝑐 8
+
+and diseases 𝑑 3,𝑑 4) gives the whole graph, of shape (8,4,4) with 13 
+
+instances, yet its density is only 13 / 3√128 ≈2.58 <𝜌 ∗.
+
+The iRM ( 𝑖 th-root-multiplication) set [4] . For a P-family V, the per-layer weights are m=(𝑚 1,...,𝑚 𝑖 ) with        
+
+> 𝑚 𝑗 =𝑔 (V) |𝑉 𝑗 |,𝑗 ∈ [ 𝑖 ],
+
+rescaling each layer by its size. Fixing it turns DPSS into a tractable weighted subproblem (to be discussed in §3). Property 1. For every P-family V, the induced iRM set satisfies    
+
+> Î𝑖 𝑗 =1𝑚 𝑗 =1
+
+.
+
+iRM set extension. We extend the notion beyond family-induced weights: any vector m with Î𝑗 𝑚 𝑗 =1 is a feasible iRM set, and one actually induced by a P-family is realizable .
+
+## 3 STATE OF THE ART 
+
+We revisit the state of the art for DPSS and its 𝑖 =2 special case, isolating the gaps to fill. 
+
+The DPSS approximation. The geometric-mean density 𝜌 ( V ) = 
+
+> | F ( V ) |/ 𝑔 ( V )
+
+resists direct optimization because its denominator 𝑔 =   
+
+> (Î𝑗 |𝑉 𝑗 | ) 1/𝑖
+
+couples all 𝑖 layers multiplicatively. Fixing a target iRM-set m=(𝑚 1,...,𝑚 𝑖 ) breaks the coupling and linearizes the denominator. Over the position-expanded ground set 𝑈 of §2 (with 𝑆 𝑗 =𝑆 ∩𝑉 (𝐴 𝑗 ) for   
+
+> 𝑆 ⊆𝑈
+
+and position map 𝜙 ′), fixing m replaces the geometric mean by the weighted size        
+
+> 𝑤 m(𝑆 )=Í
+> 𝑣 ∈𝑆 𝑚 𝜙 ′ (𝑣 )=Í𝑗 𝑚 𝑗 |𝑆 𝑗 |,(2)
+
+a weighted vertex count linear in 𝑆 , equal to 𝑖 𝑔 (𝑆 ) exactly when m is 
+
+> 𝑆
+
+’s own iRM-set. The fixed-weight subproblem is then to maximize the auxiliary objective             
+
+> ℎm(𝑆 )=𝑓 (𝑆 )
+> 𝑤 m(𝑆 ),𝑓 (𝑆 ):=| F ( 𝑆 ) | ,
+
+the instance count over a linear denominator, a weighted densest-subgraph problem, which [4] solves by reweighted peeling : it treats each vertex’s incidence 𝑃 (𝑣,𝐺 ( V ) ) as its value and its weight 𝑚 𝜙 ′ (𝑣 )
+
+as its cost, repeatedly deletes a vertex of least value-per-cost    
+
+> 𝑃 (𝑣,𝐺 ( V ) )/ 𝑚 𝜙 ′ (𝑣 )
+
+, and keeps the densest family seen. A charging argument, each optimum instance charged to one of its 𝑖 endpoints, bounds the loss for m.Theorem 1 ([4]). For a fixed iRM-set m, reweighted peeling is a 1/𝑖 -approximation to the optimum density 𝜌 ∗ 
+
+> m
+
+over all P-families conforming to m (i.e., whose own induced iRM-set equals the fixed m). 
+
+Since m∗ is unknown, [4] peels at every realizable iRM-set m∈M (M
+
+the set of realizable iRM-sets) and returns the best, a global 1/𝑖 -approximation, at the cost of Θ( | M| ) =O  
+
+> 
+> (𝑛 /𝑖 )𝑖 
+
+peelings. Besides, iRM-sets can only be pruned using flow networks. As such, pure peeling-based approximation is even slower than the exact algorithms [4]. 
+
+The 𝑖 =2 advantage. At 𝑖 =2, directed/bipartite densest subgraph, the iRM-set collapses to a single scalar ratio (𝑚 2=1/𝑚 1, 𝑚 1 ∈ [ 𝑛 −1/2,𝑛 1/2 ]). A 
+
+multiplicative (1+𝜀 ) approximation of the ratio suffices, so geometric spacing spans the whole interval with only O ( 𝜀 −1 log 𝑛 ) guesses, the “log 𝑛 trick” [22] that replaces Charikar’s Θ(𝑛 2 ) ratio sweep [2, 19]. Each fixed-ratio subproblem is a supermodular program solved to (1−𝜀 ) by accelerated coordinate descent [21, 23]. Both the con-figuration search and the per-subproblem solver are thus already near-optimal. 
+
+> 3
+
+Algorithm 1: Cover-and-Conqer framework 
+
+Input: HIN 𝐺 ; meta-path P
+
+Output: A P-family bV 
+
+> 1
+
+Partition the iRM polytope Π𝑛 into non-overlapping cells 𝐶 1,...,𝐶 𝐾 ,
+
+> bV←∅
+
+; 
+
+> 2
+
+foreach cell 𝐶 𝑘 do  
+
+> 3
+
+pick a representative iRM-set bm𝑘 ∈𝐶 𝑘 ;   
+
+> 4V𝑘 ←Solve (𝐺, P,bm𝑘 )
+
+; 
+
+> 5
+
+if 𝜌 (V 𝑘 ) >𝜌 ( bV) then bV←V 𝑘 ; 
+
+> 6
+
+return bV;
+
+Why this does not lift. Both pillars presuppose one-dimensionality .The search exploits the total order of the ratio interval: a (1+𝜀 ) change in the ratio moves the density only by (1+O ( 𝜀 ) ) , so one geometric scan suffices and the order lets core decomposition and divide-and-conquer discard sub-intervals that cannot hold the optimum. Once  
+
+> 𝑖 −1>1
+
+, Property 1 makes the feasible iRM-sets a (𝑖 −1)-dimensional hyperplane with no total order, and hence no axis to sweep and no sub-interval to prune. The optimum should therefore be covered 
+
+in the hyperplane, not searched in a line. The subproblem solver fails for two reasons: at 𝑖 =2 the numerator is the edge count, a supermodular function the existing solvers exploit, whereas at 𝑖 >2
+
+it is the meta-path instance count | F ( 𝑆 ) | , whose supermodularity is not a priori clear; and even granting it, the per-type iRM weights turn the denominator into a general 𝑖 -type weighted size Í𝑗 𝑚 𝑗 |𝑆 𝑗 |,beyond the two-sided 𝑚 1 |𝑆 1 |+ 1   
+
+> 𝑚 1|𝑆 2|
+
+those solvers handle. 
+
+## 4 SOLUTION OVERVIEW 
+
+Our approach builds on a simple cover-and-conquer principle that decouples the two difficulties of DPSS : searching the iRM configura-tion space and solving each fixed-weight subproblem. Rather than enumerating every iRM-set, we partition the iRM polytope Π𝑛 into a small number of non-overlapping cells, solve a single representative iRM-set in each, and return the densest family found. Algorithm 1 is parameterized by two components, each supplied by a later section: a partition of Π𝑛 into disjoint cells 𝐶 1⊔···⊔ 𝐶 𝐾 (§5), and a cell solver Solve (𝐺, P,m) returning a P-family for a fixed iRM-set m (§6). It never searches for m∗; it solves one representative per cell, on the premise that the cell containing m∗ already yields a near-optimal family. Three questions decide whether the premise holds. 
+
+(Q1) Does a small partition bound the density error? The representa-tive bm𝑘 need not be induced by a family, so the partition must be both few and faithful : solving at bm𝑘 rather than at the optimum’s own weights must cost little density. §5 delivers both: an 𝜂 -net cov-ers Π𝑛 with only O ( ( log 𝑛 /√𝜂 )𝑖 −1 ) cells (polylogarithmic in 𝑛 , against the O ( ( 𝑛 /𝑖 )𝑖 ) enumeration), each within a tunable covering factor  
+
+> 1+𝜂
+
+of the optimum. 
+
+(Q2) Can each cell be solved near-optimally? At a fixed iRM-set the subproblem is still a hard densest-subgraph problem. §6 sup-plies a near-optimal cell solver returning, for a tunable 𝛿 , a family within a solver factor 𝛽 =1−𝛿 of the best at m, running without ever materializing the meta-path instances (§6.4). 
+
+(Q3) Do the two approximation errors compose? Both fall on each cell and multiply, and the cell holding m∗ ties them to the global opti-mum: its cell optimum 𝜌 ∗    
+
+> 𝐶 𝑘 :=max {𝜌 ( V ) :iRM ( V ) ∈ 𝐶 𝑘 }
+
+(iRM ( V ) the iRM-set  
+
+> V
+
+induces) equals 𝜌 ∗ and the realizable m∗ makes V∗ a competitor there, so that cell’s Solve certifies density ≥ 𝛽 
+
+> 1+𝜂 𝜌 ∗
+
+, and reporting the densest family over all cells improves it. The result is a 𝛽   
+
+> 1+𝜂 =1−𝛿
+> 1+𝜂
+
+approximation, near-optimal for every fixed 𝑖 .
+
+## 5 FROM ENUMERATION TO COVERING 
+
+The cover promised in §3 comes down to one fact: approximation does not need the exact optimal iRM-set m∗, only one close to it, so that the exponential search for m∗ collapses to solving at a few fixed 
+
+representatives .
+
+Closeness in weights yields closeness in density . Recall from §3 that fixing the weights replaces the coupling geometric mean in the density by the linear weighted size 𝑤 m (𝑆 )=Í𝑗 𝑚 𝑗 |𝑆 𝑗 | (Eq. 2), equal to 𝑖𝑔 at a family’s own iRM weights. Solving instead at a nearby representative m′ scores the optimum V∗ at the wrong weights: each  
+
+> 𝑚 ∗
+> 𝑗
+
+becomes 𝑚 ′ 
+
+> 𝑗
+
+, so (using |𝑉 ∗   
+
+> 𝑗 |=𝑔 ( V ∗)/ 𝑚 ∗
+> 𝑗
+
+) its weighted size grows from     
+
+> 𝑤 m∗( V ∗)=𝑖 𝑔 ( V ∗)
+
+to 𝑤 m′ ( V ∗ )=Í𝑗 𝑚 ′    
+
+> 𝑗 |𝑉 ∗
+> 𝑗 |
+
+(by AM–GM). Since the solver reads density as the weighted density 𝜌 m (𝑆 )=𝑖 | F ( 𝑆 ) |/ 𝑤 m (𝑆 ) (exact at a family’s own weights), the density it assigns V∗ at m′ is deflated by a loss factor 𝐿 :                
+
+> 𝜌 m′ (V ∗ )
+> 𝜌 ∗=𝑤 m∗ (V ∗ )
+> 𝑤 m′ (V ∗ )=𝑖 𝑔 (V ∗ )
+> Í𝑗 𝑚 ′
+> 𝑗 |𝑉 ∗
+> 𝑗 |=(1
+> 𝑖
+> Í𝑗 𝑚 ′
+> 𝑗 /𝑚 ∗
+> 𝑗 )−1=1
+> 𝐿 .
+
+Here 𝐿 := 1   
+
+> 𝑖
+> Í𝑗 𝑚 ′
+> 𝑗 /𝑚 ∗
+> 𝑗 ≥1
+
+, with equality iff m′=m∗, by AM–GM. The opti-mum thus attains only 𝜌 ∗/𝐿 at the representative; the closer m′ to m∗,the closer 𝐿 to 1, so a small set of representatives covers m∗ within a controlled density loss. Since 𝐿 is governed by the per-axis ratios   
+
+> 𝑚 ′
+> 𝑗 /𝑚 ∗
+> 𝑗
+
+, covering every possible m∗ at once means distributing the representatives multiplicatively , so that each feasible iRM-set lies within a small ratio of one on every axis. 
+
+The change of coordinates. A multiplicative grid is awkward in native coordinates. Feasibility Î𝑗 𝑚 𝑗 =1 is a curved surface that no axis-aligned grid meets, and the closeness we need is the multi-plicative ratio 𝑚 ′  
+
+> 𝑗 /𝑚 𝑗
+
+, so a uniformly spaced grid in m is needlessly fine near the origin and uselessly coarse far from it. Passing to 
+
+logarithms 𝑥 𝑗 =ln 𝑚 𝑗 cures both: feasibility collapses to the additive    
+
+> Í𝑗 𝑥 𝑗 =0
+
+, a flat (𝑖 −1)-dimensional hyperplane, and a multiplicative ratio becomes an additive displacement, so a single uniform lattice 
+
+in x spaces the representatives multiplicatively, exactly as the loss factor demands. 
+
+Roadmap. §5.1 bounds the targets in a flat (𝑖 −1)-polytope Π𝑛 ; §5.2 covers it with an 𝜂 -net at a coarse √𝜂 pitch ( 1+𝜂 loss); §5.3 turns weight-closeness into a density 𝛽  
+
+> 1+𝜂
+
+guarantee; and §5.4 shrinks the net to the sub-area where the optimum can occupy. 
+
+## 5.1 The Bounded Log-iRM Polytope 
+
+Write an iRM-set as m=(𝑚 1,...,𝑚 𝑖 ) and pass to logarithmic coordi-nates 𝑥 𝑗 =ln 𝑚 𝑗 , x=(𝑥 1,...,𝑥 𝑖 ). By the feasibility condition of Property 1,     
+
+> Î𝑖 𝑗 =1𝑚 𝑗 =1
+
+linearizes to Í𝑖 𝑗 =1 𝑥 𝑗 =0.Lemma 1. In logarithmic coordinates the feasible iRM-sets form the (𝑖 −1)-dimensional affine subspace (a hyperplane)   
+
+> H=n
+> x∈R𝑖 :
+
+Í𝑖 𝑗 =1 𝑥 𝑗 = 0o
+
+.
+
+Proof. Under the bijection x↦ →𝑒 x, Î𝑗 𝑚 𝑗 =1 is equivalent to Í𝑗 𝑥 𝑗 =0,one linear constraint of codimension one. □
+
+> 4
+
+So the 𝑖 coordinates carry only 𝑖 −1 free parameters. For ⟨C,G,D⟩
+
+(𝑖 =3), Figure 3(a) draws the resulting 2-dimensional plane, which is a finite hexagon . We settle its boundary below. Each 𝑚 𝑗 is located between the smallest and largest values, and under logarithms, the bound is a hypercube. The lemma below makes this precise. Lemma 2. Every feasible iRM-set satisfies 2            
+
+> 𝑛 − ( 𝑖 −1)/ 𝑖 ≤𝑚 𝑗 ≤𝑛 (𝑖 −1)/ 𝑖 ∀𝑗 ∈ [ 𝑖 ].
+
+Proof. 𝑚 𝑗 =     
+
+>  Î𝑘 ≠𝑗 |𝑉 𝑘 |/| 𝑉 𝑗 |𝑖 −11/𝑖
+
+; with 1≤ | 𝑉 𝑘 | ≤ 𝑛 the numerator is   
+
+> ≤𝑛 𝑖 −1
+
+and the denominator ≥1, giving the upper bound, and sym-metrically the lower bound. □
+
+Taking logarithms, every feasible point lies in the hypercube          
+
+> 𝐵 𝑛 =h
+> −𝑖 −1
+> 𝑖 ln 𝑛, 𝑖 −1
+> 𝑖 ln 𝑛 i𝑖 ,
+
+The bound treats each layer as free in [1,𝑛 ]; the actual budget Í𝑘 |𝑉 𝑘 | ≤  
+
+> 𝑛
+
+forbids those extremal profiles (a coordinate reaches 𝑛 (𝑖 −1)/ 𝑖 only if   
+
+> 𝑖 −1
+
+parts are each of size 𝑛 ), so 𝐵 𝑛 strictly over-encloses the feasible region, which only tightens the cover. Intersecting the hypercube with the hyperplane yields the feasible region Π𝑛 =𝐵 𝑛 ∩H , a bounded  
+
+> (𝑖 −1)
+
+-dimensional polytope that contains every feasible iRM-set. That settles boundedness. At 𝑖 =3, Π𝑛 is the hypercube 𝐵 𝑛 sliced perpendicular to its main diagonal (1,1,1), a regular hexagon; in general it is a (𝑖 −1)-polytope with up to 2𝑖 facets. 
+
+## 5.2 Covering with the 𝜂 -Net 
+
+With the targets boxed into Π𝑛 , we lay the cover. Two constraints shape the grid: every grid point must be a feasible weight vector (Î𝑗 𝑚 𝑗 =1), and we must be able to round an arbitrary target onto it. A naive axis-aligned grid in the 𝑖 raw log-coordinates meets neither: a generic point has Í𝑗 𝑥 𝑗 ≠0, off the hyperplane H, so rounding to it leaves H and re-projecting reintroduces error on every coordinate. Laying the grid on H, as an integer lattice, fixes both at once. Definition 1 (Zero-sum log-lattice). For a step 𝑠 >0 let                    
+
+> Λ𝑠 =n
+> (𝑘 1𝑠,...,𝑘 𝑖 𝑠 ):𝑘 ∈Z𝑖 ,Í𝑗 𝑘 𝑗 =0o
+> ∩𝐵 +𝑠 𝑛 ,𝐵 +𝑠 𝑛 =−𝑖 −1
+> 𝑖 ln 𝑛 −𝑠, 𝑖 −1
+> 𝑖 ln 𝑛 +𝑠 𝑖 ,
+
+i.e. the lattice points whose log-coordinate 𝑥 𝑗 =𝑘 𝑗 𝑠 is an integer multiple of the step 𝑠 , with the index 𝑘 𝑗 =𝑥 𝑗 /𝑠 ∈Z and Í𝑗 𝑘 𝑗 =0 keeping Í𝑗 𝑥 𝑗 =0
+
+(the point on H). The box is grown by one step per side, the smallest enlargement whose cells cover 𝐵 𝑛 , so every rounding image of a point in 𝐵 𝑛 is retained. Let M𝑠 ={ ( 𝑒 𝑥 1 ,...,𝑒 𝑥 𝑖 ):x∈Λ𝑠 } be its image in weight space. Every point of M𝑠 satisfies Î𝑗 𝑚 𝑗 =𝑒   
+
+> Í𝑗 𝑥 𝑗 =1
+
+exactly , with no projection step. 
+
+Lemma 3 (Zero-sum rounding). For every feasible target x∗ ∈𝐵 𝑛 
+
+with Í𝑗 𝑥 ∗  
+
+> 𝑗 =0
+
+there is 𝝀 ∈Λ𝑠 with |𝜆 𝑗 −𝑥 ∗  
+
+> 𝑗 | ≤ 𝑠
+
+for all 𝑗 .
+
+Proof. Round each coordinate, 𝑘 𝑗 =⌊𝑥 ∗   
+
+> 𝑗 /𝑠 +12⌋
+
+, with error 𝑒 𝑗 =𝑘 𝑗 𝑠 − 
+
+> 𝑥 ∗
+> 𝑗 ∈ [− 𝑠 /2,𝑠 /2]
+
+; the defect 𝑟 =Í𝑗 𝑘 𝑗 ∈Z has |𝑟 | ≤ 𝑖 /2. If 𝑟 ≠0, adjust |𝑟 | coordi-nates by ∓1 (possible since at least |𝑟 | errors share its sign), so each adjusted error lands in [− 𝑠,𝑠 ), the rest stay in [− 𝑠 /2,𝑠 /2], and now   
+
+> Í𝑗 𝑘 𝑗 =0
+
+. Every final error has magnitude at most 𝑠 . □
+
+Choosing the pitch. We ask of the lattice one thing: rounding any feasible target to its nearest net point should keep the density loss              
+
+> 2The uniform cap |𝑉 𝑘 |≤ 𝑛 is for readability; with per-type sizes 𝑛 𝑘 =|𝑉 (𝐴 𝑘 ) | the same computation yields the per-axis bounds 𝑛 − ( 𝑖 −1)/ 𝑖 𝑗 ≤𝑚 𝑗 ≤
+>  Î
+> 𝑘 ≠𝑗 𝑛 𝑘
+> 1/𝑖 .
+
+to a factor 1+𝜂 . A coarse pitch can meet it, as the next definition and theorem show. Definition 2 ( 𝜂 -net). For 𝜂 ∈ ( 0,1], set 𝑠 (𝜂 )=√2𝜂 /𝑒 and let M𝜂 =M𝑠 (𝜂 )
+
+(the second-order net ) be the zero-sum log-lattice of Definition 1 at this step. 
+
+Theorem 2 (A small 𝜂 -net). For 𝜂 ∈ ( 0,1], the net M𝜂 has size     
+
+> O
+> 
+> (log 𝑛 /√𝜂 )𝑖 −1
+
+, and for every feasible m∗ it contains a representative  
+
+> m′
+
+with Î𝑗 𝑚 ′  
+
+> 𝑗 =1
+
+whose loss factor 𝐿 = 1  
+
+> 𝑖
+> Í𝑗 𝑒 𝜃 𝑗
+
+, 𝜃 𝑗 =ln (𝑚 ′  
+
+> 𝑗 /𝑚 ∗
+> 𝑗 )
+
+, equals 1+   
+
+> Θ( ∥ 𝜽 ∥2)
+
+and satisfies 𝐿 ≤1+𝜂 .
+
+Proof. Λ𝑠 (𝜂 ) is (𝑖 −1)-dimensional (the constraint Í𝑗 𝑘 𝑗 =0 re-moves one degree of freedom) and each free coordinate ranges over       
+
+> O ( log 𝑛 /𝑠 (𝜂 ) ) =O ( log 𝑛 /√𝜂 )
+
+values (Lemma 2), giving the size. Feasibility is Definition 1; the closeness ∥𝜽 ∥∞ ≤𝑠 (𝜂 ) is Lemma 3 at x∗=ln m∗. For the loss, the balance Í𝑗 𝜃 𝑗 =0 cancels the linear term,                      
+
+> 𝐿 =1
+> 𝑖
+> Í𝑗 𝑒 𝜃 𝑗 =1+1
+> 𝑖 ∑︁ 𝑗
+> 𝜃 𝑗
+> |{z }
+> =0
+> +12𝑖
+> Í𝑗 𝜃 2
+> 𝑗 + · · · =1+Θ
+> ∥𝜽 ∥2
+> ,
+
+the curvature of the AM–GM gap at equality. For the bound, the elementary inequality 𝑒 𝑡 ≤1+𝑡 + 𝑡 2    
+
+> 2𝑒 |𝑡 |
+
+(valid for every real 𝑡 ), applied at 𝑡 =𝜃 𝑗 and averaged over 𝑗 , gives 𝐿 ≤1+ 1          
+
+> 𝑖
+> Í𝑗 𝜃 𝑗 +12𝑖
+> Í𝑗 𝜃 2
+> 𝑗 𝑒 |𝜃 𝑗 |
+
+; the linear sum vanishes by Í𝑗 𝜃 𝑗 =0, and with |𝜃 𝑗 | ≤ 𝑠 (𝜂 ) ≤ 1 each 𝑒 |𝜃 𝑗 | ≤𝑒 , so 𝐿 ≤    
+
+> 1+𝑒
+> 2𝑠 (𝜂 )2=1+𝜂
+
+. □
+
+An intuitive baseline. The same 1+𝜂 loss is met more straightfor-wardly by pinning each ratio 𝑚 ′  
+
+> 𝑗 /𝑚 ∗
+> 𝑗
+
+within 1+𝜂 on its own, the first-order net at pitch 𝑠 =ln (1+𝜂 )=Θ(𝜂 ). Being quadratically finer, it lays   
+
+> 𝜂 − ( 𝑖 −1)/ 2
+
+times as many cells (Figure 3(a) vs. (b)); we keep it only as a baseline. These net points are the representatives bm𝑘 that Algorithm 1 solves. Each is the center of its cell, the lattice point every iRM-set there rounds to (Lemma 3), so one Solve covers the whole cell within 1+𝜂 . Since m∗ is unknown, the algorithm solves at every 
+
+net point and returns the densest family; the cell covering m∗ is guaranteed among them, so the global best inherits the 1+𝜂 bound. On the running instance of Figure 2, the 110 distinct feasible iRM-sets are covered by 40 net cells, centered at green lattice points (Figure 3(a)) and only 20 net cells (Figure 3(b)), one Solve per cell instead of 110 , securing a density loss of 1+𝜂 .
+
+## 5.3 How Net Approximation Affects Subproblem Quality 
+
+Theorem 2 puts a representative m′ within loss factor 𝐿 ≤1+𝜂 in the cell of the unknown optimum m∗. Running an existing fixed-weight solver at m′ turns this closeness in weights into closeness in density :the approximate weights the net hands to the solver cost only the tunable factor 1+𝜂 .Lemma 4 (Peeling is ratio-robust). Let V∗ be optimal with iRM-set m∗, and m′ feasible with loss factor 1  
+
+> 𝑖
+> Í𝑗 𝑒 𝜃 𝑗 ≤1+𝜂
+
+, 𝜃 𝑗 =ln (𝑚 ′  
+
+> 𝑗 /𝑚 ∗
+> 𝑗 )
+
+(Theorem 2). Peeling with m′ on any subgraph containing 𝐺 ( V ∗ ) yields  
+
+> b𝛾
+
+, the largest density seen during the peel, with 𝜌 ∗ ≤𝑖 (1+𝜂 ) b𝛾 .
+
+Proof. The bound factors into a weight step and a solver step. Let 𝑆 𝑣 be the subgraph present when peeling deletes 𝑣 , and 𝜇 𝑗 =     
+
+> max {𝑃 (𝑣,𝑆 𝑣 ):𝑣 ∈𝑉 ∗
+> 𝑗 }
+
+.
+
+Weight step. Charge each instance of F ( V ∗ ) to its first-deleted endpoint; that endpoint 𝑣 is deleted while all of V∗ is still present,    
+
+> 5Π𝑛
+> ln 𝑚 𝐶 ln 𝑚 𝐺
+> ln 𝑚 𝐷
+> 1
+> 𝜂
+> bm
+> lattice point
+> m∗
+
+(a) polytope Π𝑛 , step 𝜂    
+
+> Π𝑛
+> ln 𝑚 𝐶 ln 𝑚 𝐺
+> ln 𝑚 𝐷
+> 1√︁
+> 2𝜂 /𝑒
+> bmm∗
+
+(b) the 𝜂 -net, step √2𝜂 /𝑒    
+
+> Π𝑛
+> ln 𝑚 𝐶 ln 𝑚 𝐺
+> ln 𝑚 𝐷
+> 1
+> Δ-box
+> m∗
+
+(c) Δ-box + step 𝜂    
+
+> Π𝑛
+> ln 𝑚 𝐶 ln 𝑚 𝐺
+> ln 𝑚 𝐷
+> 1
+> Δ-box
+> m∗
+
+(d) Δ-box + step √2𝜂 /𝑒 
+
+Figure 3: The log-iRM polytope and covering nets 
+
+so the instance is counted in 𝑃 (𝑣,𝑆 𝑣 ). Hence | F ( V ∗ ) | ≤ Í𝑣 ∈V ∗ 𝑃 (𝑣,𝑆 𝑣 ) ≤     
+
+> Í𝑗 |𝑉 ∗
+> 𝑗 |𝜇 𝑗
+
+, and dividing by 𝑔 ( V ∗ ) with |𝑉 ∗   
+
+> 𝑗 |=𝑔 ( V ∗)/ 𝑚 ∗
+> 𝑗
+
+gives 𝜌 ∗ ≤Í𝑗 𝜇 𝑗 /𝑚 ∗ 
+
+> 𝑗
+
+.
+
+Solver step. The deleted vertex minimizes 𝑃 (𝑢,𝑆 𝑣 )/ 𝑚 ′ 
+
+> 𝜙 ′ (𝑢 )
+
+over 𝑢 ∈𝑆 𝑣 ,so this value is at most the 𝑚 ′-weighted average 𝑖 | F ( 𝑆 𝑣 ) |/ 𝑤 m′ (𝑆 𝑣 ) ≤    
+
+> 𝜌 (𝑆 𝑣 ) ≤ b𝛾
+
+(AM–GM, 𝑤 m′ ≥𝑖𝑔 ); thus 𝜇 𝑗 ≤b𝛾 𝑚 ′ 
+
+> 𝑗
+
+.Splitting 𝜇 𝑗 /𝑚 ∗     
+
+> 𝑗 =(𝜇 𝑗 /𝑚 ′
+> 𝑗 )𝑒 𝜃 𝑗
+
+and using Í𝑗 𝑒 𝜃 𝑗 ≤𝑖 (1+𝜂 ) (Theorem 2),           
+
+> 𝜌 ∗≤Í𝑗 𝜇 𝑗 𝑚 ∗
+> 𝑗
+> ≤b𝛾 Í𝑗 𝑒 𝜃 𝑗 ≤𝑖 (1+𝜂 )b𝛾 .
+
+□
+
+Theorem 3 (Peeling over the net). Running the peeling once at every net point of M𝜂 and returning the densest P-family is a    
+
+> 1
+> 𝑖 (1+𝜂 )
+
+-approximation to 𝜌 ∗, with O ( ( log 𝑛 /√𝜂 )𝑖 −1 ) peeling runs. 
+
+The correctness is clear: it is the solver-agnostic reduction above at   
+
+> 𝛽 =1
+> 𝑖
+
+. Lemma 4 gives the per-cell guarantee b𝛾 ≥𝜌 ∗/( 𝑖 (1+𝜂 ) ) in m∗’s cell. Theorem 2 bounds the number of peeling runs. 
+
+## 5.4 Localizing the Hypercube 
+
+The net size carries a factor (log 𝑛 )𝑖 −1 from the worst-case hyper-cube width 𝐵 𝑛 =O ( log 𝑛 ) per layer (Lemma 2). The optimum’s weights, though, cannot roam the whole hypercube: an iRM-weight is not free, and at the optimum the 𝑗 -th weight is pinned to how instance-rich a typical type-𝑗 vertex is. Precisely, 𝑚 ∗ 
+
+> 𝑗
+
+is the average number of meta-path instances through a type-𝑗 vertex of V∗, divided by  
+
+> 𝜌 ∗
+
+(Lemma 5). Writing Δ𝑗 =max 𝑣 ∈𝑉 (𝐴 𝑗 ) 𝑃 (𝑣,𝐺 ) for the largest such per-vertex count, an average never exceeds its maximum, so Δ𝑗 caps how far the optimum can lean on layer 𝑗 .Lemma 5 ( Δ-box). Assume 𝜌 ∗ >0. For the optimal family V∗, 𝑚 ∗   
+
+> 𝑗 =
+> ¯𝑃 𝑗 /𝜌 ∗
+
+where ¯𝑃 𝑗 =| F ( V ∗ ) |/| 𝑉 ∗ 
+
+> 𝑗 |
+
+, and 1≤ ¯𝑃 𝑗 ≤Δ𝑗 . Hence 𝑚 ∗    
+
+> 𝑗 ∈ [ 1/𝜌 ∗,Δ𝑗 /𝜌 ∗]
+
+, an interval of log-width ln Δ𝑗 .
+
+Proof. ¯𝑃 𝑗 /𝑚 ∗    
+
+> 𝑗 =| F ( V ∗) |/ 𝑔 ( V ∗)=𝜌 ∗
+
+gives the identity. Since        
+
+> Í
+> 𝑣 ∈𝑉 ∗
+> 𝑗 𝑃 (𝑣,𝐺 ( V ∗) ) =| F ( V ∗) |
+
+, the average ¯𝑃 𝑗 ≤Δ𝑗 ; and ¯𝑃 𝑗 ≥1, as a type-𝑗 
+
+vertex in no instance could be deleted to raise the density (or, if alone, forces 𝜌 ∗=0). □
+
+So the optimum’s 𝑗 -th weight is confined to a band of log-width only ln Δ𝑗 , independent of 𝑛 . Its location depends on the unknown 
+
+> 𝜌 ∗
+
+, but feasibility brackets it regardless. Taking the product of 𝑚 ∗   
+
+> 𝑗 =
+> ¯𝑃 𝑗 /𝜌 ∗
+
+over 𝑗 and using Î𝑗 𝑚 ∗  
+
+> 𝑗 =1
+
+gives 𝜌 ∗= 
+
+>  Î𝑗 ¯𝑃 𝑗
+> 1/𝑖
+
+, the geometric mean of the ¯𝑃 𝑗 ; since each ¯𝑃 𝑗 ∈ [ 1,Δ𝑗 ] ⊆ [ 1,Δ] (Δ=max 𝑗 Δ𝑗 ) and a geometric mean lies between its smallest and largest terms, 𝜌 ∗ ∈ [ 1,Δ]. This bracket alone fixes the box, with no estimate of 𝜌 ∗: in 𝑚 ∗    
+
+> 𝑗 =¯𝑃 𝑗 /𝜌 ∗
+
+the numerator is at most Δ𝑗 and at least 1, so 𝜌 ∗ ≥1 gives 𝑚 ∗  
+
+> 𝑗 ≤Δ𝑗
+
+while   
+
+> 𝜌 ∗≤Δ
+
+gives 𝑚 ∗ 
+
+> 𝑗 ≥1/Δ
+
+, hence ln 𝑚 ∗       
+
+> 𝑗 ∈ [− ln Δ,ln Δ𝑗 ]
+
+whatever 𝜌 ∗ is. The band thus provably contains m∗: only the bracket 𝜌 ∗ ∈ [ 1,Δ] enters, not an estimate. This bracket only tightens during the search, where the best density found so far, ˆ𝜌 ≤𝜌 ∗, sharpens it to 𝜌 ∗ ∈ [ ˆ𝜌, Δ] and shrinks the box to 𝑚 ∗    
+
+> 𝑗 ≤Δ𝑗 /ˆ𝜌
+
+while still containing m∗. The net size is reduced to O     
+
+> 
+> (min {log 𝑛, log Δ}/ √𝜂 )𝑖 −1
+
+. 
+
+> Δ
+
+plus net . The net and the Δ-box touch different parts of the per-axis base and so compose without interference. The net (§5.2) sets the pitch √𝜂 , the Δ-box the range min {log 𝑛, log Δ}. Together they are the cover Algorithm 1 sweeps, one fixed-weight Solve per cell, each within 1+𝜂 of the optimum’s (§4), and the net we carry into §6. 
+
+On the running example. Figure 3(c) draws the Δ-box: the slab 𝑚 𝑗 ∈[1/𝜌 ∗,Δ𝑗 /𝜌 ∗ ] (here Δ=(3,4,5)) meets the product-one plane in a small 
+
+triangle , with m∗ inside. Overlaying the coarse √2𝜂 /𝑒 pitch on it (Figure 3(d)) leaves only 5 cells, a tiny fraction of the 110 feasible iRM-sets naive enumeration would visit, yet the cell of m∗ is among them. 
+
+## 6 NEAR-OPTIMAL APPROXIMATION FOR 𝑖 >2
+
+What remains for a near-optimal algorithm is to push the 1 
+
+> 𝑖
+
+factor to 1−𝛿 . The road has three steps: the fixed-weight subproblem is a weighted supermodular densest-subgraph problem in the auxiliary objective ℎm (§6.1); a native solver makes it near-optimal in ℎm (§6.2); and an AM–GM bridge, tight at the optimum’s own weight, carries that near-optimality to the density 𝜌 (§6.3). 
+
+Why the near-optimal solver stopped at 𝑖 =2. The fixed-weight subproblem is a weighted supermodular densest-subgraph prob-lem (Theorem 4, below), so one might expect the near-optimal supermodular solvers [1, 3, 13] to finish the job; the obstacle is the per-type weights . Those solvers target the cardinality ratio 𝑓 /| 𝑆 |,and the 𝑖 =2 methods target only the two-sided 𝑚 1 |𝑆 1 |+ 1   
+
+> 𝑚 1|𝑆 2|
+
+[21– 23]; neither handles a general 𝑖 -type denominator. The possible workaround, materializing 𝑚 𝜙 ′ (𝑣 ) integer copies of each 𝑣 to feed an standard unit-weight peeler, also fails: the weights are real-valued and spread up to 𝑛 2, so exact copies do not exist and rounded ones inflate the graph and corrupt the peeling order. 
+
+## 6.1 Supermodular Densest Subgraph 
+
+Recall the fixed-weight subproblem from §3: for an iRM-set m, max-imize the auxiliary objective ℎm (𝑆 )=𝑓 (𝑆 )/ 𝑤 m (𝑆 ) over 𝑆 ⊆𝑈 , with 𝑓 (𝑆 )=  
+
+> | F ( 𝑆 ) |
+
+and the modular weighted size 𝑤 m (𝑆 )=Í𝑗 𝑚 𝑗 |𝑆 𝑗 | (the weighted density of §5.3 is 𝑖 ℎ m). The denominator 𝑤 m is already modular; the numerator is supermodular. Lemma 6. 𝑓 :2 𝑈 →Z≥0, 𝑓 (𝑆 )=| F ( 𝑆 ) | , is normalized ( 𝑓 (∅) =0), monotone, and supermodular .
+
+> 6
+
+Proof. Normalization and monotonicity are immediate. For supermodularity, fix 𝑆 ⊆𝑇 , 𝑣 ∉𝑇 : every instance in the marginal 𝑓 (𝑆 ∪{𝑣 } ) − 𝑓 (𝑆 ) passes through 𝑣 with its other vertices in 𝑆 ⊆𝑇 , so it is also in 𝑓 (𝑇 ∪{ 𝑣 } ) − 𝑓 (𝑇 ). □
+
+A supermodular numerator over a modular denominator is thus the problem below. Theorem 4. For every feasible iRM-set m, maximizing ℎm (𝑆 ) over   
+
+> 𝑆 ⊆𝑈
+
+is an instance of weighted supermodular densest subgraph (im-mediate from Lemma 6 and the modularity of 𝑤 m). 
+
+## 6.2 A Near-Optimal Weighted Solver 
+
+The cardinality-ratio solvers do not apply, and the workaround fails, so we need a native solver. We adapt Super-Greedy++ [1, 3], which peels the vertex of least load-augmented degree 𝜎 (𝑣 )+ deg 𝑆 (𝑣 ) and charges its degree back across passes, in two changes. (i) Weight the criterion: delete the vertex of least weighted incidence 𝑃 (𝑣, ·)/ 𝑚 𝜙 ′ (𝑣 ) ,putting the per-type weight into the deletion order. (ii) Charge and repeat: carry a per-vertex load across passes, adding a vertex’s incidence when it is deleted, so a vertex peeled too early is spared next pass and the order self-corrects. 
+
+Why repeat: a rising floor meets a descending ceiling. Any family peeling returns a floor , an achievable density that prior peeling (Theorem 1) keeps within a fixed factor of optimal, though a single pass gives no per-instance certificate. Repeating adds a 
+
+ceiling : the averaged load, peaked against the per-type weights, upper-bounds the optimum. One deletion order does both, sparing instance-rich vertices to lift the floor while averaging the charges to lower the ceiling; once they meet, the family in hand is certified near-optimal. The floor is inherited from prior peeling, the ceiling and its convergence new, formalized in Proposition 1. Proposition 1 (Iterative Peeling). Peeling by the load-augmented key      
+
+> 𝜎 (𝑣 )+ 𝑃 (𝑣,𝐺 (𝑆 ) )
+> 
+> /𝑚 𝜙 ′ (𝑣 )
+
+with 𝜎 (𝑣 )+ =𝑃 (𝑣,𝐺 (𝑆 ) ) charged at each deletion (ideas (i)–(ii)), reporting the densest P-family over all prefixes of all passes, returns 𝑆 with ℎm (𝑆 ) ≥ ( 1−𝛿 ) ℎ∗
+
+> m
+
+(ℎ∗   
+
+> m=max ∅≠𝑆 ′ ⊆𝑈 ℎm(𝑆 ′)
+
+) in 𝑇 =O      
+
+> 
+> Δmln |𝑈 | / ( 𝛿 2ℎ∗
+> m)
+> 
+> passes ,
+
+where Δm=        
+
+> max 𝑣 ∈𝑈 𝑃 (𝑣,𝐺 )/ 𝑚 𝜙 ′ (𝑣 )=max 𝑗 Δ𝑗 /𝑚 𝑗
+
+is the weighted width .
+
+Proof sketch. The argument is self-contained given three lem-mas (Lemmas A.1–A.3), each proved in Appendix A; we state what each supplies and how they combine. 
+
+(i) Base membership. No matter which key chooses the vertex to delete, a pass charges each deleted vertex its marginal 𝑃 (𝑣,𝐺 (𝑆 ) ) =      
+
+> 𝑓 (𝑣 |𝑆 \𝑣 ):=𝑓 (𝑆 ) − 𝑓 (𝑆 \𝑣 )
+
+, so read in reverse deletion order, the charges form a greedy base of the supermodular 𝑓 (Lemma A.1, greedy bases and exact linear minimization). Hence each pass’s charge lies in the base polytope 𝐵 (𝑓 )={𝑥 ≥0: 𝑥 (𝑆 ) ≥ 𝑓 (𝑆 ) ∀ 𝑆, 𝑥 (𝑈 )=𝑓 (𝑈 ) } (writing 𝑥 𝑣 for the coordinates of 𝑥 ∈R𝑈 and 𝑥 (𝑆 )=Í𝑣 ∈𝑆 𝑥 𝑣 ), and so does the averaged load    
+
+> ¯𝑥 𝑡 =𝜎 𝑡 /𝑡
+
+, 𝜎 𝑡 the total charge after 𝑡 passes, by convexity (Lemma A.3, per-pass base membership). 
+
+(ii) A computable certificate. Weak duality on 𝐵 (𝑓 ) converts any averaged load into a bound: for 𝑥 ∈𝐵 (𝑓 ) and ∅≠𝑆 , 𝑓 (𝑆 ) ≤ 𝑥 (𝑆 ) gives      
+
+> ℎm(𝑆 ) ≤ max 𝑣 𝑥 𝑣 /𝑚 𝜙 ′ (𝑣 )
+
+, so the gap ˆ𝑔 𝑡 =max 𝑣 ¯𝑥 𝑡 (𝑣 )/ 𝑚 𝜙 ′ (𝑣 ) −max prefix 𝑆 ℎm (𝑆 ) is nonnegative and computable, and ˆ𝑔 𝑡 ≤𝛿 ℎ ∗ 
+
+> m
+
+certifies the reported family (1−𝛿 )-dense unconditionally (Remark A.1). 
+
+(iii) The gap closes at the stated rate. The anchor is the weighted quasi-min-max ℎ∗       
+
+> m=min 𝑥 ∈𝐵 (𝑓 )max 𝑣 𝑥 𝑣 /𝑚 𝜙 ′ (𝑣 )
+
+(Lemma A.2), the per-type-weighted counterpart of the cardinality min–max, obtained via the Lovász extension of 𝑓 and von Neumann’s minimax. Against this anchor, the convergence analysis of Super-Greedy++ [3] carries over, once loads, marginals and key are read per unit weight : the weights enter only through ℎ∗ 
+
+> m
+
+and the width Δm,giving min 𝑡 ≤𝑇 ˆ𝑔 𝑡 ≤𝛿 ℎ ∗ 
+
+> m
+
+at the stated 𝑇 . On the Δ-box-localized net the width-to-value ratio collapses to our own parameters, so the uniform budget 𝑇 =O ( 𝑖 Δ ln |𝑈 |/ 𝛿 2 ) suffices (Remark A.2; 1+𝜂 ≤2 is absorbed into the constant), the 1/𝛿 2 exponent being proper to peeling-type schemes (Remark A.3). At 𝑇 =1, 𝜎 ≡0 and the key is     
+
+> 𝑃 (𝑣,𝐺 (𝑆 ) )/ 𝑚 𝜙 ′ (𝑣 )
+
+, verbatim the reweighted peel of Theorem 1; the load carried across passes is the lift to (1−𝛿 ). □
+
+By now, we settle the subproblem in the weighted objective : for any fixed weight m, the solver returns a family within (1−𝛿 ) of ℎ∗
+
+> m
+
+. Our target, however, is the density 𝜌 , not ℎm, which will be addressed in §6.3. 
+
+## 6.3 From ℎm to the Density 𝜌 
+
+We now convert near-optimality in ℎm into near-optimality in the density 𝜌 .Lemma 7. For every 𝑆 ⊆𝑈 with each 𝑆 𝑗 ≠∅, 𝜌 (𝑆 ) ≥ 𝑖 ℎ m (𝑆 ), with equal-ity iff m is 𝑆 ’s own iRM-set. 
+
+Proof. By the AM–GM bound behind the loss factor of §5,              
+
+> 𝑤 m(𝑆 )=Í𝑗 𝑚 𝑗 |𝑆 𝑗 | ≥ 𝑖 (Î𝑗 |𝑆 𝑗 | ) 1/𝑖 =𝑖 𝑔 (𝑆 )
+
+(using Î𝑗 𝑚 𝑗 =1); dividing into 𝑓 (𝑆 )
+
+gives ℎm (𝑆 ) ≤ 𝜌 (𝑆 )/ 𝑖 . The bound is tight iff the 𝑚 𝑗 |𝑆 𝑗 | are all equal, i.e. iff m is 𝑆 ’s own iRM-set. □
+
+At the optimum’s own iRM-set m∗ the factor 𝑖 thus cancels, 𝑖 ℎ m∗ ( V ∗ )=
+
+> 𝜌 ∗
+
+, so solving there would return 𝜌 (𝑆 ′ ) ≥ ( 1−𝛿 )𝜌 ∗ directly. Since m∗ is unknown, the net supplies only a representative m′, at the tunable cost 1+𝜂 :Lemma 8. Let m′ be the net representative of m∗’s cell, with displace-ments 𝜃 𝑗 =ln (𝑚 ′   
+
+> 𝑗 /𝑚 ∗
+> 𝑗 )
+
+and 1   
+
+> 𝑖
+> Í𝑗 𝑒 𝜃 𝑗 ≤1+𝜂
+
+(Theorem 2). Then 𝑖 ℎ m′ ( V ∗ ) ≥  
+
+> 𝜌 ∗/( 1+𝜂 )
+
+.
+
+Proof. This is the loss-factor identity of §5: scoring V∗ at m′
+
+deflates its density by exactly 𝐿 = 1  
+
+> 𝑖
+> Í𝑗 𝑒 𝜃 𝑗
+
+, i.e. 𝑖 ℎ m′ ( V ∗ )=𝜌 ∗/𝐿 , and 𝐿 ≤1+𝜂 
+
+by Theorem 2. □
+
+Theorem 5. Running the solver of Proposition 1 once at every net point of the net M𝜂 (Definition 2), localized by the Δ-box (Lemma 5), and returning the densest P-family yields    
+
+> 𝜌 ≥1−𝛿
+> 1+𝜂 𝜌 ∗,
+
+using O     
+
+> 
+> (min {log 𝑛, log Δ}/ √𝜂 )𝑖 −1
+
+subproblem solvers, where Δ=max 𝑗 Δ𝑗 .
+
+Proof. The cell containing m∗ has a representative m′ ∈ M 𝜂 with    
+
+> Î𝑗 𝑚 ′
+> 𝑗 =1
+
+and loss factor ≤1+𝜂 (Theorem 2); by Lemma 5 the localized box contains that cell. Let 𝑆 ′ be the solver’s output at m′. Lemma 7’s hypothesis holds at 𝑆 ′: by Lemma 8 𝑖 ℎ ∗    
+
+> m′≥𝑖 ℎ m′( V ∗) ≥ 𝜌 ∗/( 1+𝜂 )>0
+
+, so     
+
+> ℎm′(𝑆 ′) ≥ ( 1−𝛿 )ℎ∗
+> m′>0
+
+, hence 𝑓 (𝑆 ′ )>0, and since an instance occupies every position, every layer of 𝑆 ′ is nonempty. Chaining these,                               
+
+> 𝜌 (𝑆 ′)Lem. 7
+> ≥𝑖 ℎ m′(𝑆 ′)(1−𝛿 )
+> ≥(1−𝛿 )𝑖 max
+> 𝑆 ℎm′(𝑆 )≥(1−𝛿 )𝑖 ℎ m′( V ∗)Lem. 8
+> ≥1−𝛿
+> 1+𝜂 𝜌 ∗.
+
+Reporting the densest family over all net points only improves the bound, and the number of solvers is that of Theorem 2 over the localized box. □
+
+> 7
+
+Corollary 1 (PTAS for fixed 𝑖 ). For every fixed 𝑖 and 𝜁 ∈ ( 0,1),taking 𝛿 =𝜂 =𝜁 /3 gives a (1−𝜁 )-approximation in time polynomial in |𝐺 |,a PTAS, not an FPTAS. 
+
+Proof. Since 1−𝜁 /31+𝜁 /3 ≥1−𝜁 , Theorem 5 gives the factor. The 1/𝜁 -degree is 𝑖 +32 : (𝑖 −1)/ 2 from the O 
+
+> 
+> (log 𝑛 /
+
+√𝜁 )𝑖 −1 
+
+cells and 2 from the solver’s O ( 1/𝛿 2 ) passes (Proposition 1 with 𝛿 =𝜁 /3); the uniform pass budget 𝑇 =O ( 𝑖 Δ ln |𝑈 |/ 𝛿 2 ) is polynomial in |𝐺 | at fixed 𝑖 . The degree grows with 𝑖 , and the concrete end-to-end runtime is given in §6.4. □
+
+On the running example. The optimum is the (4,2,2) module V∗ of Example 2 ( 𝜌 ∗≈2.78 ), interleaved with two decoy fans 𝑔 1,𝑔 3 of loosely attached paths. Run the low-cost 1 
+
+> 𝑖
+
+peel (§5.3) at every net weight: none isolates the module in a single pass, so the best family it sweeps out is the whole graph ( ≈2.58 ). The supermodular solver with 𝛿 =0.01 of this section, maximizing ℎm to (1−𝛿 ) at the module’s own weight, instead returns V∗ exactly. This 2.78 -against-2.58 gap 
+
+persists under every net refinement , a clear per-cell solver gap. Such interleavings are worst-case; on real data the peel often matches the solver, but only the solver’s (1−𝛿 ) bound certifies that no such gap exists in any cell. 
+
+## 6.4 Running the Solver Instance-Free 
+
+The previous sections cut the number of subproblems; a second bottleneck hides inside each. Every peeling solver reads the instance set F ( V ) , which for a meta-path can far exceed the graph ( | F ( V ) | =   
+
+> O ( Î𝑗 |𝑉 𝑗 | )
+
+against |𝐸 | edges), and materializing it would be wasteful, which we show is unnecessary. 
+
+The factorization. Fix P=(𝐴 1,...,𝐴 𝑖 ) and V. For a vertex 𝑣 ∈𝑉 (𝐴 𝑗 ) let   
+
+> 𝐿 (𝑣 )
+
+be the number of partial instances of the prefix (𝐴 1,...,𝐴 𝑗 ) that end 
+
+at 𝑣 , and 𝑅 (𝑣 ) the number of partial instances of the suffix (𝐴 𝑗 ,...,𝐴 𝑖 )
+
+that start at 𝑣 , the ways to reach 𝑣 from the left, and to continue from 𝑣 to the right. 
+
+Observation 1. ∀𝑣 of 𝐺 ( V ) , 𝑃 (𝑣,𝐺 ( V ) ) =𝐿 (𝑣 ) 𝑅 (𝑣 ).
+
+Maintaining counts. The two count families are themselves sim-ple path dynamic programs. Writing 𝑁 − (𝑣 ) and 𝑁 + (𝑣 ) for the neigh-bors of 𝑣 in the preceding and following layers,                   
+
+> 𝐿 (𝑣 )=
+> Í𝑢 ∈𝑁 − (𝑣 )𝐿 (𝑢 )(𝑗 >1),𝑅 (𝑣 )=
+> Í
+> 𝑢 ∈𝑁 + (𝑣 )𝑅 (𝑢 )(𝑗 <𝑖 ),
+
+with 𝐿 (𝑣 )=1 on the first layer and 𝑅 (𝑣 )=1 on the last. 
+
+Observation 2. All counts {𝐿 (𝑣 ),𝑅 (𝑣 ) } 𝑣 can be computed by one forward and one backward sweep over 𝐺 ( V ) , in O ( | 𝐸 (𝐺 ( V ) ) | ) time and space: by the recurrences above, the forward sweep fills 𝐿 in increasing 𝑗 and the backward sweep fills 𝑅 in decreasing 𝑗 , each reading every edge once. 
+
+Instance-free peeling. Iterative Peeling reads the instances only through its key (𝜎 (𝑣 )+ 𝑃 (𝑣,𝐺 (𝑆 ) ) )/ 𝑚 𝜙 ′ (𝑣 ) , and both parts run on   
+
+> 𝐺 ( V )
+
+alone: the loads 𝜎 (𝑣 ) are O ( | 𝑈 | ) scalars updated in place, and the incidence factors as 𝑃 (𝑣,𝐺 (𝑆 ) ) =𝐿 (𝑣 )𝑅 (𝑣 ) (Observation 1), maintained by the two sweeps of Observation 2 and refreshed on deletion by propagating along incident edges. A pass thus keeps the keys     
+
+> 𝜎 (𝑣 )+
+> 𝐿 (𝑣 )𝑅 (𝑣 )
+> 
+> /𝑚 𝜙 ′ (𝑣 )
+
+in a heap and repeatedly extracts the minimum, deletes, and propagates, the same execution as the enumerated solver (since 𝐿 (𝑣 )𝑅 (𝑣 )=𝑃 (𝑣,𝐺 (𝑆 ) ) ), so its (1−𝛿 ) guarantee carries over with total state O ( | 𝐸 | ) , independent of | F ( V ) | .
+
+End-to-end cost. Two quantities, scaling differently in 𝑛 , gov-ern the cost. The number of subproblems is the cell count      
+
+> 𝐾 =O
+> 
+> (min {log 𝑛, log Δ}/ √𝜂 )𝑖 −1
+
+, polylogarithmic in 𝑛 and Δ-adaptive (Lemma 5), saving over the O ( ( 𝑛 /𝑖 )𝑖 ) enumeration of prior work. The cost per subproblem is polynomial: on the Δ-box-localized net a cell runs 𝑇 =O ( 𝑖 Δ ln |𝑈 |/ 𝛿 2 ) passes (Proposition 1), each cost-ing O ( | 𝐸 | Δprop +| 𝑈 | log |𝑈 | ) with |𝐸 |=|𝐸 (𝐺 ( V ) ) | , |𝑈 |=Í𝑗 |𝑉 (𝐴 𝑗 ) | , and    
+
+> Δprop ≤ | 𝐸 |
+
+the maximum number of times one pass’s count prop-agation re-reads a single edge. The search therefore runs in        
+
+> O
+> 
+> 𝐾 𝑇 ( | 𝐸 |Δprop +| 𝑈 |log |𝑈 | )
+> 
+
+.
+
+Discussion. The bound on 𝑇 is worst-case. For the cardinality dens-est subgraph, Greedy++’s convergence was conjectured by [1] and later proved [3]; faster first-order and coordinate-descent meth-ods [13, 23] carry per-edge state that forfeits instance-freeness. In practice each solver stops far sooner, and the ceiling carries across representatives m (its averaged load is weight-free), trimming the search further (§8); we omit the details due to the limited space. 
+
+## 7 VERTEX AND CELL PRUNING 
+
+Building on the supermodular reformulation of §6, we propose a per-type incidence-floor vertex pruning that shrinks the graph before 
+
+any solver. Because the floor scales with each vertex’s type weight  
+
+> 𝑚 𝜙 ′ (𝑣 )
+
+, it is sharper than the single, uniform density threshold of prior HIN vertex pruning [4]. Fix a feasible iRM-set m with the auxiliary objective ℎm=𝑓 /𝑤 m
+
+over the ground set 𝑈 of §6, and write ℎ∗     
+
+> m=max ∅≠𝑆 ⊆𝑈 ℎm(𝑆 )>0
+
+for its fixed-weight optimum. We show the lemma below. Lemma 9 (Vertex pruning). With the notation above: (i) Inci-dence floor. Every maximizer 𝑆 ∗ and every 𝑣 ∈𝑆 ∗ satisfy 𝑃 (𝑣,𝐺 (𝑆 ∗ ) ) ≥   
+
+> ℎ∗
+> m𝑚 𝜙 ′ (𝑣 )
+
+, and hence 𝑃 (𝑣,𝐺 ) ≥ ℎ∗  
+
+> m𝑚 𝜙 ′ (𝑣 )
+
+. (ii) Optimum-preserving peel. 
+
+For any 𝜆 ≤ℎ∗
+
+> m
+
+, deleting every vertex with 𝑃 (𝑣,𝐺 )<𝜆 𝑚 𝜙 ′ (𝑣 ) removes no vertex of any ℎm-optimal 𝑆 ∗; iterating the deletion on the shrinking graph against the same 𝜆 likewise removes none, and leaves ℎ∗ 
+
+> m
+
+un-changed. 
+
+Proof. Fix a maximizer 𝑆 ∗; 𝑓 (𝑆 ∗ )=ℎ∗    
+
+> m𝑤 m(𝑆 ∗)>0
+
+forces every layer nonempty, so 𝑤 m (𝑆 ∗ ) − 𝑚 𝜙 ′ (𝑣 ) >0 for every 𝑣 ∈𝑆 ∗. (i) For 𝑣 ∈𝑆 ∗, deleting  
+
+> 𝑣
+
+destroys exactly 𝑃 (𝑣,𝐺 (𝑆 ∗ ) ) instances, and optimality of 𝑆 ∗ over the competitor 𝑆 ∗\{ 𝑣 } gives 𝑓 (𝑆 ∗ ) − 𝑃 (𝑣,𝐺 (𝑆 ∗ ) )    
+
+> 𝑤 m(𝑆 ∗) − 𝑚 𝜙 ′ (𝑣 )≤ℎ∗
+> m
+
+; cross-multiplying yields 𝑃 (𝑣,𝐺 (𝑆 ∗ ) ) ≥ ℎ∗ 
+
+> m𝑚 𝜙 ′ (𝑣 )
+
+, and 𝑃 (𝑣,𝐺 ) ≥ 𝑃 (𝑣,𝐺 (𝑆 ∗ ) ) since 𝑆 ∗ ⊆𝑈 . (ii) By (i) every 𝑣 ∈𝑆 ∗ clears the floor 𝜆𝑚 𝜙 ′ (𝑣 ) , so 𝑆 ∗ survives each round (with 𝑃 (𝑣,𝐺 (𝑈 𝑟 ) ) ≥ 𝑃 (𝑣,𝐺 (𝑆 ∗ ) ) as 𝑆 ∗ ⊆𝑈 𝑟 , the ground set after 𝑟 rounds, by induction) and stays optimal over the shrinking ground set, leaving ℎ∗ 
+
+> m
+
+unchanged. □
+
+The floor of Lemma 9 involves the unknown ℎ∗
+
+> m
+
+, but part (ii) needs only a lower bound on it: any 𝜆 ≤ℎ∗ 
+
+> m
+
+is a sound floor, and deleting {𝑣 :𝑃 (𝑣,𝐺 )<𝜆 𝑚 𝜙 ′ (𝑣 ) } removes no vertex of an optimal family. The running search supplies one, its best auxiliary value ℎm (𝑆 ) ≤ ℎ∗
+
+> m
+
+so far, which only improves across the run [4]; the peel uses this  
+
+> 𝜆
+
+in place of ℎ∗
+
+> m
+
+. When the peel empties a cell’s graph, that cell is dropped, and the bound still holds. 
+
+## 8 EXPERIMENTS 
+
+We now evaluate the effectiveness and efficiency of the proposed techniques. 
+
+> 8.05 .1 .2 .5 1.99 .995 1.0
+
+𝜂 (finer →)
+
+> 𝜌 /𝜌 ∗
+> MovieLens
+> .05 .1 .2 .5 1.99 .995 1.0
+
+𝜂 (finer →)DBLP 
+
+> .05 .1 .2 .5 1.99 .995 1.0
+
+𝜂 (finer →)Douban 
+
+> .05 .1 .2 .5 1.998 11.002 all exact (𝜌 /𝜌 ∗=1)
+
+𝜂 (finer →)DBpedia 
+
+> .05 .1 .2 .5 1.998 11.002 all exact (𝜌 /𝜌 ∗=1)
+
+𝜂 (finer →)Freebase       
+
+> A2 A3 A4 A5 A6 A7 A8
+
+(a) Recovered density 𝜌 /𝜌 ∗ vs. net granularity 𝜂 .   
+
+> .05 .1 .25 .5 .998 1
+
+𝛿 (looser →)   
+
+> 𝜌 /𝜌 ∗
+> MovieLens
+> .05 .1 .25 .5 .998 1
+
+𝛿 (looser →)DBLP    
+
+> .05 .1 .25 .5 .998 1
+
+𝛿 (looser →)Douban    
+
+> .05 .1 .25 .5 .998 1all exact (𝜌 /𝜌 ∗=1)
+
+𝛿 (looser →)DBpedia    
+
+> .05 .1 .25 .5 .998 1all exact (𝜌 /𝜌 ∗=1)
+
+𝛿 (looser →)Freebase 
+
+(b) Recovered density 𝜌 /𝜌 ∗ vs. per-subproblem tolerance 𝛿 .
+
+Figure 4: Effectiveness evaluation. Table 2: Datasets                                 
+
+> Dataset |A| |R| |𝑉 ||𝐸 |𝑖
+> MovieLens 562.7K 0.10M 3–4 DBLP 4337 .8K 0.17M 3–4 Douban 6637 .6K 1.71M 3–4 DBpedia 412 661 6.31M 18 .7M 3–9 Freebase 10 .1K 14 .8K 120M 433M 3–9
+
+Table 3: Tested algorithms                                       
+
+> mark Net Per-cell solver Guarantee A1 —exact (none) exact 1
+> A2 first-order 1/𝑖 peel 1
+> 𝑖 (1+𝜂 )
+> A3 first-order near-optimal 1−𝛿
+> 1+𝜂 (conj.) A4 second-order 1/𝑖 peel 1
+> 𝑖 (1+𝜂 )
+> A5 second-order near-optimal 1−𝛿
+> 1+𝜂 (conj.) A6 local + second 1/𝑖 peel 1
+> 𝑖 (1+𝜂 )
+> A7 local + second near-optimal 1−𝛿
+> 1+𝜂 (conj.) A8 local + second near-optimal 1−𝛿
+> 1+𝜂 (cert.)
+
+## 8.1 Experimental Setup 
+
+Datasets. We use five benchmark HINs (Table 2); Hetionet serves the case study (§8.2). Three are dense core benchmarks: MovieLens, DBLP, and Douban [4]. Two are large breadth graphs rebuilt from public dumps, so their sizes differ from [4]: DBpedia ( 18 .7M edges) and Freebase ( 433 M edges), used to test scale and the limits of the cover on long, sparse meta-paths. 
+
+Queries (meta-paths). As in [4], from each schema we materialize a pool of meta-path subgraphs grouped by length 𝑖 : every available 
+
+P of 𝑖 ∈ { 3,4} on the core datasets, and a sampled 𝑖 ∈ { 3,..., 9} pool on the breadth datasets ( 140 each). Sampling is at the path-instance level, so each P-partite graph is connected and has P-instances. 
+
+Methods. We compare 8 algorithms, listed in Table 3. A1, the state-of-the-art [4] exact algorithm, gives the exact optimum 𝜌 ∗ by enumerating necessary feasible iRM-sets with pruning (its approx-imation is consistently slower, checking every iRM-set 3). A2–A8 factor the cover into a net (which weight-sets are represented) and 
+
+> 3
+
+Therefore, we directly use the exact method as the baseline.  
+
+> Sulfasalazine Mesalazine Diclofenac Ibuprofen Aspirin Montelukast Zileuton PTGS2 (COX-2) PTGS1 (COX-1) ALOX5 (5-LOX) rheumatoid arthritis ulcerative colitis asthma esophageal cancer stomach cancer breast cancer
+> binds / associates (recovered C–G–D) treats (known, independent)
+
+Figure 5: Case study 
+
+a per-cell solver : second-order = the √2𝜂 /𝑒 net (§5.2), local = the 
+
+Δ-box localization (§5.4), near-optimal = the supermodular solver (§6). The near-optimal solver runs in two modes: a conjectured stop (“conj.”: A3, A5, A7), a few passes reaching the near-optimal density in practice without a per-run guarantee [1], and a certified stop (“cert.”: A8), run to the dual-gap certificate of Proposition 1 that proves 1−𝛿 
+
+1+𝜂 on every cell [3]; §6.4 discusses the two. A2–A8 all apply the pruning of §7 by default. Among A2 to A8, A6 is the best in terms of time complexity, while A8 is the best in terms of accuracy. 
+
+Implementation and measures. All algorithms are implemented in C++ and compiled with GCC 13.3 ( -O2 ) on M5 Max. We measure the algorithm runtime as the total CPU time, excluding the I/O cost of loading the graph into main memory; a cut-off time of 800 s and a 48 GB memory cap are set, and a non-completion is denoted ∞.Each reported number is averaged over the dataset’s query pool. 
+
+Parameters. We vary net granularity 𝜂 , per-subproblem tolerance 
+
+𝛿 , and meta-path length 𝑖 , with defaults 0.1, 0.05 , 3 (4)4, respectively.  
+
+> 43
+
+for simple-schema HINs                            
+
+> 9A1 (exact) A2 A3 A4 A5 A6 A7 A8
+> 20 40 60 80 100
+> .1110 10 2
+> ∞
+> edge(%) time (s) MovieLens
+> 20 40 60 80 100
+> .1110 10 2
+> ∞
+> edge(%) DBLP
+> 20 40 60 80 100
+> .1110 10 2
+> ∞
+> edge(%) Douban
+> 20 40 60 80 100
+> .01
+> .11
+> edge(%) DBpedia
+> 20 40 60 80 100
+> .110
+> ∞
+> edge(%) Freebase
+
+(a) Scalability              
+
+> A5 A6 A7 A8 (certified)
+> .01 .05 .1 .25 .5 .1110
+> 𝛿 (looser →)time (s) MovieLens
+> .01 .05 .1 .25 .5
+> 110 10 2
+> 𝛿 (looser →)DBLP
+> .01 .05 .1 .25 .5 110 10 2
+> 𝛿 (looser →)Douban
+> .01 .05 .1 .25 .5
+> .01
+> .11
+> 𝛿 (looser →)DBpedia
+> .01 .05 .1 .25 .5
+> .01
+> .11
+> 𝛿 (looser →)Freebase
+
+(b) Running time vs. 𝛿           
+
+> .05 .1 .2 .5 1
+> .1110
+> 𝜂 (finer →)time (s) MovieLens
+> .05 .1 .2 .5 1
+> 110 10 2
+> 𝜂 (finer →)DBLP
+> .05 .1 .2 .5 1
+> 110 10 2
+> 𝜂 (finer →)Douban
+> .05 .1 .2 .5 1
+> .01
+> .1
+> 𝜂 (finer →)DBpedia
+> .05 .1 .2 .5 1
+> .01
+> .11
+> 𝜂 (finer →)Freebase
+
+(c) Running time vs. 𝜂 .
+
+Figure 6: Efficiency evaluation. 
+
+## 8.2 Effectiveness 
+
+Except for A1, which supplies the reference optimum 𝜌 ∗, only results finishing within the cut-off time are shown. 
+
+Recovered density. Figures 4(a) and 4(b) report the density actually recovered, 𝜌 /𝜌 ∗, as 𝜂 and 𝛿 vary. The first observation is that every variant recovers the optimum: on the core datasets 𝜌 /𝜌 ∗ ≥0.999 at the default 𝜂 =0.1 (A7 within 1.5×10 −3), and on the breadth datasets the near-optimal solver returns the exact optimum at every setting. The second observation is that the accuracy is insensitive to both parameters: A7 varies under 1% across 𝜂 and under 0.2% across 𝛿 .The reason is the quadratic net loss of Theorem 2, whose gap stays tiny even at a coarse 𝜂 ; hence coverage and quality decouple and a coarse (𝜂,𝛿 ) incurs no loss. A faint ordering A3 ≳ A5 ≳ A7 also appears across 𝛿 : the un-reduced first-order net represents more weight-sets, so its best cell lands slightly closer to the optimum, but the gap ( ≤0.2% ) is within the (1+𝜂 ) tolerance. 
+
+Achieving vs. certifying near-optimality (A6/A7 vs. A8). 
+
+Whether a subproblem is peeled to the fixed 1/𝑖 cap (A6), to the heuristic near-optimal stop (A7), or to the worst-case (1−𝛿 ) dual-gap certificate (A8), all three recover the same density (Figure 4(a)). The reason is that on real inputs the peel reaches a near-optimal subgraph within a few passes, so certifying it only proves the result rather than changing it. Consequently, certification yields a guarantee rather than accuracy: A6 and A7 achieve near-optimal density but cannot certify it on a given input, whereas A7’s end-to-end (1−𝛿 )/( 1+𝜂 ) bound, secured by A8’s certificate, holds whatever the data (§6.3 shows an input where the uncertified 1/𝑖 
+
+peel falls short). Therefore, A6/A7 is preferable when the input is trusted and A8 when a worst-case guarantee is required. 
+
+Case study: drug repurposing. We run the motivating compound– gene–disease repurposing query of §1 directly on Hetionet [16] (47 K nodes, 2.25 M edges), where, as argued there, a densest ⟨C,G,D⟩
+
+block can serve as a repurposing shortlist. To make the result dis-playable, we filter out a few generic high-degree “housekeeping” hub genes (the analogue of stop-words); the query then returns a coherent module: a family of anti-inflammatory drugs, the shared enzymes they target (COX-2 and two relatives, the targets of aspirin and ibuprofen), and the inflammatory diseases those enzymes drive (Figure 5). The result can be checked against held-out labels: the query reads only the binds/associates edges and never a treat-ment relation, yet five of the drug–disease pairs it implies (e.g. sulfasalazine–rheumatoid arthritis ) are approved indications stored in a separate, held-out treats edge type, so the dense structure recovers approved indications it was never shown. The remain-ing implied pairs (the same enzymes to three cancers, carrying no 
+
+treats edge) match a documented but still-investigational therapy, plausible novel leads for a repurposing pipeline. Our exact solver certifies the returned subgraph is optimal (edit            
+
+> 10 A6 ( 1/𝑖 peel) A7 (near-opt) A8 (certified)
+> 357910 −2110 2
+> meta-path length 𝑖
+> runtime (s) DBpedia
+> 3579
+> meta-path length 𝑖
+> Freebase
+
+Figure 7: Varying 𝑖 on the breadth datasets. 
+
+## 8.3 Efficiency 
+
+Scalability . Following the subgraph-generation of [4], for each dataset we retain fixed percentages ( 20 –100% ) of the edges (10 sets for each percentage) and run the algorithms on the induced subgraphs (Figure 6(a)); 𝑖 is set to 3 on the core datasets and to 4 on the breadth datasets. The first observation is that only the localized-net variants A6, A7, and A8 scale to the complete dataset. The reason is that their net is 𝑛 -independent and each pass runs in O ( | 𝐸 | ) without materializing the O ( Î𝑗 |𝑉 𝑗 | ) instances, so their cost grows only with the graph. In contrast, removing the reductions degrades scalability: the second-order net without localization (A4/A5), and far more so the un-localized first-order nets (A2/A3), grow sharply with the graph. On Freebase, A3 reaches 14 s against A7’s 0.5 s, a 28 ×
+
+difference. A1, enumerating every iRM-set, is the least scalable, timing out on every core dataset and on Freebase. The results verify that both reductions, the √2𝜂 /𝑒 net and the Δ-box localization, are critical for scalability; we therefore drop A1–A3 below. 
+
+Achieving vs. certifying near-optimality (A7 vs. A8). Fig-ure 6(b) varies the per-subproblem tolerance 𝛿 . The first ob-servation is that achieving near-optimal density is inexpensive and 𝛿 -insensitive: the heuristic peel (A5, A7) costs under 1.5×
+
+as 𝛿 tightens three orders of magnitude, and the 1/𝑖 peel (A6) is 
+
+> 𝛿
+
+-independent, both finishing within a few seconds. In contrast, 
+
+certifying near-optimality (A8) is far more costly, and its cost is data-dependent. The reason is that the certified time is governed by the number of near-tied net cells: on MovieLens and the breadth datasets a single dominant cell lets the incumbent prune the rest, so certification stays within 40 s across all 𝛿 ; on DBLP and Douban, many cells carry near-tied density and each must be certified to convergence, so the running time increases sharply with small 𝛿 .
+
+Varying net granularity 𝜂 . Figure 6(c) varies 𝜂 on the full graph. The running time rises smoothly as 𝜂 refines, matching the predicted      
+
+> O ( ( log 𝑛 /√𝜂 )𝑖 −1)
+
+cell count, with A7 a roughly constant factor above the 1/𝑖 peel A6. The reason is the per-cell solver overhead, which is the only difference between the two. A8 rises even more slowly, 1.8– 
+
+> 2.3×
+
+under the ≈20 × cell growth, as its time goes to the few near-tied cells, whose number barely changes with 𝜂 .
+
+Varying meta-path length 𝑖 . Figure 7 varies 𝑖 from 3 up to 9 on the breadth HINs, averaging over the query graphs at each length. The first observation is that only the localized variants remain tractable, their running time tracking the net’s O ( ( log 𝑛 /√𝜂 )𝑖 −1 ) growth, the one bottleneck the reductions cannot remove. The second observation is that the heuristic A6 and A7 finish every length (A7 within 33 s), whereas the certified A8 runs about an order of magnitude slower when 𝑖 is large. This is consistent with the achieve-vs-certify gap above, now amplified by the 𝑖 −1 exponent in the net.       
+
+> 1st √𝜂 Δboth
+> 10 210 3
+> cells MovieLens
+> 1st √𝜂 Δboth
+> Douban
+
+Figure 8: Localization Effect of localization. Figure 8 reports the net cell count through the following methods: 1) the first-order net (A2), 2) the √𝜂 net (§5.2), 3) the Δ-box localization (§5.4), and both (2 plus 3). both composes to an ≈10 × smaller net on the core datasets, which explains the fast running times of A6, A7, and A8 observed above. 
+
+## 9 RELATED WORK 
+
+Densest subgraph and its variants. The densest subgraph, which maximizes |𝐸 (𝑆 ) |/| 𝑆 |, is exact via parametric max-flow [11] and 1/2-approximable by greedy peeling [2]; its variants span directed/bipartite [19], density-friendly [7], 𝑘 -clique [15, 28], multi-layer [10], anchored [6], and locally densest clique/triangle [29, 30] density, recently consolidated in a unified analysis [32] and a broad survey [20]. DPSS is their 𝑖 -partite meta-path generalization. 
+
+Near-optimal supermodular solvers. A fast line recasts the ob-jective as a supermodular ratio solved to (1−𝜀 ): Greedy++ [1], iterative peeling [3], scalable decomposition [13] and its lexicographically-optimal-base Frank–Wolfe view [14], coordinate descent [23], and, for the directed case, convex programming [22], scalable discovery [33], and accelerated coordinate descent [21]. All are one-dimensional, tied to the single ratio at 𝑖 =2. We lift them to 𝑖 >2 via our weight-polytope cover (§5, §6). At 𝑖 =2 they scan the ratio at a first-order pitch ( O ( log 𝑛 /𝜀 ) guesses, each within 1+𝜀 [22]); our √𝜂 net (§5.2) reaches the same 1+𝜂 loss in O ( log 𝑛 /√𝜂 ). For 𝑖 >2 the feasible weights lose their total order (§3), so the ratio search no longer applies. 
+
+Dense subgraphs over HINs. HINs model typed, multi-relational data queried through meta-paths [25–27]; cohesive-structure dis-covery there centers on query-anchored community search [8, 9, 17, 31], with recent methods even avoiding meta-path materializa-tion [18], closely related to our instance-free peeling. The densest 
+
+> P
+
+-partite subgraph [4] optimizes one parameter-free density glob-ally; we improve this prior art. 
+
+## 10 CONCLUSION 
+
+In this paper, we show that the exhaustive weight-set enumeration behind prior DPSS methods is unnecessary for approximation. The feasible iRM-sets fill a bounded (𝑖 −1)-dimensional polytope that an 
+
+> 𝜂
+
+-net covers with polylogarithmically many representatives. Each weighted supermodular densest-subgraph instance is then solved near-optimally and instance-free, with incumbent-driven pruning discarding most before applying any solver. Overall, our algorithm achieves a 1−𝛿  
+
+> 1+𝜂
+
+guarantee at polylogarithmic cost. Extensive ex-perimental studies on real datasets justify the effectiveness and efficiency of our proposed methods. 
+
+> 11
+
+## REFERENCES 
+
+[1] Digvijay Boob, Yu Gao, Richard Peng, Saurabh Sawlani, Charalampos E. Tsourakakis, Di Wang, and Junxing Wang. 2020. Flowless: Extracting Dens-est Subgraphs Without Flow Computations. In Proceedings of the International Conference on World Wide Web (WWW) . ACM / IW3C2, 573–583. https: //doi.org/10.1145/3366423.3380140 
+
+[2] Moses Charikar. 2000. Greedy Approximation Algorithms for Finding Dense Components in a Graph. In Proceedings of the International Workshop on Approx-imation Algorithms for Combinatorial Optimization (APPROX) (Lecture Notes in Computer Science) , Vol. 1913. Springer, 84–95. https://doi.org/10.1007/3-540-44436-X˙10 
+
+[3] Chandra Chekuri, Kent Quanrud, and Manuel R. Torres. 2022. Densest Subgraph: Supermodularity, Iterative Peeling, and Flow. In Proceedings of the ACM-SIAM Symposium on Discrete Algorithms (SODA) . SIAM, 1531–1555. https://doi.org/10. 1137/1.9781611977073.64 
+
+[4] Lu Chen, Chengfei Liu, Rui Zhou, Kewen Liao, Jiajie Xu, and Jianxin Li. 2023. Densest Multipartite Subgraph Search in Heterogeneous Information Networks. 
+
+Proceedings of the VLDB Endowment 17, 4 (2023), 699–711. https://doi.org/10.14778/ 3636218.3636226 
+
+[5] Ramzi Dagher, Martin Cohen, Gene Williams, Mark Rothmann, Jogarao Gobburu, Gabriel Robbie, Atiqur Rahman, Gang Chen, Ann Staten, Donna Griebel, and Richard Pazdur. 2002. Approval Summary: Imatinib Mesylate in the Treatment of Metastatic and/or Unresectable Malignant Gastrointestinal Stromal Tumors. 
+
+Clinical Cancer Research 8, 10 (2002), 3034–3038. [6] Yizhou Dai, Miao Qiao, and Lijun Chang. 2022. Anchored Densest Subgraph. In Proceedings of the ACM International Conference on Management of Data (SIGMOD) . ACM, 1200–1213. https://doi.org/10.1145/3514221.3517890 
+
+[7] Maximilien Danisch, T-H. Hubert Chan, and Mauro Sozio. 2017. Large Scale Density-friendly Graph Decomposition via Convex Programming. In Proceedings of the International Conference on World Wide Web (WWW) . ACM, 233–242. 
+
+> https://doi.org/10.1145/3038912.3052619
+
+[8] Yixiang Fang, Xin Huang, Lu Qin, Ying Zhang, Wenjie Zhang, Reynold Cheng, and Xuemin Lin. 2020. A Survey of Community Search over Big Graphs. The VLDB Journal 29, 1 (2020), 353–392. https://doi.org/10.1007/s00778-019-00556-x 
+
+[9] Yixiang Fang, Yixing Yang, Wenjie Zhang, Xuemin Lin, and Xin Cao. 2020. Effective and Efficient Community Search over Large Heterogeneous Information Networks. Proceedings of the VLDB Endowment 13, 6 (2020), 854–867. https: //doi.org/10.14778/3380750.3380756 
+
+[10] Edoardo Galimberti, Francesco Bonchi, and Francesco Gullo. 2017. Core De-composition and Densest Subgraph in Multilayer Networks. In Proceedings of the ACM International Conference on Information and Knowledge Management (CIKM) . ACM, 1807–1816. https://doi.org/10.1145/3132847.3132993 
+
+[11] Andrew V. Goldberg. 1984. Finding a Maximum Density Subgraph . Technical Report UCB/CSD-84-171. EECS Department, University of California, Berkeley. [12] Tore Grünert, Stefan Irnich, Hans-Jürgen Zimmermann, Markus Schneider, and Burkhard Wulfhorst. 2002. Finding all k-cliques in k-partite graphs, an applica-tion in textile engineering. Computers & Operations Research 29, 1 (2002), 13–31. 
+
+> https://doi.org/10.1016/S0305-0548(00)00053-8
+
+[13] Elfarouk Harb, Kent Quanrud, and Chandra Chekuri. 2022. Faster and Scalable Algorithms for Densest Subgraph and Decomposition. In Advances in Neural Information Processing Systems (NeurIPS) . 26966–26979. [14] Elfarouk Harb, Kent Quanrud, and Chandra Chekuri. 2023. Convergence to Lexicographically Optimal Base in a (Contra)Polymatroid and Applications to Densest Subgraph and Tree Packing. In Proceedings of the Annual European Symposium on Algorithms (ESA) . 56:1–56:17. https://doi.org/10.4230/LIPIcs.ESA.2023.56 
+
+[15] Yizhang He, Kai Wang, Wenjie Zhang, Xuemin Lin, and Ying Zhang. 2023. Scaling Up k-Clique Densest Subgraph Detection. Proceedings of the ACM on Management of Data 1, 1 (2023), 1–26. https://doi.org/10.1145/3588923 
+
+[16] Daniel Scott Himmelstein, Antoine Lizee, Christine Hessler, Leo Brueggeman, Sabrina L. Chen, Dexter Hadley, Ari Green, Pouya Khankhanian, and Sergio E. Baranzini. 2017. Systematic integration of biomedical knowledge prioritizes drugs for repurposing. eLife 6 (2017), e26726. https://doi.org/10.7554/eLife.26726 
+
+[17] Xun Jian, Yue Wang, and Lei Chen. 2020. Effective and Efficient Relational Community Detection and Search in Large Dynamic Heterogeneous Information Networks. Proceedings of the VLDB Endowment 13, 10 (2020), 1723–1736. https: //doi.org/10.14778/3401960.3401969 
+
+[18] Jiaxin Jiang, Siyuan Yao, Yuhang Chen, Bingsheng He, Yudong Niu, Yuchen Li, Shixuan Sun, and Yongchao Liu. 2025. Community Detection in Heterogeneous Information Networks Without Materialization. Proceedings of the ACM on Management of Data 3, 3 (2025), 1–27. https://doi.org/10.1145/3725276 
+
+[19] Samir Khuller and Barna Saha. 2009. On Finding Dense Subgraphs. In Pro-ceedings of the International Colloquium on Automata, Languages and Program-ming (ICALP) (Lecture Notes in Computer Science) , Vol. 5555. Springer, 597–608. 
+
+> https://doi.org/10.1007/978-3-642-02927-1˙50
+
+[20] Tommaso Lanciano, Atsushi Miyauchi, Adriano Fazzone, and Francesco Bonchi. 2024. A Survey on the Densest Subgraph Problem and Its Variants. Comput. Surveys 56, 8 (2024), 208:1–208:40. https://doi.org/10.1145/3653298 
+
+[21] Luocheng Liang, Yingli Zhou, and Yixiang Fang. 2026. Accelerated Coordinate Descent for Directed Densest Subgraph Discovery. In Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD) .ACM, 783–794. https://doi.org/10.1145/3770854.3780186 
+
+[22] Chenhao Ma, Yixiang Fang, Reynold Cheng, Laks V. S. Lakshmanan, and Xiaolin Han. 2022. A Convex-Programming Approach for Efficient Directed Densest Subgraph Discovery. In Proceedings of the ACM International Conference on Management of Data (SIGMOD) . ACM, 845–859. https://doi.org/10.1145/3514221.3517837 
+
+[23] Ta Duy Nguyen and Alina Ene. 2024. Multiplicative Weights Update, Area Convexity and Random Coordinate Descent for Densest Subgraph Problems. In 
+
+Proceedings of the International Conference on Machine Learning (ICML) (Proceed-ings of Machine Learning Research) , Vol. 235. PMLR, 37683–37706. [24] Jian Pei, Daxin Jiang, and Aidong Zhang. 2005. On Mining Cross-Graph Quasi-Cliques. In Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD) . ACM, 228–238. https://doi.org/10.1145/1081870. 1081898 
+
+[25] Chuan Shi, Yitong Li, Jiawei Zhang, Yizhou Sun, and Philip S. Yu. 2017. ASurvey of Heterogeneous Information Network Analysis. IEEE Transactions on Knowledge and Data Engineering 29, 1 (2017), 17–37. https://doi.org/10.1109/TKDE. 2016.2598561 
+
+[26] Yizhou Sun and Jiawei Han. 2012. Mining Heterogeneous Information Networks: Principles and Methodologies . Morgan and Claypool Publishers. https://doi.org/10. 2200/S00433ED1V01Y201207DMK005 
+
+[27] Yizhou Sun, Jiawei Han, Xifeng Yan, Philip S. Yu, and Tianyi Wu. 2011. Path-Sim: Meta Path-Based Top-K Similarity Search in Heterogeneous Informa-tion Networks. Proceedings of the VLDB Endowment 4, 11 (2011), 992–1003. 
+
+> https://doi.org/10.14778/3402707.3402736
+
+[28] Charalampos E. Tsourakakis. 2015. The K-clique Densest Subgraph Problem. In 
+
+Proceedings of the International Conference on World Wide Web (WWW) . ACM, 1122–1132. https://doi.org/10.1145/2736277.2741098 
+
+[29] Xiaojia Xu, Haoyu Liu, Xiaowei Lv, Yongcai Wang, and Deying Li. 2024. An Efficient and Exact Algorithm for Locally h-Clique Densest Subgraph Discovery. 
+
+Proceedings of the ACM on Management of Data 2, 6 (2024), 1–26. https://doi.org/10. 1145/3698800 
+
+[30] Yi Yang, Chenhao Ma, Reynold Cheng, Laks V. S. Lakshmanan, and Xiaolin Han. 2026. Finding Locally Densest Subgraphs: Convex Programming with Edge and Triangle Density. The VLDB Journal 35, 1 (2026), 7. https://doi.org/10.1007/s00778-025-00958-0 
+
+[31] Yingli Zhou, Yixiang Fang, Wensheng Luo, and Yunming Ye. 2023. Influential Community Search over Large Heterogeneous Information Networks. Proceed-ings of the VLDB Endowment 16, 8 (2023), 2047–2060. https://doi.org/10.14778/3594512. 3594532 
+
+[32] Yingli Zhou, Qingshuo Guo, Yi Yang, Yixiang Fang, Chenhao Ma, and Laks V. S. Lakshmanan. 2024. In-depth Analysis of Densest Subgraph Discovery in a Unified Framework. Proceedings of the VLDB Endowment 18, 4 (2024), 1131–1144. 
+
+> https://doi.org/10.14778/3717755.3717771
+
+[33] Yingli Zhou, Luocheng Liang, and Yixiang Fang. 2025. Efficient and Scalable Directed Densest Subgraph Discovery. Proceedings of the ACM on Management of Data 3, 6 (2025), 1–27. https://doi.org/10.1145/3769785 
+
+## A FULL PROOF OF THE ITERATIVE PEELING SOLVER 
+
+Throughout, m=(𝑚 1,...,𝑚 𝑖 ) is a fixed iRM-set of per-type weights; 
+
+𝑓 (𝑆 )=| F ( 𝑆 ) | counts the instances of the length-𝑖 meta-path P within 
+
+𝑆 ⊆𝑈 , the position-expanded ground set ( 𝑓 is normalized, mono-tone, and supermodular by Lemma 6); 𝑚 𝑣 :=𝑚 𝜙 ′ (𝑣 ) >0 where 𝜙 ′ (𝑣 ) ∈ [𝑖 ] is 𝑣 ’s position in P, 𝑤 m (𝑆 )=Í𝑣 ∈𝑆 𝑚 𝑣 , ℎm (𝑆 )=𝑓 (𝑆 )/ 𝑤 m (𝑆 ) for ∅≠𝑆 ⊆𝑈 ,
+
+ℎ∗
+
+> m
+
+=max ∅≠𝑆 ℎm (𝑆 ), 𝑃 (𝑣,𝐻 ) is the number of instances through 𝑣 in a subgraph 𝐻 , Δ𝑗 =max 𝑣 ∈𝑉 (𝐴 𝑗 ) 𝑃 (𝑣,𝐺 ) (𝑉 (𝐴 𝑗 ) the vertices of type 𝐴 𝑗 ), and 
+
+Δ=max 𝑗 Δ𝑗 , the maximum per-vertex instance count. Deleting 𝑣 from 
+
+𝑆 destroys exactly the instances through 𝑣 , so, with 𝐺 (𝑆 ) the sub-graph induced by 𝑆 , 𝑃 (𝑣,𝐺 (𝑆 ) ) =𝑓 (𝑆 ) − 𝑓 (𝑆 \𝑣 )=𝑓 (𝑣 | 𝑆 \𝑣 ). A vector 𝑥 ∈R𝑈 
+
+has one coordinate 𝑥 𝑣 per element 𝑣 ∈𝑈 , and we write 𝑥 (𝑆 )=Í𝑣 ∈𝑆 𝑥 𝑣 ;the (contra)polymatroid base polytope of 𝑓 is 
+
+𝐵 (𝑓 )={𝑥 ≥0: 𝑥 (𝑆 ) ≥ 𝑓 (𝑆 ) ∀ 𝑆 ⊆𝑈 , 𝑥 (𝑈 )=𝑓 (𝑈 ) } .
+
+For every 𝑥 ∈𝐵 (𝑓 ) and 𝑣 ∈𝑈 , 𝑓 ( { 𝑣 } ) ≤ 𝑥 𝑣 =𝑥 (𝑈 ) − 𝑥 (𝑈 −𝑣 ) ≤ 𝑓 (𝑈 ) − 𝑓 (𝑈 −𝑣 )=
+
+𝑓 (𝑣 | 𝑈 −𝑣 )=𝑃 (𝑣,𝐺 ) ≤ Δ, so 𝐵 (𝑓 ) ⊆ [ 0,Δ]𝑈 is compact and convex. The 
+
+weighted width is Δm=max 𝑣 ∈𝑈 𝑃 (𝑣,𝐺 )/ 𝑚 𝑣 =max 𝑗 Δ𝑗 /𝑚 𝑗 (𝑚 𝑣 is constant on 
+
+> 12
+
+layers), computable by the same two sweeps that build the Δ-box (Observations 1–2). 
+
+The algorithm in full. Iterative Peeling (𝑓 , m,𝑇 ): set 𝜎 ≡0; for 𝑡 = 
+
+> 1,...,𝑇
+
+: set 𝑆 ←𝑈 and, while 𝑆 ≠∅, record 𝑆 as a candidate family, then delete                       
+
+> 𝑢 =arg min
+> 𝑣 ∈𝑆
+> 𝜎 (𝑣 ) + 𝑃 (𝑣, 𝐺 (𝑆 ) )
+> 𝑚 𝑣 ,𝑔 𝑡 (𝑢 ):=𝑃 (𝑢, 𝐺 (𝑆 ) ) ,𝜎 (𝑢 ) + =𝑔 𝑡 (𝑢 ).
+
+Return the densest candidate family ˆ𝑆 over all prefixes (the surviving sets just before each deletion) of all passes. At 𝑇 =1, 𝜎 ≡0 and the key is 𝑃 (𝑣,𝐺 (𝑆 ) )/ 𝑚 𝑣 , exactly the reweighted peel of Theorem 1. Lemma A.1 (Greedy bases; exact linear minimization). Let 𝑓 
+
+be normalized, monotone, and supermodular on 𝑈 . For an ordering    
+
+> 𝜋 =(𝜋 1,...,𝜋 |𝑈 |)
+
+of 𝑈 with prefixes 𝑃 𝑘 ={𝜋 1,...,𝜋 𝑘 } define the greedy base  
+
+> 𝑔 𝜋
+
+by 𝑔 𝜋 𝜋 𝑘 :=𝑓 (𝜋 𝑘 | 𝑃 𝑘 −1 ). Then: (a) 𝑔 𝜋 ∈𝐵 (𝑓 ) for every ordering 𝜋 ; (b) for every 𝑧 ∈R𝑈 
+
+> ≥0
+
+, if 𝜋 sorts 𝑧 decreasingly ( 𝑧 𝜋 1 ≥···≥ 𝑧 𝜋 |𝑈 | , ties arbitrary), then              
+
+> min 𝑥 ∈𝐵 (𝑓 )⟨𝑧,𝑥 ⟩=⟨𝑧,𝑔 𝜋 ⟩=∫∞
+> 0𝑓 
+> {𝑣 :𝑧 𝑣 ≥𝜏 }
+> 𝑑𝜏 =: ˆ𝑓 (𝑧 ),
+
+the Lovász extension of 𝑓 at 𝑧 .
+
+Proof. (a) Nonnegativity: 𝑔 𝜋 𝜋 𝑘 =𝑓 (𝜋 𝑘 | 𝑃 𝑘 −1 ) ≥ 𝑓 ( { 𝜋 𝑘 } ) ≥ 0, since super-modular marginals are nondecreasing in the context set and 𝑓 is monotone. Tightness: 𝑔 𝜋 (𝑈 )=Í𝑘         
+
+> 
+> 𝑓 (𝑃 𝑘 ) − 𝑓 (𝑃 𝑘 −1)
+> 
+> =𝑓 (𝑈 )
+
+telescopes. Cov-ering: fix 𝑆 ⊆𝑈 and enumerate it in 𝜋 -order as 𝑠 1,...,𝑠 𝑟 with 𝑠 𝑗 =𝜋 𝑘 𝑗 ; then    
+
+> {𝑠 1,...,𝑠 𝑗 −1} ⊆ 𝑃 𝑘 𝑗 −1
+
+, so by monotone marginals                
+
+> 𝑓 (𝑆 )=Í𝑟 𝑗 =1𝑓 
+> 𝑠 𝑗 {𝑠 1,...,𝑠 𝑗 −1}
+> ≤Í𝑟 𝑗 =1𝑓 
+> 𝑠 𝑗 𝑃 𝑘 𝑗 −1
+> 
+> =𝑔 𝜋 (𝑆 ).
+
+(b) Set 𝑧 𝜋 |𝑈 |+ 1 :=0. Abel summation gives, for any 𝑥 , ⟨𝑧,𝑥 ⟩=Í𝑘    
+
+> 
+> 𝑧 𝜋 𝑘 −
+> 𝑧 𝜋 𝑘 +1
+> 
+> 𝑥 (𝑃 𝑘 )
+
+, with all coefficients ≥0 by the sorting. For 𝑥 ∈𝐵 (𝑓 ), 𝑥 (𝑃 𝑘 ) ≥    
+
+> 𝑓 (𝑃 𝑘 )
+
+for 𝑘 <|𝑈 | and 𝑥 (𝑃 |𝑈 | )=𝑓 (𝑈 ); the greedy base attains 𝑔 𝜋 (𝑃 𝑘 )=𝑓 (𝑃 𝑘 )
+
+for all 𝑘 . Hence ⟨𝑧,𝑥 ⟩ ≥ Í𝑘 (𝑧 𝜋 𝑘 −𝑧 𝜋 𝑘 +1 ) 𝑓 (𝑃 𝑘 )=⟨𝑧,𝑔 𝜋 ⟩. Finally {𝑣 :𝑧 𝑣 ≥𝜏 }=𝑃 𝑘 
+
+for 𝜏 ∈ ( 𝑧 𝜋 𝑘 +1 ,𝑧 𝜋 𝑘 ], an interval of length 𝑧 𝜋 𝑘 −𝑧 𝜋 𝑘 +1 , so the sum equals the integral defining ˆ𝑓 (𝑧 ). □
+
+Lemma A.2 (Weighted qasi-min-max). With 𝑓 , m as above and  
+
+> 𝑓 .0
+
+,              
+
+> ℎ∗
+> m=max ∅≠𝑆 ⊆𝑈 𝑓 (𝑆 )
+> 𝑤 m(𝑆 )=min 𝑥 ∈𝐵 (𝑓 )max 𝑣 ∈𝑈 𝑥𝑣 𝑚𝑣 .
+
+Proof. Weak direction ( ≤). For 𝑥 ∈𝐵 (𝑓 ) and ∅≠𝑆 : 𝑓 (𝑆 ) ≤ 𝑥 (𝑆 )=       
+
+> Í𝑣 ∈𝑆
+> 𝑥 𝑣
+> 𝑚 𝑣 𝑚 𝑣 ≤
+> 
+> max 𝑣 ∈𝑆 𝑥 𝑣
+> 𝑚 𝑣
+> 
+> 𝑤 m(𝑆 )
+
+, so ℎm (𝑆 ) ≤ max 𝑣 ∈𝑈 𝑥 𝑣 /𝑚 𝑣 for every 𝑆 and every 𝑥 ∈𝐵 (𝑓 ).
+
+Strong direction ( ≥). Let 𝑍 :={𝑧 ∈R𝑈   
+
+> ≥0:Í𝑣 𝑚 𝑣 𝑧 𝑣 =1}
+
+, compact and convex since every 𝑚 𝑣 >0. Step 1: ℎ∗    
+
+> m=max 𝑧 ∈𝑍 ˆ𝑓 (𝑧 )
+
+. For “ ≤”: 𝑧 :=1𝑆 ∗ /𝑤 m (𝑆 ∗ ) ∈ 𝑍 for a maximizer 𝑆 ∗, and ˆ𝑓 (𝑧 )=𝑓 (𝑆 ∗ )/ 𝑤 m (𝑆 ∗ )=ℎ∗ 
+
+> m
+
+by the integral formula of Lemma A.1(b). For “ ≥”: take any 𝑧 ∈𝑍 sorted decreasingly by 𝜋 with prefixes 𝑃 𝑘 and coefficients 𝛼 𝑘 :=𝑧 𝜋 𝑘 −𝑧 𝜋 𝑘 +1 ≥0; then ˆ𝑓 (𝑧 )=Í𝑘 𝛼 𝑘 𝑓 (𝑃 𝑘 ) and       
+
+> 1=Í𝑣 𝑚 𝑣 𝑧 𝑣 =Í𝑘 𝛼 𝑘 𝑤 m(𝑃 𝑘 )
+
+, so 𝑓 (𝑃 𝑘 ) ≤ ℎ∗    
+
+> m𝑤 m(𝑃 𝑘 )
+
+(each 𝑃 𝑘 ≠∅) gives ˆ𝑓 (𝑧 ) ≤ ℎ∗
+
+> m
+
+.
+
+Step 2: exchange min and max. By Lemma A.1(b), ˆ𝑓 (𝑧 )=min 𝑥 ∈𝐵 (𝑓 ) ⟨𝑧,𝑥 ⟩
+
+on 𝑍 ⊆R𝑈 
+
+> ≥0
+
+. The payoff ⟨𝑧,𝑥 ⟩ is bilinear and both 𝑍 and 𝐵 (𝑓 ) are compact convex sets, so von Neumann’s minimax theorem gives                      
+
+> ℎ∗
+> m=max 𝑧 ∈𝑍 min 𝑥 ∈𝐵 (𝑓 )⟨𝑧,𝑥 ⟩=min 𝑥 ∈𝐵 (𝑓 )max 𝑧 ∈𝑍 ⟨𝑧,𝑥 ⟩=min 𝑥 ∈𝐵 (𝑓 )max 𝑣 ∈𝑈 𝑥𝑣 𝑚𝑣 ,
+
+the last step because a linear functional over the weighted simplex  
+
+> 𝑍
+
+is maximized at an extreme point 𝑧 =e𝑣 /𝑚 𝑣 . □
+
+Lemma A.3 (Per-pass base membership). Consider one pass of Iterative Peeling (with any deletion key), deleting 𝑢 1,𝑢 2,...,𝑢 |𝑈 | in order, where 𝑆 𝑘 ={𝑢 𝑘 ,...,𝑢 |𝑈 | } is the surviving set before the 𝑘 -th dele-tion, and charging 𝑔 (𝑢 𝑘 )=𝑃 (𝑢 𝑘 ,𝐺 (𝑆 𝑘 ) ) =𝑓 (𝑢 𝑘 | 𝑆 𝑘 \𝑢 𝑘 ). Then 𝑔 =𝑔 𝜋 for the 
+
+reverse deletion order 𝜋 =(𝑢 |𝑈 |,...,𝑢 1 ); hence 𝑔 ∈𝐵 (𝑓 ) by Lemma A.1(a). Consequently, after 𝑡 passes with charges 𝑔 1,...,𝑔 𝑡 and accumulated load     
+
+> 𝜎 𝑡 :=Í𝑠 ≤𝑡 𝑔 𝑠
+
+, the averaged load ¯𝑥 𝑡 :=𝜎 𝑡 /𝑡 lies in 𝐵 (𝑓 ) by convexity. 
+
+Proof. Under 𝜋 =(𝑢 |𝑈 |,...,𝑢 1 ) the element at position 𝑗 is 𝑢 |𝑈 |− 𝑗 +1
+
+and the prefix is 𝑃 𝑗 −1={𝑢 |𝑈 |,...,𝑢 |𝑈 |− 𝑗 +2 }=𝑆 |𝑈 |− 𝑗 +1\𝑢 |𝑈 |− 𝑗 +1; its greedy mar-ginal is therefore 𝑓 (𝑢 |𝑈 |− 𝑗 +1 | 𝑆 |𝑈 |− 𝑗 +1\𝑢 |𝑈 |− 𝑗 +1 )=𝑔 (𝑢 |𝑈 |− 𝑗 +1 ), coordinate-wise identical to the pass’s charge. □
+
+The membership in Lemma A.3 holds for any deletion key: ev-ery deletion order emits some greedy base; the key only selects which one. No exact linear-minimization claim is made for the load-augmented key: the reverse deletion order need not sort either the pre-pass or the post-pass loads, which is why the convergence of Greedy++ was long a conjecture [1], resolved by a tailored analy-sis [3]. Proof of Proposition 1. Part 1: Sound reporting via weak dual-ity (steps (i)–(ii) of the main-paper proof sketch). By Lemma A.3, af-ter any 𝑡 passes ¯𝑥 𝑡 =𝜎 𝑡 /𝑡 ∈𝐵 (𝑓 ), so by the weak direction of Lemma A.2,               
+
+> ℎ∗
+> m≤max 𝑣 ∈𝑈 ¯𝑥𝑡 (𝑣 )
+> 𝑚𝑣 and ℎm(ˆ𝑆 ) ≥ max 𝑣 ¯𝑥𝑡 (𝑣 )
+> 𝑚𝑣 −ˆ𝑔𝑡 , (3)
+
+where ˆ𝑔 𝑡 :=max 𝑣 ¯𝑥 𝑡 (𝑣 )/ 𝑚 𝑣 −max prefixes 𝑆 ℎm (𝑆 ) is the nonnegative, com-putable duality gap after 𝑡 passes. Thus ˆ𝑔 𝑡 ≤𝛿 ℎ ∗ 
+
+> m
+
+certifies ℎm ( ˆ𝑆 ) ≥ (1−𝛿 )ℎ∗
+
+> m
+
+, unconditionally. 
+
+Part 2: The gap closes at the stated rate (sketch step (iii)). It remains to bound min 𝑡 ≤𝑇 ˆ𝑔 𝑡 . We separate what is proved here from what is imported, since only one step of the argument relies on an external result. 
+
+Correctness is self-contained. By (3), whenever the computable gap obeys ˆ𝑔 𝑡 ≤𝛿 ℎ ∗
+
+> m
+
+, the reported family satisfies ℎm ( ˆ𝑆 ) ≥ ( 1−𝛿 )ℎ∗
+
+> m
+
+, and this uses only weak duality (Lemma A.2) and averaged-base member-ship (Lemma A.3), both established above for the per-type-weighted objective. Thus every family the algorithm reports is certified with-out appeal to any external rate (Remark A.1). What is imported 
+
+from [3] is solely the a priori guarantee that this gap test is met within the stated number of passes; we now show that this rate transfers to the weighted objective once every per-element quantity is read per unit weight, rather than reproving it. 
+
+The imported rate. We invoke the analysis behind Theorem 1.3 of [3]: for a normalized, monotone, supermodular 𝐹 on 𝑛 elements, Super-Greedy++ (peel by 𝜎 (𝑣 )+ 𝐹 (𝑣 | 𝑆 \𝑣 ), charge the marginal, report the best prefix) attains min 𝑡 ≤𝑇 ˆ𝑔 card   
+
+> 𝑡 ≤𝜀𝜆 ∗
+
+once 𝑇 ≥𝐶 Δ𝐹 ln 𝑛 /( 𝜀 2𝜆 ∗ ), where       
+
+> Δ𝐹 =max 𝑣 𝐹 (𝑣 |𝑉 −𝑣 )
+
+, 𝜆 ∗=max ∅≠𝑆 𝐹 (𝑆 )/| 𝑆 |, 𝐶 is an absolute constant, and  
+
+> ˆ𝑔 card
+> 𝑡
+
+is the cardinality-denominator gap; the theorem is stated there as a (1−𝜀 )-approximation, and its proof establishes the duality-gap form quoted here. (This is the rate whose tightness [3] leave open; see Remark A.3.) 
+
+Reading the analysis per unit weight. Regard each element 𝑣 as carrying its weight 𝑚 𝑣 =𝑚 𝜙 ′ (𝑣 ) >0; every per-element quantity is then read per unit weight, under the correspondence 
+
+role in [3] unweighted weighted per-element load 𝜎 (𝑣 ) 𝜎 (𝑣 )/ 𝑚𝑣 
+
+per-element marginal 𝐹 (𝑣 | 𝑆 \𝑣 ) 𝑃 (𝑣,𝐺 (𝑆 ) )/ 𝑚𝑣 
+
+deletion key 𝜎 (𝑣 )+ 𝐹 (𝑣 | 𝑆 \𝑣 ) (𝜎 (𝑣 )+ 𝑃 (𝑣,𝐺 (𝑆 ) ) )/ 𝑚𝑣 
+
+denominator |𝑆 | 𝑤 m (𝑆 )=Í 
+
+> 𝑣 ∈𝑆 𝑚𝑣
+
+duality anchor min 𝑥 ∈𝐵 (𝐹 ) max 𝑣 𝑥𝑣 min 𝑥 ∈𝐵 (𝑓 ) max 𝑣 𝑥𝑣 /𝑚𝑣 
+
+width max 𝑣 𝐹 (𝑣 | 𝑉 −𝑣 ) max 𝑣 𝑃 (𝑣,𝐺 )/ 𝑚𝑣  
+
+> log
+
+factor ln 𝑛 ln |𝑈 |
+
+the anchor being 𝜆 ∗ (unweighted) and ℎ∗ 
+
+> m
+
+(weighted, Lemma A.2), the width Δ𝐹 and Δm. Under this correspondence the proof of [3] transfers step by step, its steps falling into two kinds. 
+
+> 13
+
+Combinatorial steps are independent of the weights. The peeling order, the prefix accounting, and base membership never consult the weights. No matter which key chooses the vertex, a pass charges each deleted 𝑣 its marginal 𝑃 (𝑣,𝐺 (𝑆 ) ) =𝑓 (𝑣 | 𝑆 \𝑣 ), so in reverse deletion order it emits a greedy base of 𝑓 , and the averaged loads ¯𝑥 𝑡 =𝜎 𝑡 /𝑡 lie in   
+
+> 𝐵 (𝑓 )
+
+; this is Lemma A.3, proved with no reference to m. Which pre-fixes are charged, and in what order, is identical to the unweighted run; the weights enter only afterward, dividing the value attached to a coordinate. 
+
+Analytic steps are the same statement under a change of func-tional. By (3) our goal is to certify max 𝑣 ¯𝑥 𝑡 (𝑣 )/ 𝑚 𝑣 →ℎ∗
+
+> m
+
+, while [3] certify   
+
+> max 𝑣 ¯𝑥 𝑡 (𝑣 )→ 𝜆 ∗
+
+. These are one statement with the linear functional   
+
+> max 𝑣 (·) 𝑣
+
+replaced by max 𝑣 (·) 𝑣 /𝑚 𝑣 and 𝜆 ∗ replaced by ℎ∗
+
+> m
+
+. Lemma A.2 shows the latter is again a min–max over the same base polytope   
+
+> 𝐵 (𝑓 )
+
+, of the same combinatorial type (the Lovász extension of 𝑓 
+
+paired against the weighted simplex 𝑍 ={𝑧 ≥0: Í𝑣 𝑚 𝑣 𝑧 𝑣 =1}; Lemma A.2, Step 2). Hence every inequality in [3] relating max 𝑣 ¯𝑥 𝑡 (𝑣 ) to 𝜆 ∗ has an exact counterpart relating max 𝑣 ¯𝑥 𝑡 (𝑣 )/ 𝑚 𝑣 to ℎ∗
+
+> m
+
+, and the coun-terpart is valid because the three inputs those inequalities de-pend on are all shared and weight-free: the polytope 𝐵 (𝑓 ), the greedy/linear-minimization identity (Lemma A.1), and base mem-bership (Lemma A.3). Only two quantities update: the coordinate range under the new functional, Δ𝐹 →Δm, and the logarithmic factor,    
+
+> ln 𝑛 →ln |𝑈 |
+
+.
+
+Where the ln |𝑈 | and the width enter. Two ingredients of [3] fix these factors, and the rescaling touches each transparently. First, the regret term arises from an entropy over the max-player’s pure strategies; those strategies are the |𝑈 | coordinate directions e𝑣 /𝑚 𝑣 
+
+spanning 𝑍 , so their number is |𝑈 | whatever the weights 𝑚 𝑣 ; rescal-ing a weight rescales its direction but adds no strategy, which is exactly why the logarithm is ln |𝑈 | and never ln 𝑤 m (𝑈 ). Second, the per-round quantities the analysis bounds are the per-unit-weight values 𝑥 𝑣 /𝑚 𝑣 , whose range is the width Δm; the weights enter the rate only by setting this range. The precise assembly of these two in-gredients into the pass count O ( Δm ln |𝑈 |/( 𝛿 2ℎ∗  
+
+> m) )
+
+(linear in the width and in 1/ℎ∗
+
+> m
+
+, quadratic in 1/𝛿 ) is the tailored analysis of [3], the same argument now read per unit weight, and we import it as such; the 1/𝛿 2 exponent proper to peeling-type schemes is discussed in Remark A.3. 
+
+Conclusion. Combining,            
+
+> min 𝑡 ≤𝑇 ˆ𝑔 𝑡 ≤𝛿 ℎ ∗
+> monce 𝑇 =O
+> Δmln |𝑈 |/( 𝛿 2ℎ∗
+> m)
+> ,
+
+and (3) converts this into the claimed (1−𝛿 ) guarantee for the re-ported ˆ𝑆 . We claim sufficiency of this 𝑇 , not tightness: [3] pose the precise rate of Super-Greedy++ as an open problem, and any sharpening transfers through the same correspondence untouched. Independently of the imported rate, the reported family is certified by (3) whenever the computable gap test is met (Remark A.1). 
+
+Part 3: Width on the localized net; the 𝑇 =1 case (completing sketch step (iii)). Since 𝑚 𝑣 is constant on layers, Δm=max 𝑗 Δ𝑗 /𝑚 𝑗 , an iden-tity in the paper’s existing parameters. The net solved is the Δ-box enlarged by one lattice step 𝑠 (𝜂 )=√2𝜂 /𝑒 , at most 1 since 𝜂 ≤1 (Defini-tions 1 and 2), so its points satisfy ln 𝑚 𝑗 ≥− ln Δ−𝑠 (𝜂 ), hence 𝑚 𝑗 ≥𝑒 −1/Δ;with Δ𝑗 ≤Δ this gives Δm ≤𝑒 Δ2=O ( Δ2 ) uniformly over net cells (the cell-exact accounting at the optimal cell’s representative is Remark A.2). Finally, at 𝑇 =1, 𝜎 ≡0 and the key is 𝑃 (𝑣,𝐺 (𝑆 ) )/ 𝑚 𝑣 : pass 1 coincides ex-actly with the reweighted peel of Theorem 1, whose 1 
+
+> 𝑖
+
+guarantee transfers to ℎm since the weighted density of §5.3 equals 𝑖 ℎ m; the load carried across passes is what lifts it to (1−𝛿 ). □
+
+Remark A.1 (Computable certificate; early stopping). After any 𝑡 passes, both sides of (3) are computable in O ( | 𝑈 | ) from 𝜎 𝑡 and the incumbent prefix ˆ𝑆 𝑡 : if max 𝑣 ∈𝑈 𝜎 𝑡 (𝑣 )/( 𝑡 𝑚 𝑣 ) ≤ ℎm ( ˆ𝑆 𝑡 )/( 1−𝛿 ), then ℎm ( ˆ𝑆 𝑡 ) ≥ (1−𝛿 )ℎ∗
+
+> m
+
+, unconditionally (weak duality plus Lemma A.3; no imported rate is involved). Proposition 1 guarantees the test is met within the stated 𝑇 ; in practice it is met far earlier (§8). 
+
+Remark A.2 (Uniform pass budget: 𝑇 =O ( 𝑖 Δ ln |𝑈 |/ 𝛿 2 )). Theorem 5 invokes the (1−𝛿 ) guarantee only at the optimal cell’s representa-tive m′; every other cell merely contributes a candidate family. At that cell the width-to-value ratio collapses to existing parameters. Let V∗ be the optimal family, 𝜌 ∗ its density, and m∗ its own iRM-set; by Lemma 5, 𝑚 ∗    
+
+> 𝑗 =¯𝑃 𝑗 /𝜌 ∗
+
+with 1≤ ¯𝑃 𝑗 ≤Δ𝑗 . At m∗ itself both quantities are exact: ℎ∗  
+
+> m∗=𝜌 ∗/𝑖
+
+(attained at V∗ by AM–GM tightness of the in-duced iRM-set, while Lemma 7 caps ℎ∗  
+
+> m≤𝜌 ∗/𝑖
+
+for every feasible m) and          
+
+> Δm∗=max 𝑗 Δ𝑗 /𝑚 ∗
+> 𝑗 =𝜌 ∗max 𝑗 Δ𝑗 /¯𝑃 𝑗
+
+, whence Δm∗ /ℎ∗      
+
+> m∗=𝑖 max 𝑗 Δ𝑗 /¯𝑃 𝑗
+
+. The net rep-resentative inherits this up to constants: Lemma 3 gives | ln 𝑚 ′      
+
+> 𝑗 −ln 𝑚 ∗
+> 𝑗 | ≤
+> 𝑠 (𝜂 ) ≤ 1
+
+coordinatewise, so Δm′ ≤𝑒 𝑠 (𝜂 ) 𝜌 ∗ max 𝑗 Δ𝑗 / ¯𝑃 𝑗 , and Lemma 8 gives    
+
+> ℎ∗
+> m′≥𝜌 ∗/( 𝑖 (1+𝜂 ) )
+
+; the two occurrences of 𝜌 ∗ cancel :            
+
+> Δm′
+> ℎ∗
+> m′≤𝑒 𝑠 (𝜂 )𝑖 (1+𝜂 )max 𝑗 ∈ [ 𝑖 ]
+> Δ𝑗
+> ¯𝑃 𝑗 ≤𝑒 𝑖 (1+𝜂 )Δ,
+
+using ¯𝑃 𝑗 ≥1 and Δ𝑗 ≤Δ. Hence, absorbing 1+𝜂 ≤2 into the constant, the uniform per-cell budget 𝑇 =O ( 𝑖 Δ ln |𝑈 |/ 𝛿 2 ) meets Proposition 1’s require-ment at m′, and Theorem 5 holds unchanged with a budget in the paper’s existing parameters, with no ℎ∗
+
+> m
+
+. The mechanism is that at the optimal cell the same 𝜌 ∗ that inflates the width (through 𝑚 ∗   
+
+> 𝑗 =¯𝑃 𝑗 /𝜌 ∗
+
+) also inflates the value, leaving the ratio max 𝑗 Δ𝑗 / ¯𝑃 𝑗 (the global maximum incidence over the optimum’s per-layer average incidence), which is near 1 when the optimum contains no vertex of exceptionally high incidence. Two qualifications are in order. First, the Δ-only form is a 
+
+pipeline fact: as a standalone per-cell statement, Proposition 1 does need ℎ∗
+
+> m
+
+, since an arbitrary net cell can push Δm/ℎ∗ 
+
+> m
+
+well beyond 𝑖 Δ;only at m′ does the cancellation occur. Second, Δ is the incidence of the graph the peeler actually runs on, so the pruning of §7 shrinks the budget further; cells may also stop early by Remark A.1. 
+
+Remark A.3 (On the 1/𝛿 2 exponent). O ( 1/𝜀 ) iteration counts in this line of work come from accelerated first-order methods [13], which maintain per-edge load-sharing variables ; the meta-path ana-logue materializes one variable per (instance, position) pair, Θ(𝑖 | F ( 𝑈 ) | ) 
+
+state, exactly the blow-up that instance-freeness (C3, §6.4) is designed to avoid, and that the 𝐿 (𝑣 )𝑅 (𝑣 ) factorization (Observation 1) cannot compress, since those iterates are not constant on instance classes. Peeling-type schemes, whose state is O ( | 𝑈 | ) , currently pay 1/𝛿 2 [3].

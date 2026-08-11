@@ -1,0 +1,54 @@
+{
+  "label": "2026-08-11",
+  "date": "2026-08-11",
+  "generated_at": "2026-08-11T20:52:27",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202608/11/2608.07734v1-complete-scalable-and-robust-prioritized-planning-for-multi-robot-ordered-storage-and-retrieval-at-maximum-capacity",
+      "section": "deep",
+      "title_en": "Complete, Scalable, and Robust Prioritized Planning for Multi-Robot Ordered Storage and Retrieval at Maximum Capacity",
+      "authors": "William Zhang, Tzvika Geft, Jingjin Yu, Kostas Bekris",
+      "date": "2026-08-07",
+      "pdf": "https://arxiv.org/pdf/2608.07734v1",
+      "score": "9.0",
+      "evidence": "多机器人有序存储和检索以最大化存储密度和检索吞吐量",
+      "tldr": "自动化仓库为提升存储密度常采用拼图式存储将货物密集堆放，但这种无通道设计使得多机器人协同存取时极易发生死锁，从而限制了吞吐量提升。本文针对矩形网格、单边界出入的场景，形式化定义了最大容量下的有序存储与检索问题，并基于无迁移排列的几何性质，设计了一种在线、优先多智能体路径规划方法。该方法可保证完备性、避免死锁，且具有良好的可扩展性。实验结果显示，当机器人数量等于网格宽度时，系统完工时间近乎线性加速；且支持鲁棒存储以应对出库序列不确定，其算法开销极小，与非鲁棒基线相比执行速度无显著下降。",
+      "tags": "query:wo",
+      "abstract_en": "Automated warehouses face a fundamental trade-off between maximizing storage density and achieving high retrieval throughput. While puzzle-based storage (PBS) architectures increase capacity by eliminating aisles, coordinating multiple robots in these high-density spaces is computationally challenging due to the potential for deadlocks. This paper introduces a novel multi-robot formulation for the ``ordered storage and retrieval problem at maximum capacity''. The focus is on rectangular grids accessible from a single boundary, where loads need to be first stored up to full capacity and then efficiently retrieved, given a planned departure sequence. This work bridges the gap between geometric feasibility and execution efficiency by leveraging the properties of relocation-free arrangements. These properties guide an online, prioritized multi-agent path-finding algorithm, which is the main contribution of this work. Unlike general centralized planners, the approach exploits the specific invariants of the storage arrangement to guarantee completeness and prevent deadlocks, enabling scalability. Experiments demonstrate that the method achieves near-linear improvement in makespan with respect to the number of robots, up to $m = C$, where $C$ is the grid width. Crucially, the algorithmic overhead of supporting robustness is negligible; the system handles uncertainty in departure sequences using robust storage arrangements with no significant penalty in execution speed compared to the non-robust baseline.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/11/2608.08175v1-aoc-cbs-anytime-optimal-continuous-time-conflict-based-search-for-generalised-multi-agent-path-finding",
+      "section": "deep",
+      "title_en": "AOC-CBS: Anytime-Optimal Continuous-time Conflict-Based Search for Generalised Multi-Agent Path Finding",
+      "authors": "Alvin Combrink, Sabino Francesco Roselli, Martin Fabian",
+      "date": "2026-08-08",
+      "pdf": "https://arxiv.org/pdf/2608.08175v1",
+      "score": "9.0",
+      "evidence": "面向仓库拣选任务序列的广义多智能体路径规划",
+      "tldr": "多智能体路径规划（MAPF）广泛应用于仓储、道路交通及机场等运输场景，然而传统方法依赖离散时间、圆形单目标等严格假设，限制了异质车队和非几何冲突处理。为此，本文提出随时最优连续时间冲突搜索算法AOC-CBS，通过分层优先安全区间路径规划等修复策略，在求解过程中持续提供已知最优性间隙上界的可行解。实验表明，AOC-CBS在标准算例上寻优能力与最优求解器OC-CBS相当，且当接受有界次优间隙时，求解规模可从数十个智能体扩展至数百个，显著提升了复杂交通场景下多主体协调的适用性与效率。",
+      "tags": "query:wo",
+      "abstract_en": "Many research fields share a common structure: a set of agents, each pursuing its own goal, whose actions must be coordinated so that no two of them conflict. Multi-Agent Path Finding (MAPF) is a concrete instance of this structure, with applications from warehouses to road traffic and airports. Much of MAPF research assumes discrete time, circular agents sharing one spatial graph, a single goal per agent, and that an agent must remain at its goal once reached, precluding heterogeneous fleets, non-geometric conflicts, task sequences, and agents that move on after completing them. We generalise the MAPF formulation to lift these assumptions, and present Anytime-Optimal Continuous-time Conflict-Based Search (AOC-CBS), an exact and solution-complete solver for it. AOC-CBS guarantees the eventual return of an optimal solution, while reporting an incumbent with a known optimality gap upper bound throughout its runtime; it is configurable with a portfolio of repair functions, one of which we introduce (Tier-Prioritized Safe Interval Path Planning), and can exploit multiple processor cores. We demonstrate AOC-CBS on a mixed fleet of non-convex agents moving along smooth, kinodynamically feasible trajectories. Preliminary experiments against the exact solver OC-CBS, on well-known benchmarks and roadmaps we sample from them, show AOC-CBS is comparable at finding optimal solutions while extending scalability from the tens to the hundreds of agents when a bounded optimality gap is accepted.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/11/2608.06906v1-from-enumeration-to-covering-near-optimal-densest-p-partite-subgraph-search-over-large-heterogeneous-information-networks",
+      "section": "quick",
+      "title_en": "From Enumeration to Covering: Near-Optimal Densest P-Partite Subgraph Search over Large Heterogeneous Information Networks",
+      "authors": "Lu Chen, Chengfei Liu, Rui Zhou, Jiajie Xu, Jianxin Li",
+      "date": "2026-08-07",
+      "pdf": "https://arxiv.org/pdf/2608.06906v1",
+      "score": "7.0",
+      "evidence": "密集P-部子图搜索可揭示物品亲和性，用于仓库优化",
+      "tldr": "在异构信息网络(如交通网络)中，寻找包含特定元路径的最密集P-部分子图是核心任务，现有方法需枚举所有可行层权重集，复杂度高且近似比仅1/i。本文提出用多对数代表性权重集覆盖可行集，并将子问题转化为加权超模密集子图，设计自适应剥离算法，实现(1-δ)/(1+η)近似比，首次得到二分图以上情形的近最优近似。在真实网络上的实验验证了算法的速度提升和近最优性。",
+      "tags": "query:wo",
+      "abstract_en": "Given a heterogeneous information network (HIN) and a query meta-path P of length i, the densest P-partite subgraph problem finds the subgraph, spanning the i typed layers of P, that maximizes a parameter-free density: the number of meta-path instances over the geometric mean of the layer sizes. It has applications across bibliographic, e-commerce, and biomedical networks. The state-of-the-art approximation linearizes the geometric-mean objective by fixing per-layer weights, but solves one subproblem for every feasible weight set, of which there are $O((n/i)^i)$, and on each achieves only a $1/i$ approximation. We show that neither the exhaustive enumeration nor the loose guarantee is necessary. First, we replace enumeration by covering: polylogarithmically many representative weight sets, localized further by a data-dependent bound, cover all feasible ones while losing only a tunable factor $1+η$ in density. Second, we cast each fixed-weight subproblem as a weighted supermodular densest-subgraph instance and solve it near-optimally, lifting the overall guarantee to $(1-δ)/(1+η)$. To our knowledge, this is the first near-optimal density approximation beyond the bipartite ($i=2$) case, and it yields a PTAS for every fixed i. Algorithmically, our solver is an adaptive peeling scheme that never materializes the meta-path instances, whose number can exceed the graph size by orders of magnitude. An incumbent-driven reduction further discards representative weight sets before their subproblems are solved. Experiments on five real HINs show that our algorithms achieve substantial speedups over enumeration-based baselines and can further certify the near-optimality of the returned subgraph.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

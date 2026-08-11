@@ -1,0 +1,57 @@
+{
+  "date": "20260811",
+  "date_label": "",
+  "generated_at": "2026-08-11 20:52:19 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.07734v1",
+      "route": "202608/11/2608.07734v1-complete-scalable-and-robust-prioritized-planning-for-multi-robot-ordered-storage-and-retrieval-at-maximum-capacity",
+      "title": "Complete, Scalable, and Robust Prioritized Planning for Multi-Robot Ordered Storage and Retrieval at Maximum Capacity",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多机器人有序存储和检索以最大化存储密度和检索吞吐量",
+      "first_seen_at": "2026-08-11 20:52:19 UTC",
+      "updated_at": "2026-08-11 20:52:19 UTC"
+    },
+    {
+      "paper_id": "2608.08175v1",
+      "route": "202608/11/2608.08175v1-aoc-cbs-anytime-optimal-continuous-time-conflict-based-search-for-generalised-multi-agent-path-finding",
+      "title": "AOC-CBS: Anytime-Optimal Continuous-time Conflict-Based Search for Generalised Multi-Agent Path Finding",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向仓库拣选任务序列的广义多智能体路径规划",
+      "first_seen_at": "2026-08-11 20:52:19 UTC",
+      "updated_at": "2026-08-11 20:52:19 UTC"
+    },
+    {
+      "paper_id": "2608.06906v1",
+      "route": "202608/11/2608.06906v1-from-enumeration-to-covering-near-optimal-densest-p-partite-subgraph-search-over-large-heterogeneous-information-networks",
+      "title": "From Enumeration to Covering: Near-Optimal Densest P-Partite Subgraph Search over Large Heterogeneous Information Networks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "密集P-部子图搜索可揭示物品亲和性，用于仓库优化",
+      "first_seen_at": "2026-08-11 20:52:19 UTC",
+      "updated_at": "2026-08-11 20:52:19 UTC"
+    }
+  ]
+}

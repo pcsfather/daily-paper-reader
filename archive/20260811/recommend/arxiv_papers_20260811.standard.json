@@ -1,0 +1,132 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-11T20:46:56.993042+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2608.07734v1",
+      "source": "arxiv",
+      "title": "Complete, Scalable, and Robust Prioritized Planning for Multi-Robot Ordered Storage and Retrieval at Maximum Capacity",
+      "abstract": "Automated warehouses face a fundamental trade-off between maximizing storage density and achieving high retrieval throughput. While puzzle-based storage (PBS) architectures increase capacity by eliminating aisles, coordinating multiple robots in these high-density spaces is computationally challenging due to the potential for deadlocks. This paper introduces a novel multi-robot formulation for the ``ordered storage and retrieval problem at maximum capacity''. The focus is on rectangular grids accessible from a single boundary, where loads need to be first stored up to full capacity and then efficiently retrieved, given a planned departure sequence. This work bridges the gap between geometric feasibility and execution efficiency by leveraging the properties of relocation-free arrangements. These properties guide an online, prioritized multi-agent path-finding algorithm, which is the main contribution of this work. Unlike general centralized planners, the approach exploits the specific invariants of the storage arrangement to guarantee completeness and prevent deadlocks, enabling scalability. Experiments demonstrate that the method achieves near-linear improvement in makespan with respect to the number of robots, up to $m = C$, where $C$ is the grid width. Crucially, the algorithmic overhead of supporting robustness is negligible; the system handles uncertainty in departure sequences using robust storage arrangements with no significant penalty in execution speed compared to the non-robust baseline.",
+      "authors": [
+        "William Zhang",
+        "Tzvika Geft",
+        "Jingjin Yu",
+        "Kostas Bekris"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-08-07T19:55:58+00:00",
+      "link": "https://arxiv.org/pdf/2608.07734v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-robot ordered storage and retrieval in automated warehouses to maximize storage density and retrieval throughput",
+      "llm_evidence_cn": "多机器人有序存储和检索以最大化存储密度和检索吞吐量",
+      "llm_evidence": "多机器人有序存储和检索以最大化存储密度和检索吞吐量",
+      "canonical_evidence": "多机器人有序存储和检索以最大化存储密度和检索吞吐量",
+      "llm_tldr_en": "Proposes a multi-robot planning approach for ordered storage and retrieval in puzzle-based warehouses, enabling complete, scalable, and robust operations at maximum capacity, thereby improving storage density and order picking efficiency.",
+      "llm_tldr_cn": "针对自动化仓库中面临的高存储密度与高拣选效率之间的权衡，本文提出一种面向多机器人系统的有序存储与检索规划方法，聚焦于矩形网格单边界通行的谜题式存储架构，构建了满容量场景下先存储后按序列取出的任务模型，通过优先级规划与几何可行性分析，实现了完全、可扩展且鲁棒的协调控制，有效避免死锁，仿真验证表明该方法能在最大容量下兼顾空间利用率和订单拣选吞吐量，为高密度仓储系统提供了理论基准。",
+      "llm_tldr": "针对自动化仓库中面临的高存储密度与高拣选效率之间的权衡，本文提出一种面向多机器人系统的有序存储与检索规划方法，聚焦于矩形网格单边界通行的谜题式存储架构，构建了满容量场景下先存储后按序列取出的任务模型，通过优先级规划与几何可行性分析，实现了完全、可扩展且鲁棒的协调控制，有效避免死锁，仿真验证表明该方法能在最大容量下兼顾空间利用率和订单拣选吞吐量，为高密度仓储系统提供了理论基准。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "optimizing warehouse layout and operations",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.08175v1",
+      "source": "arxiv",
+      "title": "AOC-CBS: Anytime-Optimal Continuous-time Conflict-Based Search for Generalised Multi-Agent Path Finding",
+      "abstract": "Many research fields share a common structure: a set of agents, each pursuing its own goal, whose actions must be coordinated so that no two of them conflict. Multi-Agent Path Finding (MAPF) is a concrete instance of this structure, with applications from warehouses to road traffic and airports. Much of MAPF research assumes discrete time, circular agents sharing one spatial graph, a single goal per agent, and that an agent must remain at its goal once reached, precluding heterogeneous fleets, non-geometric conflicts, task sequences, and agents that move on after completing them. We generalise the MAPF formulation to lift these assumptions, and present Anytime-Optimal Continuous-time Conflict-Based Search (AOC-CBS), an exact and solution-complete solver for it. AOC-CBS guarantees the eventual return of an optimal solution, while reporting an incumbent with a known optimality gap upper bound throughout its runtime; it is configurable with a portfolio of repair functions, one of which we introduce (Tier-Prioritized Safe Interval Path Planning), and can exploit multiple processor cores. We demonstrate AOC-CBS on a mixed fleet of non-convex agents moving along smooth, kinodynamically feasible trajectories. Preliminary experiments against the exact solver OC-CBS, on well-known benchmarks and roadmaps we sample from them, show AOC-CBS is comparable at finding optimal solutions while extending scalability from the tens to the hundreds of agents when a bounded optimality gap is accepted.",
+      "authors": [
+        "Alvin Combrink",
+        "Sabino Francesco Roselli",
+        "Martin Fabian"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-08-08T15:11:32+00:00",
+      "link": "https://arxiv.org/pdf/2608.08175v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "generalized MAPF for continuous-time path finding in warehouse order picking",
+      "llm_evidence_cn": "面向仓库拣选任务序列的广义多智能体路径规划",
+      "llm_evidence": "面向仓库拣选任务序列的广义多智能体路径规划",
+      "canonical_evidence": "面向仓库拣选任务序列的广义多智能体路径规划",
+      "llm_tldr_en": "The paper generalizes multi-agent path finding to handle heterogeneous fleets, task sequences, and continuous time, with applications to warehouse order picking efficiency.",
+      "llm_tldr_cn": "本文针对传统多智能体路径规划方法局限于离散时间、同构智能体、单一目标等假设的问题，提出了一种广义的MAPF公式和随时最优连续时间冲突搜索算法AOC-CBS。该算法支持异构车队、任务序列和非几何冲突，可应用于仓库拣选等场景。实验证明了算法在提升仓库拣选效率方面的优势。其贡献在于扩展了MAPF的适用边界，为复杂仓储环境下的路径规划提供了灵活且最优的解决方案。",
+      "llm_tldr": "本文针对传统多智能体路径规划方法局限于离散时间、同构智能体、单一目标等假设的问题，提出了一种广义的MAPF公式和随时最优连续时间冲突搜索算法AOC-CBS。该算法支持异构车队、任务序列和非几何冲突，可应用于仓库拣选等场景。实验证明了算法在提升仓库拣选效率方面的优势。其贡献在于扩展了MAPF的适用边界，为复杂仓储环境下的路径规划提供了灵活且最优的解决方案。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "order picking efficiency in warehouse",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.06906v1",
+      "source": "arxiv",
+      "title": "From Enumeration to Covering: Near-Optimal Densest P-Partite Subgraph Search over Large Heterogeneous Information Networks",
+      "abstract": "Given a heterogeneous information network (HIN) and a query meta-path P of length i, the densest P-partite subgraph problem finds the subgraph, spanning the i typed layers of P, that maximizes a parameter-free density: the number of meta-path instances over the geometric mean of the layer sizes. It has applications across bibliographic, e-commerce, and biomedical networks. The state-of-the-art approximation linearizes the geometric-mean objective by fixing per-layer weights, but solves one subproblem for every feasible weight set, of which there are $O((n/i)^i)$, and on each achieves only a $1/i$ approximation. We show that neither the exhaustive enumeration nor the loose guarantee is necessary. First, we replace enumeration by covering: polylogarithmically many representative weight sets, localized further by a data-dependent bound, cover all feasible ones while losing only a tunable factor $1+η$ in density. Second, we cast each fixed-weight subproblem as a weighted supermodular densest-subgraph instance and solve it near-optimally, lifting the overall guarantee to $(1-δ)/(1+η)$. To our knowledge, this is the first near-optimal density approximation beyond the bipartite ($i=2$) case, and it yields a PTAS for every fixed i. Algorithmically, our solver is an adaptive peeling scheme that never materializes the meta-path instances, whose number can exceed the graph size by orders of magnitude. An incumbent-driven reduction further discards representative weight sets before their subproblems are solved. Experiments on five real HINs show that our algorithms achieve substantial speedups over enumeration-based baselines and can further certify the near-optimality of the returned subgraph.",
+      "authors": [
+        "Lu Chen",
+        "Chengfei Liu",
+        "Rui Zhou",
+        "Jiajie Xu",
+        "Jianxin Li"
+      ],
+      "primary_category": "cs.DS",
+      "categories": [
+        "cs.DS"
+      ],
+      "published": "2026-08-07T07:41:54+00:00",
+      "link": "https://arxiv.org/pdf/2608.06906v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "densest P-partite subgraph search can reveal item affinities for warehouse optimization",
+      "llm_evidence_cn": "密集P-部子图搜索可揭示物品亲和性，用于仓库优化",
+      "llm_evidence": "密集P-部子图搜索可揭示物品亲和性，用于仓库优化",
+      "canonical_evidence": "密集P-部子图搜索可揭示物品亲和性，用于仓库优化",
+      "llm_tldr_en": "Presents a near-optimal algorithm for densest P-partite subgraph discovery that avoids enumeration, with potential for item affinity analysis in warehouse storage.",
+      "llm_tldr_cn": "针对异构信息网络中密集P-部子图搜索需枚举权重集导致效率低下的问题，提出一种基于覆盖的近似算法，无需遍历所有可行权重即可获得近最优解。该方法在电子商务等网络中能有效发现高密度物品关联子图，从而为仓库中基于物品亲和性的储位分配提供决策支持。",
+      "llm_tldr": "针对异构信息网络中密集P-部子图搜索需枚举权重集导致效率低下的问题，提出一种基于覆盖的近似算法，无需遍历所有可行权重即可获得近最优解。该方法在电子商务等网络中能有效发现高密度物品关联子图，从而为仓库中基于物品亲和性的储位分配提供决策支持。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "item affinity analysis for warehouse optimization",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
