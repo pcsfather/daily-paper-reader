@@ -1,0 +1,92 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-13T21:23:10.331119+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2608.11846v1",
+      "source": "arxiv",
+      "title": "From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation",
+      "abstract": "Capturing user preference from a user's interaction sequence is the central challenge of Sequential Recommendation (SR). This preference intuitively emerges from inter-item relations: each item transition reflects a preference embedded in the relations between items, making the faithful capture of these relations essential for accurate recommendation. For this reason, self-attention is dominant in sequential recommendation for its ability to compute pairwise item interactions, yet our empirical analysis reveals that it consistently suffers from similarity bias across various types of transformer-based SR models: dot-product attention scores disproportionately favor similar items, systematically overlooking heterogeneous relations with meaningful preference signals and directly limiting recommendation performance. To address this, we propose PRISM (Perspective-based Relational Insight Synthesis Module), a module that re-examines item relations from multiple perspectives. PRISM employs K Perspective Lenses to calibrate attention from distinct viewpoints, combining an Affinity View that refines homogeneous relations and a Contrast View that exposes heterogeneous ones suppressed by similarity bias, enabling the model to capture the full spectrum of user preferences. Extensive experiments on seven real-world benchmarks demonstrate that PRISM consistently outperforms state-of-the-art baselines. Our code is available at https://github.com/327aem/PRISM/.",
+      "authors": [
+        "Junyoung Kim",
+        "Wonbin Kweon",
+        "Woojoo Kim",
+        "Jaehyung Lim",
+        "Dongha Kim",
+        "Hwanjo Yu"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-08-12T09:39:04+00:00",
+      "link": "https://arxiv.org/pdf/2608.11846v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "recovering item relations via mixture of perspectives",
+      "llm_evidence_cn": "通过多视角混合恢复物品关系",
+      "llm_evidence": "通过多视角混合恢复物品关系",
+      "canonical_evidence": "通过多视角混合恢复物品关系",
+      "llm_tldr_en": "The paper addresses similarity bias in self-attention for sequential recommendation, where dot-product attention favors similar items and overlooks heterogeneous relations. It proposes a mixture of perspectives method to recover diverse inter-item relations from interaction sequences. Experiments show improved recommendation accuracy. This method can be transferred to warehouse contexts to infer product demand affinities from transaction sequences for storage assignment and picking optimization.",
+      "llm_tldr_cn": "论文针对序列推荐中自注意力机制的相似性偏差问题，指出现有模型过度关注相似物品而忽视其他重要关系。作者提出一种多视角混合方法，通过不同视角建模物品间的转移关系，以恢复更全面的物品关联。实验在多个数据集上验证了该方法能显著提升推荐性能。该方法可迁移到仓库领域，从交易序列中挖掘产品需求相关性，为存储位置分配和订单拣选优化提供依据。",
+      "llm_tldr": "论文针对序列推荐中自注意力机制的相似性偏差问题，指出现有模型过度关注相似物品而忽视其他重要关系。作者提出一种多视角混合方法，通过不同视角建模物品间的转移关系，以恢复更全面的物品关联。实验在多个数据集上验证了该方法能显著提升推荐性能。该方法可迁移到仓库领域，从交易序列中挖掘产品需求相关性，为存储位置分配和订单拣选优化提供依据。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "item affinity analysis for warehouse optimization",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.12073v1",
+      "source": "arxiv",
+      "title": "Competitive Analysis of Stock-based Thresholds via Prophet Inequalities in Continuous Time",
+      "abstract": "We study a continuous-time $K$-unit online resource allocation problem with nonhomogeneous Poisson arrivals and time-varying valuation distributions. While the optimal dynamic policy generally depends on both the remaining inventory and the time left in the horizon, we focus on a simpler and practically appealing class of stock-based threshold policies, whose limited number of thresholds depend only on the number of units remaining. We evaluate these policies against the multi-unit prophet benchmark, which selects the best $K$ realized values in hindsight. Our main contribution is a new competitive-analysis framework for stock-based thresholds in continuous time. We first reformulate the problem through a type-covering dual. The central challenge for analyzing the dual is that the dual is both infinite-dimensional and non-convex: the adversary can choose time-varying arrival and valuation processes, while the policy performance depends nonlinearly on the stochastic inventory trajectory.   We overcome these challenges by reducing the continuous-time adversarial problem to a Poisson optimization $PoisOPTRe_K$, and then proving sharp structural properties of its worst-case solutions. In particular, adversarial arrivals admit cutoff and late-filling structures, which yield an exact four-parameter formulation for two thresholds and a finite nested-interval representation for general thresholds. These reductions make the guarantees directly computable. For example, for two thresholds, we obtain a competitive ratio $0.6269$ for $K=2$; with three thresholds, we obtain the ratio $0.6816$ for $K=3$. In this way, we show that simple stock-based thresholds achieve strong prophet-inequality guarantees despite ignoring calendar time.",
+      "authors": [
+        "Jiashuo Jiang"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC"
+      ],
+      "published": "2026-08-12T13:56:24+00:00",
+      "link": "https://arxiv.org/pdf/2608.12073v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "stock-based threshold policies for online inventory allocation under stochastic demand",
+      "llm_evidence_cn": "随机需求下在线库存分配的库存阈值策略",
+      "llm_evidence": "随机需求下在线库存分配的库存阈值策略",
+      "canonical_evidence": "随机需求下在线库存分配的库存阈值策略",
+      "llm_tldr_en": "Studies continuous-time online resource allocation with Poisson arrivals and time-varying valuation distributions, proposing stock-based threshold policies and deriving competitive guarantees against the prophet benchmark, providing demand-driven inventory management methods.",
+      "llm_tldr_cn": "针对连续时间在线资源分配问题，该文研究了在非齐次泊松到达和时变价值分布下，基于剩余库存的阈值策略。通过提出基于类型对偶的竞争分析框架，评估了这些简单策略相对于多单位先知基准的性能。结果表明仅依赖剩余库存单位的阈值策略能获得有竞争力的保证。这为需求驱动的库存管理提供了理论工具，有助于在有限库存下制定动态决策。",
+      "llm_tldr": "针对连续时间在线资源分配问题，该文研究了在非齐次泊松到达和时变价值分布下，基于剩余库存的阈值策略。通过提出基于类型对偶的竞争分析框架，评估了这些简单策略相对于多单位先知基准的性能。结果表明仅依赖剩余库存单位的阈值策略能获得有竞争力的保证。这为需求驱动的库存管理提供了理论工具，有助于在有限库存下制定动态决策。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

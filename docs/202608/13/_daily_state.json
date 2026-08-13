@@ -1,0 +1,41 @@
+{
+  "date": "20260813",
+  "date_label": "",
+  "generated_at": "2026-08-13 21:26:38 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.11846v1",
+      "route": "202608/13/2608.11846v1-from-overlooked-to-explored-recovering-item-relations-via-mixture-of-perspectives-for-sequential-recommendation",
+      "title": "From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "通过多视角混合恢复物品关系",
+      "first_seen_at": "2026-08-13 21:26:38 UTC",
+      "updated_at": "2026-08-13 21:26:38 UTC"
+    },
+    {
+      "paper_id": "2608.12073v1",
+      "route": "202608/13/2608.12073v1-competitive-analysis-of-stock-based-thresholds-via-prophet-inequalities-in-continuous-time",
+      "title": "Competitive Analysis of Stock-based Thresholds via Prophet Inequalities in Continuous Time",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "随机需求下在线库存分配的库存阈值策略",
+      "first_seen_at": "2026-08-13 21:26:38 UTC",
+      "updated_at": "2026-08-13 21:26:38 UTC"
+    }
+  ]
+}

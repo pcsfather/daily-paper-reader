@@ -1,0 +1,5924 @@
+Title: Competitive Analysis of Stock-based Thresholds via Prophet Inequalities in Continuous Time
+
+URL Source: https://arxiv.org/pdf/2608.12073v1
+
+Published Time: Thu, 13 Aug 2026 00:57:22 GMT
+
+Number of Pages: 63
+
+Markdown Content:
+# Competitive Analysis of Stock-based Thresholds via Prophet Inequalities in Continuous Time 
+
+Jiashuo Jiang 
+
+Department of Industrial Engineering and Decision Analytics, Hong Kong University of Science and Technology 
+
+We study a continuous-time K-unit online resource allocation problem with nonhomogeneous Poisson arrivals and time-varying valuation distributions. While the optimal dynamic policy generally depends on both the remaining inventory and the time left in the horizon, we focus on a simpler and practically appealing class of stock-based threshold policies, whose limited number of thresholds depend only on the number of units remaining. We evaluate these policies against the multi-unit prophet benchmark, which selects the best K realized values in hindsight. Our main contribution is a new competitive-analysis framework for stock-based thresholds in continuous time. We first reformulate the problem through a type-covering dual. The central challenge for analyzing the dual is that the dual is both infinite-dimensional and non-convex :the adversary can choose time-varying arrival and valuation processes, while the policy performance depends nonlinearly on the stochastic inventory trajectory. We overcome these challenges by reducing the continuous-time adversarial problem to a Poisson optimiza-tion PoisOPTRe K , and then proving sharp structural properties of its worst-case solutions. In particular, adversarial arrivals admit cutoff and late-filling structures, which yield an exact four-parameter formulation for two thresholds and a finite nested-interval representation for general thresholds. These reductions make the guarantees directly computable. For example, for two thresholds, we obtain a competitive ratio 0 .6269 for K = 2; with three thresholds, we obtain the ratio 0 .6816 for K = 3. In this way, we show that simple stock-based thresholds achieve strong prophet-inequality guarantees despite ignoring calendar time. 
+
+Key words : resource allocation, stock-based thresholds, prophet inequalities, competitive ratios 
+
+## 1. Introduction 
+
+The allocation of scarce resources to sequentially arriving agents is a fundamental problem in operations research, revenue management, and online mechanism design. A seller begins with K
+
+units of inventory and faces customers who arrive over a finite horizon with uncertain valuations. Upon each arrival, the seller must decide immediately whether to allocate one unit and collect the realized reward, or reject the customer and preserve inventory for future, potentially higher-value demand. This trade-off appears in many canonical applications, including hotel room booking (e.g. Bitran and Mondschein (1995)), seasonal retail and fashion inventory management (e.g. Fisher and 
+
+1arXiv:2608.12073v1 [math.OC] 12 Aug 2026 2
+
+Raman (1996), Gallego and Van Ryzin (1994)), cloud-computing and reusable-resource services (e.g. Besbes et al. (2022), Elmachtoub and Shi (2025)), and online advertising allocation (Mehta et al. 2007). We study this problem in a continuous-time model with Poisson arrivals, a classical framework in revenue management and dynamic pricing (Gallego and Van Ryzin 1994, 1997), while allowing arrival rates and valuation distributions to vary over time. Although dynamic programming characterizes optimal policies when the model is fully specified, the resulting policies typically depend on both the remaining inventory and the precise time left in the horizon. Such policies can be difficult to implement and sensitive to misspecified demand forecasts, especially when demand is non-stationary or exhibits unpredictable spikes and lulls. Motivated by a growing literature in operations research and operations management on the effec-tiveness of simple policies for online problems (e.g. Ma et al. (2021), Elmachtoub and Shi (2025)), we focus on stock-based threshold policies: the decision maker posts thresholds that depend only on the number of units remaining, not on calendar time. These policies are simple but not naive. They use inventory as a real-time summary of realized demand, automatically becoming more selective when inventory is depleted quickly and less restrictive when sales are slow. They are also opera-tionally attractive because they resemble booking limits, protection levels, and scarcity-based rules that are easy to communicate and implement. Moreover, by tying decisions to scarcity rather than to arbitrary calendar-time fluctuations, stock-based policies can become more robust to forecast errors and more acceptable to customers than finely time-dependent pricing rules. We analyze stock-based threshold policies through the lens of prophet inequalities (Krengel and Sucheston 1978). The offline benchmark is a “prophet” who observes all future arrivals and valuations and selects the best K customers in hindsight. An online policy, in contrast, must make irrevocable allocation decisions as customers arrive. The performance of a policy is measured by its competitive ratio: the worst-case ratio between the policy’s expected reward and the prophet’s expected reward. This benchmark provides a robust way to evaluate online resource allocation policies and is closely connected to posted pricing and online mechanism design (e.g. Hajiaghayi et al. (2007), Correa et al. (2019b)). Within this framework, our central question is: How much performance is lost by ignoring time, and what is the best guarantee achievable by stock-based threshold policies? 
+
+1.1. Our Main Results and Contributions 
+
+We develop a new framework for analyzing stock-based threshold policies in the K-unit online resource allocation problem with Poisson arrivals. Our results should be interpreted in two layers. First, we reduce the original minimax problem to a Poisson optimization problem, denoted by 3
+
+PoisOPTRe K (s), where s is a vector specifying the number of remaining units that we will switch to a new threshold. The value of PoisOPTRe K (s) provides a valid lower bound on the competitive ratio of stock-based threshold policies. Second, and more importantly, we give an exact structural characterization of the optimal solution to this reduced problem. This structural characterization turns an infinite-dimensional adversarial optimization problem into a finite-dimensional one, which enables us to compute strong guarantees for policies with limited number of stock-based thresholds. Our first contribution is a reduction from the original competitive analysis problem to PoisOPTRe K (s). The original problem is difficult because the adversary may choose time-varying arrival rates and valuation distributions over a continuous horizon. After dualizing the policy eval-uation problem, the resulting formulation contains infinitely many type-covering constraints, and the interaction between the online policy’s stochastic inventory path and the prophet’s hindsight benchmark creates non-linear and non-convex structure. We show that, for any switching vector s,it is enough to consider a reduced Poisson optimization problem with finitely many covering con-straints; see (11). The reduced problem captures the central tension faced by stock-based policies: setting thresholds too low may cause the policy to stock out before high-value customers arrive, whereas setting thresholds too high may lead the policy to reject too much demand. Our second contribution is an exact structural characterization of the optimal solution to the reduced problem PoisOPTRe K (s) for arbitrary m, where m denotes the number of thresholds. Although PoisOPTRe K (s) has only finitely many constraints, it still contains continuous-time control variables describing the adversary’s arrival pattern, and it remains non-convex . We prove that there exists an optimal solution with an extreme, cutoff structure: at every time, the arrival-rate vector across threshold levels is an extreme point, meaning that lower-index threshold levels are active and higher-index levels are inactive. Moreover, the intermediate arrival rates can be chosen in a late-filled form between adjacent threshold levels. After fixing the total masses of these intermediate controls, we further show that the optimal controls admit a finite nested-interval representation: the first nontrivial level is active on a single interval, and each deeper level has only a bounded number of active “islands” inside the active time of the previous level. Consequently, the infinite-dimensional optimization over arrival-rate functions reduces to an optimization over 
+
+O(m2) number of scalar variables, independent of the inventory level K.This structural result leads to an easy way to compute guarantees. For m = 2, the reduced problem admits an especially compact finite-dimensional representation, involving only 4 main parameters after normalization. For m = 3, the nested-interval characterization yields a finite-dimensional program with 9 timing and mass variables. These formulations can be solved for any fixed inventory level K, and the resulting lower bounds are reported in Table 1 for K = 1 , . . . , 8. The guarantees improve substantially over the best known ratios for a single static threshold ( m = 1), 4
+
+scaling as 1 − Θ
+
+q log( K)
+
+> K
+
+
+
+, which was previously developed in Chawla et al. (2024) and shown to be tight in Jiang et al. (2025b). Moreover, for small inventory levels, the lower bounds obtained by stock-based policies with only two or three thresholds already exceed the best known guarantees for fully adaptive policies from Jiang et al. (2025a) 1. This comparison should be interpreted carefully: the fully adaptive guarantees in Jiang et al. (2025a) are benchmarked through an LP relaxation, whereas our framework works directly with the prophet benchmark. Value of K 1 2 3 4 5 6 7 8Existing Ratios ( m = 1) 0.5 0.5859 0.6309 0.6605 0.6821 0.6989 0.7125 0.7240 Our Ratios ( m = 2) N.A. 0.6269 0.6732 0.7014 0.7218 0.7376 0.7503 0.7607 Our Ratios ( m = 3) N.A. N.A. 0.6816 0.7119 0.7324 0.7479 0.7604 0.7707 Existing Ratios (fully adaptive) 0.5 0.6148 0.6741 0.7120 0.7389 0.7593 0.7754 0.7887          
+
+> Table 1 The comparison between our ratios and existing ratios for K= 1 up to K= 8 . The existing ratios for static threshold with m= 1 are developed in Chawla et al. (2024) and have been proven to be tight in Jiang et al. (2025b). The existing ratios for fully adaptive policies are from Jiang et al. (2025a).
+
+Overall, our results provide strong evidence for the power of simple stock-based policies. Even though these policies ignore calendar time, a small number of inventory contingent thresholds already achieves better guarantees for stock-based threshold policies, and in some small-inventory regimes exceeds the best known lower bounds for fully adaptive policies, though under a different benchmark. Thus, the price of using simple, inventory-based rules appears to be surprisingly small. Beyond the numerical guarantees, our structural characterization of PoisOPTRe K (s) provides a general framework for analyzing and optimizing stock-based policies in continuous-time online resource allocation. 
+
+1.2. Our Techniques 
+
+Our analysis combines ideas from continuous-time duality, prophet inequalities, and optimal con-trol. The main difficulty is that the original problem is both infinite-dimensional and non-convex. The adversary may choose time-varying arrival rates and valuation distributions over a continuous horizon, while the online policy’s performance depends on the stochastic evolution of its remaining inventory. Rather than solving this non-convex problem directly, we identify structural properties that any worst-case instance for a reduced problem must satisfy, and use these properties to finally reduce the problem to a finite-dimensional optimization that can be easily optimized over. 
+
+A continuous-time type-covering formulation. We first transform arbitrary valuation dis-tributions into a common type space. This allows us to separate two roles of the adversary: choosing  
+
+> 1Though the ratios in Jiang et al. (2025a) are developed for the more general Bernoulli arrivals, the worst-case happens when the Bernoulli arrival collapses to the Poisson arrival 5
+
+how often different types arrive, and choosing how types are mapped to values. For any fixed ar-rival structure and stock-based threshold policy, we formulate the competitive ratio problem as an infinite-dimensional linear program over the valuation mapping. Its dual gives a continuous time analogue of the type-covering formulation used in prophet inequalities (Jiang et al. 2025b). Intuitively, for every type level, the online policy must accept enough higher-type customers to cover a fixed fraction of what the prophet would select in hindsight. This reformulation turns the comparison with the prophet into a family of covering constraints indexed by customer types. 
+
+Identifying the relevant binding constraints. The type-covering dual still contains infinitely many constraints. We reduce this continuum by exploiting the Poisson structure of arrivals. For any type level, the number of arrivals above that level is Poisson distributed, and the marginal value of increasing this arrival mass is governed by a Poisson tail probability: the probability that the prophet has not yet exhausted its K units. On the online side, the corresponding marginal value is governed by the probability that the stock-based policy still has enough inventory to accept that type. Comparing these two marginal quantities at a binding type yields necessary conditions for the binding constraints. These conditions allow us to construct a finite-constraint relaxation/certificate that lower-bounds the original minimax value, leading to the reduced Poisson optimization problem PoisOPTRe K (s), given a fixed switching vector s.
+
+Using optimal-control structure to handle non-convexity. The reduced problem PoisOPTRe K (s) has finitely many covering constraints, but it remains a non-convex continuous-time control problem. The non-convexity comes from the interaction between the adversary’s arrival-rate controls and the online policy’s inventory-state probabilities. We exploit the special state dynamics induced by stock-based threshold policies. Because the threshold depends only on the remaining inventory, the state process has a structured form, and the adversary’s controls affect the system through a small number of acceptance rate levels. This structure allows us to analyze the associated Hamiltonian and the geometry of the costate variables. We show that an optimal adversarial control can be chosen to be extremal: at each time, the adversary activates a cutoff set of threshold levels rather than using fractional arrival rates across many levels. Moreover, the intermediate controls can be chosen in a late-filled form between adjacent threshold levels. To further control the possible switching patterns, we reparametrize time by the active arrival mass of the first threshold level. In this active-time scale, the adversary’s control becomes a nested sequence of binary activity indicators. The Hamiltonian switching functions and the geometric shape of the costates imply that the first nontrivial level can be chosen to be active on a single interval, while each deeper level has only a bounded number of active “islands” inside the active time of the previous level. This shows that the worst-case arrival pattern is not arbitrary: despite the non-convexity, an optimal adversary admits a bang-bang, nested-interval structure. 6
+
+Reducing to a finite-dimensional computation. The structural characterization above turns the infinite-dimensional optimization over arrival-rate functions into an optimization over finitely many scalar variables, independent of the inventory level K. For two thresholds, the op-timal adversarial pattern reduces to a simple three-block structure, leading to a compact finite-dimensional program. For three thresholds, the nested-interval characterization gives a finite-dimensional program with 9 variables, for each K. Solving these reduced programs produces the lower bounds reported in Table 1. Importantly, these computations are not based on a direct time discretization of the original infinite-dimensional problem. Instead, they follow from an exact structural characterization of the reduced Poisson optimization problem. 
+
+1.3. Other Related Literature 
+
+Our work contributes to three stream of literature that i) studies the effectiveness of simple policies, ii) the performances of prophet inequalities, static thresholds, and posted pricing, and iii) dynamic pricing and resource allocation in continuous time, which we now briefly review as follows. 
+
+Effectiveness of simple policies . A recurring theme in decision making is that carefully chosen low-dimensional policies can retain much of the value of fully dynamic optimization while requiring less information and fewer operational adjustments. In robust revenue management, Ball and Queyranne (2009) establish tight competitive guarantees for booking-limit policies that become more selective as inventory is depleted. Ma et al. (2021) show that precommitted price and assortment calendars obtain (1 − 1/e ) and 1 /2 guarantees under stationary and nonstationary demand. In service systems, Besbes et al. (2022) and Elmachtoub and Shi (2025) establish universal constant-factor guarantees for static pricing even though the optimal policies are state dependent. More closely related to the policy class considered in this paper, Balseiro et al. (2026) show that a stock-dependent policy using only two prices can substantially improve the asymptotic performance loss of static pricing. Together, these results suggest that a small amount of carefully chosen state dependence can capture much of the value of a fully dynamic policy. More broadly, the effectiveness of simple policies has been widely studied in various problems, including stochastic depletion problems (Chan and Farias 2009), submodular optimization problems (Asadpour and Nazerzadeh 2016, Kapralov et al. 2013), inventory theory (Goldberg et al. 2016, Xin and Goldberg 2016), information design (Agrawal et al. 2026), mechanism design (Chawla et al. 2010, Wang 2025), online matching/advertising (Karp et al. 1990, Mehta et al. 2007). 
+
+Prophet inequalities, static thresholds, and posted pricing. The prophet inequality framework was introduced by Krengel and Sucheston (1978) and has since become a central tool for analyzing online allocation problems; see, for example, the survey by Correa et al. (2019a). The literature has developed guarantees under many feasibility constraints, including matroids (Klein-berg and Weinberg 2012), knapsacks (Feldman et al. 2021), and multi-unit constraints (Hajiaghayi 7
+
+et al. 2007). In the multi-unit setting, Alaei (2014) obtained a guarantee of 1 − 1/√k + 3 using dynamic thresholds, and Jiang et al. (2025a) later improved the guarantees for every k > 1 and established tightness with respect to the ex-ante benchmark, while Amil et al. (2025) extends to order fulfillment problems. Static thresholds have also received substantial attention. Hajiaghayi et al. (2007) showed that static thresholds achieve asymptotically strong guarantees, and Arnosti and Ma (2022) studied tight guarantees in the prophet-secretary setting. More closely related to our work, Chawla et al. (2024) and Jiang et al. (2025b) analyze static thresholds for multi-unit prophet inequalities, while Chawla et al. (2025) studies stock-based policies in multi-unit combi-natorial prophet inequalities and obtains a competitive ratio that converges to 1 − 1/e as K → ∞ .Perez-Salazar et al. (2026) studies threshold policies with limited switches for prophet inequalities under the IID setting. Prophet inequalities are also closely connected to online pricing and posted-price mechanisms (Hajiaghayi et al. 2007, Chawla et al. 2010, Alaei 2014, Lucier 2017, Correa et al. 2019b). Our results can therefore be interpreted as guarantees for simple posted-price policies with a small number of inventory-contingent prices. These policies are more flexible than a single static threshold but much simpler than fully adaptive policies that depend on both inventory and time. 
+
+Resource allocation with continuous-time arrival process . Continuous-time stochastic arrival models, particularly Poisson and nonhomogeneous Poisson processes, are foundational in revenue management and pricing. In the seminal work of Gallego and Van Ryzin (1994), a seller dynamically controls the demand intensity through price while allocating a fixed inventory over a finite horizon. Gallego and Van Ryzin (1997) extends this intensity-control framework to multi-ple products sharing common resources and develops applications to network yield management. Closely related continuous-time models arise in the dynamic and stochastic knapsack problem of Kleywegt and Papastavrou (1998). Subsequent work allows increasingly rich forms of nonstation-arity and correlation, for example in Zhao and Zheng (2000), Feng and Gallego (2000), Bai et al. (2023), Jiang (2025), Li et al. (2025), Yuan et al. (2026). Continuous-time Poisson models have also become prominent in online matching and service-system resource allocation, where both the availability of resources and the arrival of allocation opportunities evolve stochastically (Blanchet et al. 2022, Collina et al. 2020, AmaniHamedani et al. 2024), which leads to the stationary prophet-inequality model of Kessel et al. (2022), Patel and Wajc (2024), Aminian et al. (2026). 
+
+## 2. Problem Formulation 
+
+We consider the resource allocation problem for a single product. There are initially K units of the product. We adopt the standard formulation that customers arrive sequentially in a fixed time interval denoted by [0 , 1], requesting one unit of the product. We assume that the customer arrives according to a Poisson process over [0 , 1] and at time t, the rate of arrival is given by λt ∈ [0 , M ]8
+
+for some positive constant M (Here M can be chosen arbitrarily for the worst-case). We denote by λ = {λt, t ∈ [0 , 1] } the sequence of all arrival rates. Each customer arrives with a valuation for the product. If the customer does not arrive at time t, then we simply say that the customer at time t has a valuation 0. In contrast, if the customer arrives at time t, it is also assumed that the valuation, denoted by vt, is drawn independently from a given distribution Gt, which is positively supported. After the customer at time t reveals its valuation, the decision maker has to decide whether to accept the customer or not. If accepted, then one unit of the product will be consumed, and a reward that equals the valuation vt will be collected. Otherwise, no unit will be consumed, and no reward will be collected. The goal of the decision maker is to maximize the total collected reward without consuming more than K units of the product. 
+
+Stock-based Threshold Policies . Among all possible policies, we restrict to the class of stock-based threshold policies with limited switches. To be specific, after observing the problem instance 
+
+G = {(Gt, λ t), ∀t ∈ [0 , 1] }, the decision maker selects a threshold vector p = ( p1, . . . , p m) and a switching vector s = ( s1, . . . , s m) such that K = s1 > s 2 > . . . s m > s m+1 = 0. If we have k units remain and si+1 < k ≤ si, the policy accepts an arriving customer if and only if its value is at least pi, subject to the prescribed tie-breaking rule. Note that the threshold vector is fixed before operations begin and is not revised while the inventory level remains unchanged. Thus, the policy reacts to realized demand only through the remaining inventory. 
+
+Performance Metrics . We denote by ALG K (πp,s, G) the expected total reward collected by the stock-based threshold policies with the threshold options p and switch options s, under the problem instance G. We compare the performance of our algorithm to that of the offline optimum, i.e., a prophet who is able to see the value realizations in the future and makes the optimal decision in hindsight. Clearly, for the offline optimum, the optimal decision is made to select the K largest values from the realization v = {vt, t ∈ [0 , 1] }. We denote by ALG K (πoff , G) the expected total reward collected by the prophet where πoff denotes the offline optimal policy, i.e., 
+
+ALG K (πoff , G) = Ev∼G
+
+" KX
+
+> k=1
+
+v(k)
+
+#
+
+(1) where v(1) ≥ v(2) ≥ · · · ≥ v(T ) denotes the order statistics of v = {vt, t ∈ [0 , 1] }. Then, we aim to derive the optimal stock-based policy represented by πp∗,s∗
+
+(here p∗ and s∗ are allowed to depend on the instance G) and characterize the competitive ratio, i.e., the ratio defined by 
+
+γ∗ 
+
+> K,m
+
+= inf 
+
+> G
+
+ALG K (πp∗,s∗
+
+, G)
+
+ALG K (πoff , G) . (2) In the above definition, we aim to derive a robust guarantee for the performance of our policy. On one hand, we derive the optimal stock-based policy to maximize the ratio of ALG K (πp∗,s∗ ,G)   
+
+> ALG K(πoff ,G)
+
+,9
+
+based on the given instance G. On the other hand, an adversary selects the problem instance G
+
+to minimize the performance of our policy. The guarantee γ∗ 
+
+> K,m
+
+holds for all problem instances. In this paper, we construct computable lower bounds on γ∗
+
+> K,m
+
+.
+
+Remark 1. It is easy to see that the competitive ratio defined in (2) also gives a performance guarantee for the optimal stock-based policies with respect to the optimal policy, since the total expected values collected by the optimal policy is upper bounded by that of the offline optimum. Our results can also be applied to the posted pricing problem, where the decision maker posts prices to sell units to the customers. Following a virtual valuation procedure as detailed in Correa et al. (2019b), we can show that the optimal stock-based threshold policy, applied to the transferred virtual valuations, collects at least γ∗ 
+
+> K,m
+
+fraction of the optimal total revenue. 
+
+## 3. Stock-based Policies and Problem Reformulation 
+
+We now characterize the competitive ratio for the stock-based policies. We derive an optimization problem that could explicitly lower bound the competitive ratios for the stock-based policies. Note that the key difficulty to approximate the competitive ratios is to characterize the worst-case distributions selected by the adversary to minimize the ratio of ALG K (πp∗,s∗ ,G)   
+
+> ALG K(πoff ,G)
+
+. On one hand, the adversary can select different support sets for the distributions G. On the other hand, the adversary can select arbitrary probability masses on the support size. To characterize the freedom of the adversary for selecting the support sets and the probability masses, we introduce the two mappings in the following way. 
+
+Definition 1 (valuation mapping). Let F : [0 , 1] → G be a strictly monotone mapping from an index set [0 , 1] to a valuation set G that covers the support sets of all the distributions in G.Then, any valuation vt drawn from the distribution Gt, for any t ∈ [0 , 1], can be represented as 
+
+vt = F (qt), for some index qt ∈ [0 , 1]. Here, an index q can be understood as the type of a customer, and the valuation v is the cor-responding reward for accepting this type of customer. Note that following the valuation mapping specified in Definition 1, a threshold on the valuation can be interpreted as a threshold on the index set [0 , 1] since F is a one-to-one mapping from the index [0 , 1] to the valuation set G. Also, a valuation picked by the offline optimum can also be interpreted as an index among the set [0 , 1]. Therefore, we can reduce our problem of computing the ratio in (2) for arbitrary distributions to a simplified problem for distributions with support set restricted to [0 , 1], while the adversary enjoys the freedom to select the valuation mapping F . To characterize the distributions over the index set [0 , 1], we introduce the density mapping as follows. 
+
+Definition 2 (density mapping). For any problem instance G and a valuation mapping F ,let G′ = {G′
+
+> t
+
+, t ∈ [0 , 1] } be distributions on the index set [0 , 1] such that Gt(F (q)) = G′
+
+> t
+
+(q), for any index q ∈ [0 , 1] and t ∈ [0 , 1]. 10 
+
+For notational simplicity, throughout the paper, we normalize the bottom type so that F (0) = 0, assume that F is absolutely continuous and strictly increasing, and write gt(q) := dG ′ 
+
+> t(q)
+> dq
+
+. We assume that gt(q) is jointly measurable and uniformly bounded and that its aggregate density R 10 λtgt(q)dt 
+
+is strictly positive on (0 , 1). The latter condition only rules out zero-mass type intervals, which may be deleted from the type space. Value atoms can be split by an independent uniform tie-breaking mark. It is easy to see that any distributions G can be fully characterized by a valuation mapping 
+
+F and the corresponding density mapping G′, where G′ can be interpreted as distributions over the index set [0 , 1]. As a result, when the adversary chooses the instance G to minimize the ratio of ALG K (πp∗,s∗ ,G)   
+
+> ALG K(πoff ,G)
+
+, it is equivalent to choosing the valuation mapping F and the density mapping G′.Then, the expected total value collected by the offline optimum can be characterized as follows. 
+
+Lemma 1. For any problem instance G and the corresponding F and G′, it holds that 
+
+ALG K (πoff , G) = 
+
+Z 1
+
+> q=0
+
+E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+dF (q), (3) 
+
+where Pois 
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+denotes a Poisson random variable with parameter 
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt , for each q ∈ [0 , 1] .
+
+We now formulate an optimization problem that characterizes the ratio of ALG K (πp∗,s∗ ,G)   
+
+> ALG K(πoff ,G)
+
+. We introduce a decision variable U kt (q) that represents the marginal gain of the decision maker when the value of customer t is realized with index q, with k units remaining. We introduce a variable V kt
+
+to represent the value-to-go for the decision maker at period t when there are k units remaining. The optimization problem, which we denote as OP( τ , s, G′), can be written as follows with initialization 
+
+V k 
+
+> 1
+
+= 0 for each k = 1 , . . . , K and V 0 
+
+> t
+
+= 0 for each t ∈ [0 , 1]. min V K 
+
+> 0
+
+(4a) s.t. dV kt
+
+dt = −
+
+Z 1
+
+> q=τi(k)
+
+U kt (q)dG ′
+
+> t
+
+(q) · λt ∀t ∈ [0 , 1] , k ∈ [K] (4b) 
+
+U kt (q) = 
+
+Z qq′=0 
+
+dF (q′) − (V kt − V k−1 
+
+> t
+
+) ∀t ∈ [0 , 1] , q ∈ [0 , 1] , k ∈ [K] (4c) 
+
+Z 1
+
+> q=0
+
+E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+dF (q) = 1 (4d) 
+
+dF (q) ≥ 0, ∀q ∈ [0 , 1] . (4e) Note that in the above formulation, the threshold τi(k) is an index among [0 , 1] that represents the price pi(k), where i(k) ∈ [m] is an index satisfying si(k)+1 < k ≤ si(k), for each k ∈ [K]. Also, we regard the valuation mapping {dF (q)}∀q as a decision variable for the adversary to minimize, with a constraint that the expected total value collected by the offline optimum is normalized to 1 as in (4d). In fact, the optimization problem OP( τ , s, G′) in (4) concerns the stock-based threshold policies that are oblivious , as defined in the following way. 11 
+
+Definition 3. For a stock-based threshold policy characterized by τ = ( τ1, . . . , τ m), we call τ
+
+to be oblivious if τ is decided based on G′ and is independent of F .In addition to being oblivious, a class of threshold policies that are of particular interest is the class of monotone threshold policies, defined as follows. 
+
+Definition 4. For a stock-based threshold policy characterized by τ = ( τ1, . . . , τ m), we call τ
+
+to be monotone if it satisfies that τ1 ≤ τ2 ≤ · · · ≤ τm ≤ τm+1 = 1. The above definition implies that we will set a low threshold τ1 at the very beginning. Then, every time the remaining capacity has been decreased to a level si for some i ∈ [m], we switch to a threshold τi that is slightly higher than τi−1. From now on, we restrict to the class of oblivious and monotone threshold policies as defined in Definition 3 and Definition 4. We denote by Γ the set of monotone threshold policies, which include both τ and s. The dual problem of the optimization problem OP( τ , s, G′) in (4) can be given as follows, which we denote as Dual( τ , s, G′). max θ (5a) s.t. θ · E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+≤
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=q
+
+ykt (q′)dq ′dt ∀q ∈ [0 , 1] (5b) 
+
+ykt (q) = dG ′
+
+> t
+
+(q)
+
+dq · λt · xkt ∀t ∈ [0 , 1] , q ∈ [τi(k), 1] , k ∈ [K] (5c) 
+
+ykt (q) = 0 ∀t ∈ [0 , 1] , q ∈ [0 , τ i(k)), k ∈ [K] (5d) 
+
+xK 
+
+> 0
+
+= 1 , x k 
+
+> 0
+
+= 0 ∀k < K (5e) 
+
+dx kt
+
+dt = −
+
+Z 1
+
+> q=0
+
+(ykt (q) − yk+1  
+
+> t
+
+(q)) dq ∀t ∈ [0 , 1] , k ∈ [K] (5f) 
+
+ykt (q) ≥ 0 ∀t ∈ [0 , 1] , q ∈ [0 , 1] , k ∈ [K]. (5g) In the above dual formulation, the variable xkt can be interpreted as the ex-ante probability of the event that there are k units remaining at period t. The variable ykt (q) can be interpreted as the ex-ante probability (divided by dq ) for the decision maker to accept the customer t with value index q when there are k units remaining at period t. The dynamics for the variables xkt and ykt (q)is described in (5c), (5d), (5e) and (5f). A crucial constraint is given in (5b) which ensures that for each value index q ∈ [0 , 1], the number of customers accepted by the decision maker with value index q′ satisfying q′ ≥ q is at least θ fraction of that of the offline optimum. Then, the ratio θ
+
+gives the competitive ratio guarantee. The dual formulation Dual( τ , s, G′) can be interpreted as a “type-cover problem” and has been derived in Jiang et al. (2025b) for static-threshold policies. In the following lemma, we show that the competitive ratio for the oblivious stock-based threshold policies can be obtained from solving the optimization problem OP( τ , s, G′) in (4) and its dual formulation Dual( τ , s, G′) in (5). 12 
+
+Lemma 2. Fix the class Γ of monotone oblivious stock-based threshold policies. The worst-case guarantee certified by this more restricted class can be obtained from the following minimax problem 
+
+γK,m = min  
+
+> G′
+
+max  
+
+> (τ,s)∈Γ
+
+OP( τ , s, G′) = min  
+
+> G′
+
+max  
+
+> (τ,s)∈Γ
+
+Dual( τ , s, G′). (6) 
+
+Moreover, it holds that γ∗ 
+
+> K,m
+
+≥ γK,m .
+
+The above Lemma 2 implies that γK,m gives a valid lower bound for the competitive ratio γ∗
+
+> K,m
+
+.From now on, we focus on solving the minimax optimization problem in (6). 
+
+3.1. Illustration under IID arrivals 
+
+In order to solve the minimax optimization problem in (6), we provide further characterization over the structures for OP( τ , s, G′) and Dual( τ , s, G′), for fixed τ , s and G′. To illustrate our main ideas, we now assume that G′ is an IID arrivals in that G′ 
+
+> t
+
+= G′ 
+
+> t′
+
+for any t, t ′ ∈ [T ]. The key point is to analyze the type-cover constraint in (5b). We now define a function H1 such that 
+
+H1(q) = E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+, ∀q ∈ [0 , 1] ,
+
+which denotes the expected number of customers with value index above q accepted by the offline optimum, for any q ∈ [0 , 1]. We also denote a function H2 such that 
+
+H2(q) = 
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=q
+
+ykt (q′)dq ′dt, ∀q ∈ [0 , 1] ,
+
+for an optimal solution {ykt (q′)} to Dual( τ , s, G′), which denotes the expected number of customers with value index above q accepted by our policy, for any q ∈ [0 , 1]. Then, the type-cover constraint in (5b) implies that the following set of constraints are satisfied for a feasible ratio θ,
+
+θ · H1(q) ≤ H2(q). (7) It is useful to analyze the two functions H1(q) and H2(q). We plot the shapes of the two functions 
+
+H1(q) and H2(q) in Figure 1. As we can see, the function H1(q) is monotone decreasing in q, and in fact, it is easy to show that H1(q) is a concave function over q. Moreover, we can show that the function H2(q) is a piece-wise linear function over q, with the turning points given by the specified index thresholds τ .In order to maximize the ratio θ, it is clear that the constraint in (7) will become binding for some index q, which also implies that the function H2(q) will intersect with the function θ · H1(q)at some points, as plotted in . It is easy to see that characterizing these “intersecting points” is essential to derive the maximal θ. We now denote by B the set of all “intersecting points” q such 13          
+
+> Figure 1 The visualization of θ·H1(q)and H2(q)when K= 2 .
+
+that θ · H1(q) = H2(q). Note that B is a set that depends on the value of θ and the index thresholds 
+
+τ . From Figure 1, we observe that, for any q ∈ B , it holds that 
+
+θ · H1(q) = H2(q) and θ · H′
+
+> 1
+
+(q) = H′
+
+> 2
+
+(q). (8) The condition above is easy to understand as in order for the function H2(q) to intersect with 
+
+θ · H1(q) at some point q, both their values and their derivatives should be equivalent to each other. We will rely on the condition (8) to provide characterization of OP( τ , s, G′) and Dual( τ , s, G′) to solve the minimax optimization problem in (6). 
+
+3.2. A Set of Conditions for General Distributions 
+
+We now formalize the conditions from the IID setting in the previous Section 3.1 under the general non-IID setting. In this section, we allow G′ to be general non-stationary distributions, and we characterize the set B using the conditions in (8). For general distributions G′, index thresholds τ and switching options s, we denote by 
+
+B(τ , s, G′) ⊂ [0 , 1] the set of indexes such that the constraint (5b) is binding for any index q ∈B(τ , s, G′) under an optimal solution for the problem Dual( τ , s, G′) in (5). We then have the following characterization for the set B(τ , s, G′). 
+
+Lemma 3. For any distributions G′, index thresholds τ and switching options s, and any index 
+
+q ∈ B (τ , s, G′), suppose that q ∈ [τi, τ i+1 ] for some i ∈ [m], then it holds that 
+
+θ∗ · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′∗ 
+
+> 1
+
+, (9) 
+
+where we denote by θ∗, x k∗ 
+
+> t
+
+, y k∗ 
+
+> t
+
+(q), ∀t ∈ [0 , 1] , k ∈ [K], q ∈ [0 , 1] an optimal solution to 
+
+Dual( τ , s, G′) in (5) .
+
+The condition (9) above enables us to derive a simpler problem to consider, as we further show in the following sections. 14 
+
+## 4. A Reduced Poisson Optimization Problem and Characterization 
+
+We are now ready to reduce the problem in (6) as a new optimization problem which enjoys a simpler structure and we characterize the worst-case distributions from this optimization problem. We first present the reduction, concerning a finite set of equations. We then characterize the worst-case distributions, showing that customers are arriving in an extreme mode. 
+
+4.1. Reduction to a Poisson Optimization Problem 
+
+We now provide a reduction of the problem in (6). The condition (9) we established in Lemma 3 will also be useful to characterize the binding indexes, denoted as ˆ q ∈ [τi, τ i+1 ] for some i ∈ [m − 1], which enables us to reduce the optimization problem Dual( τ , s, G′) in (5) with infinite number of constraints into an optimization problem with a finite number of constraints. Also, we have the constraint that the index ˆ q is binding in that the expected number of customers accepted by the offline optimum is equivalent to the expected number of customers accepted by the policy, i.e., 
+
+γ∗ 
+
+> K
+
+· E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+=
+
+> si+1
+
+X
+
+> k′=1
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(τi(k′))) · λt · xk′∗ 
+
+> t
+
+dt +
+
+> K
+
+X
+
+> k′=si+1 +1
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λt · xk′∗ 
+
+> t
+
+dt. 
+
+(10) From (9), and (10), we are actually concerned with the Poisson arrival rate {(1 − G′
+
+> t
+
+(ˆ q)) · λt}t∈[0 ,1] 
+
+for a binding index ˆq ∈ [τi, τ i+1 ] for some i ∈ [m − 1], as well as the Poisson arrival rate 
+
+  1 − G′
+
+> t
+
+(τi(k)) · λt t∈[0 ,1] for a threshold τi(k) for each k ∈ [K]. We now use a decision variable αit
+
+to denote the arrival rate (1 − G′
+
+> t
+
+(ˆ q)) · λt for the binding index ˆ q ∈ [τi, τ i+1 ], as well as use a decision variable βit to denote the arrival rate (1 − G′
+
+> t
+
+(τi)) · λt. Then, the reformulation can be given as fol-lows, which we denote by PoisOPTRe K (s, M ), and for notational convenience, by PoisOPTRe K (s)when M is considered fixed. min  
+
+> θ, α,β
+
+θ (11a) s.t. θ · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+αitdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> 1
+
+∀i ∈ { 1, . . . , m } (11b) 
+
+θ · E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+αitdt 
+
+
+
+, K 
+
+ 
+
+≥
+
+> si+1
+
+X
+
+> k′=1
+
+Z 1
+
+> t=0
+
+βi(k′) 
+
+> t
+
+xk′ 
+
+> t
+
+dt +
+
+> K
+
+X
+
+> k′=si+1 +1
+
+Z 1
+
+> t=0
+
+αitxk′ 
+
+> t
+
+dt ∀0 ≤ i ≤ m − 1(11c) 
+
+ykt = βit · xkt ∀si+1 < k ≤ si, ∀i ∈ [m], ∀t ∈ [0 , 1] (11d) 
+
+xK 
+
+> 0
+
+= 1 , xk 
+
+> 0
+
+= 0 ∀k < K (11e) 
+
+dx kt
+
+dt = −(ykt − yk+1  
+
+> t
+
+), ∀t ∈ [0 , 1] , k ∈ [K] (11f) 
+
+αmt = 0 , α0 
+
+> t
+
+= λt, 0 ≤ βi+1  
+
+> t
+
+≤ αit ≤ βit ≤ λt ≤ M, ∀t ∈ [0 , 1] , i ∈ { 1, . . . , m − 1}. (11g) 15 
+
+We have the following result showing that it is sufficient to focus on the problem PoisOPTRe K (s)in (11) to derive a lower bound of the competitive ratio guarantee. 
+
+Theorem 1. For any K and s, it holds that 
+
+PoisOPTRe K (s) ≤ min  
+
+> G′
+
+max  
+
+> (τ′,s′)∈Γ
+
+OP( τ ′, s′, G′) = min  
+
+> G′
+
+max  
+
+> (τ′,s′)∈Γ
+
+Dual( τ ′, s′, G′), (12) 
+
+where PoisOPTRe K (s) is defined in (11) , OP( τ ′, s′, G′) is defined in (4) , and Dual( τ ′, s′, G′) is defined in (5) .Proof sketch of Theorem 1. We provide a sketch of our proof and refer the detailed proof to the appendix. The main difficulty for analyzing OP( τ ′, s′, G′) and Dual( τ ′, s′, G′) is that they contain continuum of constraints. Although Lemma 3 allows us to restrict to one binding type to represent the continuum of constraints within the index interval [ τi, τ i+1 ], it is not clear whether each index interval for each i admits such a binding type. Therefore, it can happen that for some interval, there is no binding type and we still need to involve a continuum of constraints in the final formulation. The nontrivial part of the proof is to show that the above situation cannot happen and every interval admits a binding type. To establish this result, we parameterize the threshold vector by the lengths of the intervals, using the variables 
+
+zi = τi+1 − τi, i = 0 , . . . , m, 
+
+so that z belongs to a simplex. For each i, we define a set consisting of all interval partitions for which the ith interval contains a globally worst type-cover constraint. The key observation is that these sets satisfy the face-covering condition of the KKM lemma (Knaster et al. 1929). Intuitively, on a face of the simplex, some intervals have zero length. If a zero-length interval is a bottleneck, then its endpoint is shared with a neighboring nondegenerate interval on the same face, whose worst constraint cannot be larger than the bottleneck value. Therefore, some nondegenerate interval on that face must also be a bottleneck. The KKM lemma then guarantees a threshold vector τ ∗ for which every interval simultaneously attains the same global bottleneck value. Consequently, each nondegenerate interval [ τ ∗ 
+
+> i
+
+, τ ∗
+
+> i+1
+
+] contains a binding type, while degenerate intervals are handled through their common endpoints. For each interval, we select such a binding type and use its tail-arrival rate as the corresponding 
+
+αi control, while the tail-arrival rates at the thresholds define the βi controls. The binding equality and the condition (9) in Lemma 3 give the constraints in PoisOPTRe K (s). In this way, taking the minimum over G′ and applying Lemma 2 completes the proof. □
+
+In the next section, we focus on analyzing the reduced problem PoisOPTRe K (s) in (11), where Theorem 1 implies that PoisOPTRe K (s) forms a lower bound for the competitive ratio guarantee. 16 
+
+4.2. Establishing the Optimal Solution as Extremal Arrivals 
+
+We now characterize the optimal solution to the relaxed optimization problem PoisOPTRe K in (11). We first show in the following lemma that it is optimal to set αit = βi+1  
+
+> t
+
+when t ∈ [0 , w i] and set αit = βit when t ∈ (wi, 1] for some wi ∈ [0 , 1], for each i ∈ [m − 1]. 
+
+Lemma 4. Fix any feasible solution of (11) . For every i ∈ [m − 1] , there is another feasible solution with the same θ, the same β, and the same total mass R 10 αitdt , such that 
+
+ˆαit =
+
+(
+
+βi+1  
+
+> t
+
+, t ≤ wi,βit , t > w i,
+
+for some wi ∈ [0 , 1] . The replacement weakly decreases the right-hand side of the corresponding constraint (11c) .
+
+Note that the above Lemma 4 essentially implies that the customers with index among [ τi, ˆq)stop arriving after time wi, since we have αit = βit when t ∈ (wi, 1], where ˆ q ∈ [τi, τ i+1 ] is a binding index, for each i ∈ [m − 1]. Lemma 4 also implies that the customers with index among [ˆ q, τ i+1 ) only starts arriving after time wi, since we have αit = βi+1  
+
+> t
+
+when t ∈ [0 , w i]. For simplicity, we broadly classify the customers with index among the interval [ τi, τ i+1 ) into two classes, the large class with index among [ˆ q, τ i+1 ) and the small class with index among [ τi, ˆq). We can draw the intuition that the customers for the large class start arriving after the customers for the small class stop arriving. We now characterize the worst-case distributions across different intervals of [ τi, τ i+1 ), for different 
+
+i ∈ [m − 1]. We have the following result. 
+
+Lemma 5. For every ε > 0, there exists a feasible solution {θ, α it, β it , ∀i ∈ [m], ∀t ∈ [0 , 1] } of (11) 
+
+whose objective is at most PoisOPTRe K (s) + ε and such that, for almost every t, there is an index 
+
+r(t) ∈ { 1, . . . , m + 1 } satisfying 
+
+βit =
+
+(
+
+λt, i < r (t),
+
+0, i ≥ r(t). (13) 
+
+Moreover, the α controls may be chosen in the late-filled form of Lemma 4. Consequently, restricting to cutoff-valued and late-filled controls does not change the infimum of PoisOPTRe K (s).
+
+The above Lemma 5 implies that we can focus on the form that βit ∈ { 0, λ t}, with a single “cutoff” across i ∈ [m], for each time t ∈ [0 , 1]. The proof of Lemma 5 follows the observation that it is optimal to restrict βt to the extreme point of its feasible region, which takes the formulation as given in (13) (though the exact extreme point may alter over time). Combining Lemma 4 and Lemma 5, we derive the following structural result over an optimal solution to PoisOPTRe K (s) in (11). 17 
+
+Theorem 2. For any ε > 0, there exists an feasible solution {θ, α it, β it , ∀i ∈ [m], ∀t ∈ [0 , 1] } to 
+
+PoisOPTRe K (s) in (11) such that αit = βi+1  
+
+> t
+
+when t ∈ [0 , w i] and αit = βit when t ∈ (wi, 1] , for some 
+
+wi ∈ [0 , 1] , for each i ∈ [m − 1] , and it holds that βit = 0 when i ≥ r(t) and βit = λt when i < r (t), for an index r(t) ∈ { 1, 2, . . . , m + 1 }, for each t ∈ [0 , 1] .
+
+In what follows, we use the structural characterization in Theorem 2 to derive our competitive ratio guarantees for stock-based threshold policies under various conditions. 
+
+## 5. Exact Solution of the Two-Threshold Reduced Poisson Problem 
+
+In this section, we compute lower bounds of the guarantees of stock-based threshold policies with the help of PoisOPTRe K (s) in (11) and the structural results presented in Theorem 2. Note that a caveat for using Theorem 2 is that in general the shape of the “cutoff” index function r(t) is hard to characterize. However, we show that when m = 2, the index function r(t) possesses a clear structure characterization which enables us to analytically derive the optimal closed formulation. When m = 2, the formulation of PoisOPTRe K (s) simplifies to min  
+
+> θ, α,β
+
+θ (14a) s.t. θ ≥
+
+> K
+
+X
+
+> k=1
+
+xkt=1 (14b) 
+
+θ · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+αtdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k=s2+1
+
+xkt=1 (14c) 
+
+θ · E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+αtdt 
+
+
+
+, K 
+
+ 
+
+≥
+
+> s2
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+β2 
+
+> t
+
+xkt dt +
+
+> K
+
+X
+
+> k=s2+1
+
+Z 1
+
+> t=0
+
+αtxkt dt (14d) 
+
+θ · E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+λtdt 
+
+
+
+, K 
+
+ 
+
+≥
+
+> s2
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+β2 
+
+> t
+
+xkt dt +
+
+> K
+
+X
+
+> k=s2+1
+
+Z 1
+
+> t=0
+
+β1 
+
+> t
+
+xkt dt (14e) 
+
+ykt = β1 
+
+> t
+
+· xkt ∀k > s 2, ykt = β2 
+
+> t
+
+· xkt ∀1 ≤ k ≤ s2, ∀t ∈ [0 , 1] (14f) 
+
+xK 
+
+> 0
+
+= 1 , xk 
+
+> 0
+
+= 0 ∀k < K (14g) 
+
+dx kt
+
+dt = −(ykt − yk+1  
+
+> t
+
+), ∀t ∈ [0 , 1] , k ∈ [K] (14h) 0 ≤ β2 
+
+> t
+
+≤ αt ≤ β1 
+
+> t
+
+≤ λt, ∀t ∈ [0 , 1] . (14i) Note that the characterization in Theorem 2 implies that given the parameters {βit , ∀i ∈ [m], ∀t ∈
+
+[0 , 1] }, the value of αt is in fact determined by the switching time w, which is again determined by the quantity Λ1 =
+
+Z 1
+
+> t=0
+
+αtdt. 
+
+Moreover, we can show that it is optimal to place the masses of β2 
+
+> t
+
+in one interval. The intermediate control α must contain this β2 interval, but its remaining mass is filled as late as possible, as implied 18 
+
+by Theorem 2. Consequently, α control may be supported either on one terminal interval or on the union of the β2 interval and a later terminal interval. Therefore, we can finally show that the entire optimization problem PoisOPTRe K (s) in (14) can be reduced equivalently to a finite-parameter optimization problem. Then, a simple grid search procedure can be applied to efficiently solve the reduced finite-parameter optimization problem. The final competitive ratio can be obtained by solving the following reduced problem. We derive our results via the following steps. We treat M as a fixed constant and we uniformize 
+
+λt to be M , as supported by the following lemma. 
+
+Lemma 6. For any fixed M > 0, the worst-case competitive ratio over instances with 0 ≤ λt ≤ M
+
+is unchanged if we restrict attention to instances with λt ≡ M .
+
+We therefore fix M and assume throughout this section that λt = M . It is convenient to use the active time of β1. Then, from Theorem 2, without changing the infimum of PoisOPTRe K (s), we can restrict {αt, β 1 
+
+> t
+
+, β 2 
+
+> t
+
+} to only take value 0 or λt, for each t ∈ [0 , 1]. The chaining constraints 0 ≤
+
+β2 
+
+> t
+
+≤ αt ≤ β1 
+
+> t
+
+≤ λt imply that β2 
+
+> t
+
+or αt can take nonzero value only when β1 
+
+> t
+
+= λt = M . We introduce a variable S that denotes the total time that the β1 control is active, i.e., S := R 10 β1 
+
+> t
+
+dt ∈ [0 , M ]. As a result, it is optimal to restrict β1 
+
+> t
+
+= λt = M on a fixed interval given by [0 , S/M ]. Theorem 2 further implies that αt enjoys a late-filled structure. The remaining caveat is to characterize the structure of the β2 control. The key result of this section is to show that the β2 control will only be active on a single interval, as formalize by the following lemma. 
+
+Lemma 7. When m = 2 and assuming λt = M for every t, there exists an optimal solution 
+
+{β1,∗ 
+
+> t
+
+, α ∗ 
+
+> t
+
+, β 2,∗ 
+
+> t
+
+, ∀t ∈ [0 , 1] } to PoisOPTRe K (s) in (14) such that β1 
+
+> t
+
+= λt = M for t ∈ [0 , S/M ] and 0
+
+otherwise, for some S, αt enjoys a late-filled structure as specified in Theorem 2, and β2 control is active (takes value equivalent to M ) on a single interval within [0 , S ] and 0 otherwise. 
+
+Since Lemma 7 establishes that β2 control is active in one interval, this active range can be parameterized by two variables a and b. As a results, it is sufficient to focus on a reduced problem with 4 variables, given by Λ 1, S, a, and b. We now introduce the feasible set for these variables as 
+
+Z2,M := {(S, a, b, Λ1) : 0 ≤ a ≤ b ≤ S ≤ M, b − a ≤ Λ1 ≤ S} . (15) We further define the following quantities for any c > 0, 
+
+PK (c) := Pr[Pois( c) ≤ K − 1] , HK (c) := E[min {Pois( c), K }].
+
+For any z = ( S, a, b, Λ1) ∈ Z 2,M , we define the corresponding β2 control as 
+
+β2 
+
+> z
+
+(t) := M · 1[a/M,b/M ](t), t ∈ [0 , S/M ]. (16) 19 
+
+and the corresponding normalized α control can be represented as 
+
+αz (t) := 
+
+
+
+M · 1h S−Λ1  
+
+> M,SM
+> i
+
+(t), S − Λ1 ≤ a, M · 1[ aM , bM ]∪   
+
+> hS−Λ1+b−aM,SM
+> i
+
+(t), S − Λ1 > a. (17) Note that it holds 
+
+β2 
+
+> z
+
+(t) ≤ αz (t) ≤ M, and 
+
+Z S/M 
+
+> 0
+
+αz (t)dt = Λ 1.
+
+The two cases in (17) have a simple interpretation. If S − Λ1 ≤ a, the optional α mass begins before the β2 interval, and α is supported on the terminal interval  S−Λ1 
+
+> M
+
+, SM
+
+. If S − Λ1 > a , the β2 interval forces an early α block, while the remaining optional α mass is placed on the terminal interval 
+
+ S−Λ1+b−aM , SM
+
+.Now for z ∈ Z 2,M , let the state dynamics xz = {xk, z 
+
+> t
+
+} satisfy 
+
+dx k, z
+
+> t
+
+dt = −rz 
+
+> k
+
+(t)xk, z 
+
+> t
+
++ rz
+
+> k+1
+
+(t)xk+1 ,z 
+
+> t
+
+, t ∈ [0 , S/M ], (18) where we let 
+
+xK, z 
+
+> 0
+
+= 1 , xk, z 
+
+> 0
+
+= 0 , ∀k < K, and rz 
+
+> k
+
+(t) = 
+
+(
+
+β2 
+
+> z
+
+(t), 1 ≤ k ≤ s2,M, s2 < k ≤ K, 
+
+with the convention that rz
+
+> K+1
+
+(t) = xK+1 ,z 
+
+> t
+
+= 0 for any t. We further define the quantities 
+
+R1(z) := 
+
+> K
+
+X
+
+> k=1
+
+xk, z
+
+> SM
+
+, R2(z) := 
+
+> K
+
+X
+
+> k=s2+1
+
+xk, z
+
+> SM
+
+, R3(z) := 
+
+Z SM
+
+> 0
+
+"
+
+β2 
+
+> z
+
+(t) ·
+
+> s2
+
+X
+
+> k=1
+
+xk, z 
+
+> t
+
++ αz (t) ·
+
+> K
+
+X
+
+> k=s2+1
+
+xk, z
+
+> t
+
+#
+
+dt (19) as well as 
+
+R4(z) := 
+
+Z SM
+
+> 0
+
+"
+
+β2 
+
+> z
+
+(t) ·
+
+> s2
+
+X
+
+> k=1
+
+xk, z 
+
+> t
+
++ M ·
+
+> K
+
+X
+
+> k=s2+1
+
+xk, z
+
+> t
+
+#
+
+dt. (20) Finally, we can show that the competitive ratio guarantee can be obtained from the following expression ΘK,s 2,M (z) := max 
+
+
+
+R1(z), R2(z)
+
+PK (Λ 1) , R3(z)
+
+HK (Λ 1) , R4(z)
+
+HK (M )
+
+
+
+. (21) When Λ 1 = 0, feasibility forces β2 
+
+> z
+
+(t) = αz (t) = 0 for any t, so we have R3(z) = 0. Note that in this boundary case, we interpret the quantity R3(z)/H K (Λ 1) as zero. 
+
+Theorem 3. When m = 2 , for every fixed M > 0 and every s2 ∈ { 1, . . . , K − 1}, it holds that 
+
+PoisOPTRe K (s) = min 
+
+> z∈Z 2,M
+
+ΘK,s 2,M (z), (22) 
+
+where the set Z2,M is given in (15) and the expression ΘK,s 2,M (z) is defined in (21) .20 
+
+Proof of Theorem 3. Fix M > 0. By Lemma 6, throughout the proof we take λt = M . Further note that from Lemma 7, it is sufficient to consider the control β2 
+
+> t
+
+such that β2 
+
+> t
+
+= β2 
+
+> z
+
+(t) for any t,for some z ∈ Z 2,M . As a result, the corresponding state dynamics x can be expressed exactly as xz ,for some z ∈ Z 2,M , by noting that we always have β1 
+
+> t
+
+= M for t ∈ [0 , S/M ] according to Lemma 7. We now specify the formulation for the α control. Note that from Lemma 7 and Theorem 2, it is optimal to consider the α control that enjoys a late-filled structure. To be specific, we know that there exists a parameter w such that 
+
+αt =
+
+(
+
+β2 
+
+> t
+
+, t ≤ w, β1 
+
+> t
+
+, t > w. 
+
+We further have the constraints that Λ 1 = R 1 
+
+> t=0
+
+αtdt . Therefore, when S − Λ1 ≤ a, we know that 
+
+α-control becomes active before the β2-control becomes active, i.e., the parameter w is set such that w = S−Λ1 
+
+> M
+
+. On the other hand, when S − Λ1 > a , we know that the β2 control becomes active earlier than the time S−Λ1 
+
+> M
+
+, which forces the α-control to be active in the time interval  aM , bM
+
+
+
+through the chaining constraint (14i). The constraint that Λ 1 = R 1 
+
+> t=0
+
+αtdt finally forces the α control to be active in the time interval  S−Λ1+b−aM , SM
+
+. In this way, we show that it is sufficient to consider the control α such that αt = αz (t) for any t.We finally express both sides of the constraints (14b), (14c), (14d), and (14e). It is clear to see that the left hand sides can be expressed through PK (Λ 1), Hk(Λ 1), and HK (M ), while the right hand sides can be expressed through 
+
+> s2
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+β2 
+
+> t
+
+xkt dt +
+
+> K
+
+X
+
+> k=s2+1
+
+Z 1
+
+> t=0
+
+αtxkt dt = R3(z)and Z SM
+
+> 0
+
+"
+
+β2 
+
+> z
+
+(t) ·
+
+> s2
+
+X
+
+> k=1
+
+xk, z 
+
+> t
+
++ M ·
+
+> K
+
+X
+
+> k=s2+1
+
+xk, z
+
+> t
+
+#
+
+dt = R4(z).
+
+In this way, we prove that the maximum θ to satisfy the constraints (14b), (14c), (14d), and (14e) can be selected as the ratio ΘK,s 2,M (z) := max 
+
+
+
+R1(z), R2(z)
+
+PK (Λ 1) , R3(z)
+
+HK (Λ 1) , R4(z)
+
+HK (M )
+
+
+
+.
+
+Our proof is thus completed. □
+
+The above Theorem 3 enables us to reduce computing PoisOPTRe K (s) into solving a simpler optimization problem. Though the optimization problem is still in general non-convex, it only contains 3 free variables, and thus can be solved efficiently by grid search Note that the problem can be solved only for a finite M , while the competitive ratio guarantee is obtained when M → ∞ 
+
+(It is direct to see that the value of PoisOPTRe K (s, M ) decreases with M ). Nevertheless, we show in the following proposition that min z∈Z 2,M ΘK,s 2,M (z) converges to its limit quite quickly. 21 
+
+Proposition 1. Let the set Z2,M is given in (15) and the expression ΘK,s 2,M (z) is defined in 
+
+(21) . Then, for any s2 ∈ [K − 1] , for M large enough, it holds that 
+
+γ∗ 
+
+> K, 2
+
+≥ min 
+
+> z∈Z 2,M
+
+ΘK,s 2,M (z) − K − HK (M )
+
+HK (M ) ,
+
+where we have 
+
+K − HK (M )
+
+HK (M ) = e−MK−1X
+
+> j=0
+
+(K − j) M j
+
+j!
+
+! , 
+
+K − e−MK−1X
+
+> j=0
+
+(K − j) M j
+
+j!
+
+!
+
+= O  e−M M K−1 .
+
+For 2 ≤ K ≤ 8, the bound in Proposition 1 is at most 1 .41 × 10 −4 when M = 20, and at most 3.85 × 10 −6 when M = 25. We report the computed values in Table 2 for M = 10 6.Value of K 2 3 4 5 6 7 8Our Bounds ( m = 2) 0.6269 0.6732 0.7014 0.7218 0.7376 0.7503 0.7607            
+
+> Table 2 Our competitive ratios when m= 2 for K= 2 up to K= 8 , for M= 10 6.
+
+## 6. Structural Characterization for General Thresholds 
+
+In this section, we develop a finite-dimensional structural characterization of the optimal beta controls in the relaxed Poisson optimization problem PoisOPTRe K (s) in (11) for a general number of thresholds m and a general switching vector s. The formulation in (11) is infinite-dimensional because the controls {αit, β it : i ∈ [m], t ∈ [0 , 1] } are functions over time. The purpose of this section is to show that, after fixing the total alpha masses 
+
+Ai := 
+
+Z 10
+
+αit dt, i = 1 , . . . , m − 1,
+
+one can restrict attention to β-controls described by finitely many switching times. The structural intuition is the following. By Lemma 5, for every time t, the vector ( β1 
+
+> t
+
+, . . . , β mt )has a cutoff structure: the first few beta levels are active, and the remaining beta levels are inac-tive. Therefore, instead of optimizing over m arbitrary functions, it is enough to understand how this cutoff index changes over time. The key difficulty is to characterize the shape of the cutoff index function r(t) from Lemma 5. We prove that the first nontrivial β level β2 can be chosen to be active on a single interval, and that each deeper β level has a bounded number of active “islands” inside the active time of the previous level. The final conclusion is that, for every fixed vector A = ( A1, . . . , A m−1), the fixed-A problem reduces to a finite-dimensional optimization over at most 4 m2 − 8m − 5 number of β-timing variables, independent of K. This result gives a clean characterization of the optimal structure of PoisOPTRe K (s) for general m and enables us to reduce solving PoisOPTRe K (s) into solving an optimization problem with a limited number of variables. 22 
+
+6.1. Active-time Representation 
+
+We use the extreme-point structure from Lemma 5 to develop a new representation of PoisOPTRe K (s) using the active time of the β-level. After the active-time reparametrization, each normalized beta indicator Di is either active, taking value 1, or inactive, taking value 0. The origi-nal formulation uses calendar time t ∈ [0 , 1]. In this section, it is convenient to re-parametrize time by the cumulative active arrival mass of the first beta level. By Lemma 5, on every non-idle period, we have β1 
+
+> t
+
+= λt, while on idle periods it holds that β1 
+
+> t
+
+= 0. Define the active-time clock 
+
+S := 
+
+Z 10
+
+β1 
+
+> s
+
+ds. 
+
+Since the state dynamics in (11f) depend on the controls only through their integrated inten-sities, this change of variables preserves the objective and the feasibility constraints. After this reparametrization, we relabel the active-time variable again by t. Thus, throughout this section, we let t ∈ [0 , S ] denotes the active time corresponding to an optimal β-control, not the original calendar time. In this active-time scale, β1 ≡ 1, and from Lemma 5, we can write the normalized control (later proved in the appendix) that 
+
+Di(t) := βit
+
+β1
+
+> t
+
+∈ { 0, 1}, i = 1 , . . . , m. 
+
+Thus, we have that D1(t) = 1, and the chain constraints in (11g) imply that 1 = D1(t) ≥ D2(t) ≥ · · · ≥ Dm(t) ≥ 0.
+
+From the previous conditions, it is convenient to consider the mode structure. We call mode r ∈ [m]is active at time t by meaning that 
+
+D1(t) = · · · = Dr (t) = 1 , Dr+1 (t) = · · · = Dm(t) = 0 .
+
+Therefore, in order to characterize the optimal β-control, it is equivalent to characterize the optimal 
+
+D-control, where the α-control follows a late-filled pattern as described in Lemma 4 and Theorem 2. 
+
+6.2. Structural Characterization 
+
+We now describe the structural form of an optimal beta schedule. For every level i, define its accumulated active time as 
+
+Li(t) := 
+
+Z t
+
+> 0
+
+Di(s)ds, Li := Li(S).
+
+Thus, we have that 
+
+S = L1 ≥ L2 ≥ · · · ≥ Lm ≥ 0 and Li+1 ≤ Ai ≤ Li, i = 1 , . . . , m − 1.23 
+
+The key observation is that βit can only be active when the lower level βi−1 
+
+> t
+
+is active. Therefore, for level i ≥ 2, the natural time scale is not the original active time t, but the time during which level i − 1 is active. To describe this, imagine deleting all time intervals on which Di−1 = 0, and concatenating the remaining pieces. The resulting collapsed timeline has length Li−1. For a beta schedule D = ( D1, . . . , D m), define Ji(D) to be the smallest integer J such that, after this collapse, the active set of Di can be written as a union of J intervals. Equivalently, Ji(D) is the smallest J
+
+for which there exist endpoints 0 ≤ ai, 1 ≤ bi, 1 ≤ ai, 2 ≤ bi, 2 ≤ · · · ≤ ai,J ≤ bi,J ≤ Li−1 such that Di(t) = Di−1(t)·1{Li−1(t)∈SJℓ=1 [ai,ℓ ,b i,ℓ ]}.
+
+In words, Ji(D) is the number of active islands of beta level i, measured inside the active time of beta level i − 1. The next lemma gives a general safe bound on the number of beta islands. 
+
+Lemma 8. Fix m ≥ 3 and a vector A = ( A1, . . . , A m−1). There exists an optimal solution to the fixed-A problem with beta indicators D∗ such that Jm(D∗) ≤ 2, and, for every intermediate level 
+
+i = 3 , . . . , m − 1, it holds 
+
+Ji(D∗) ≤ 4( m − i + 1) + 2 .
+
+The lemma controls how often each deeper beta level can turn on and off. For a fixed level i,while level i − 1 is active, the Hamiltonian defines a one-dimensional full-block switching gap that compares the shallower mode with all deeper modes. The derivative of this full-block gap reduces, after a telescoping calculation, to a boundary marginal term. At the bottom level, this marginal has an explicit Poisson-tail form whose derivative has at most one zero. Hence the bottom beta level can have at most two active islands. For an intermediate level, the corrected marginal is obtained from lower-level information through a convolution. A fixed-horizontal-level variation-diminishing argument bounds the number of its nonnegative superlevel components. A vanishing strict regularization rules out singular switching intervals and converts these superlevel bounds into 
+
+Ji(D∗) ≤ 4( m − i + 1) + 2. The perturbations are then sent to zero; compactness of the endpoint representation preserves the same island bounds for an exact optimum of the original problem. Lemma 8 controls all levels from 3 through m. The first nontrivial β level, D2, admits a sharper and separate characterization in that it can be chosen to be active on a single interval. 
+
+Lemma 9. For every fixed vector A = ( A1, . . . , A m−1), there exists an optimal solution to the fixed-A problem with β indicators D∗ such that D∗ 
+
+> 2
+
+is active on a single interval, in addition to the conditions in Lemma 8. 
+
+The indicator D2 is the first gate into all lower β levels. When D2 = 0, every deeper level D3, . . . , D m
+
+is also inactive. Thus, if D2 turned on, then off, and then on again, the middle off-period would 24 
+
+mean that closing this gate is optimal only temporarily. The key point is that, on such a D2 = 0 gap, the marginal comparison between “reopen D2” and “stay in mode 1” cannot form the hump needed for a strict internal gap. It is valley-shaped: it can move from decreasing to increasing, but not the reverse. Hence a strict internal D2 = 0 gap is impossible and the only possible gap is a flat tie. A vanishing tie-breaking perturbation removes these flat ties, and sending the perturbation to zero gives an optimal solution of the original problem with D2 connected. Together, Lemma 8 and Lemma 9 give the following structural theorem. 
+
+Theorem 4. Fix m ≥ 3 and A = ( A1, . . . , A m−1). There exists an optimal solution to the fixed-A
+
+version of PoisOPTRe K (s), with beta indicators D∗, such that D∗ 
+
+> 2
+
+is active on a single interval, and, for every i = 3 , . . . , m − 1, it holds Ji(D∗) ≤ 4( m − i + 1) + 2 . Consequently, the optimal beta control can be represented using timing variables with a number at most 4m2 − 8m − 5.Proof of Theorem 4. By Lemma 9, there exists an optimal fixed-A solution in which D∗ 
+
+> 2
+
+is active on a single interval. This interval requires two endpoints. By Lemma 8, the bottom level satisfies 
+
+Jm(D∗) ≤ 2, and hence requires at most four endpoints. For every intermediate level i = 3 , . . . , m −1, we have Ji(D∗) ≤ 4( m − i + 1) + 2. Since each active interval requires two endpoints in the active time of level i − 1, level i requires at most 2Ji(D∗) ≤ 8( m − i + 1) + 4 endpoint variables. Adding the active horizon S, the two endpoints of D∗ 
+
+> 2
+
+, the four endpoints of the bottom level, and the endpoints of the intermediate levels gives 1 + 2 + 4 + 
+
+> m−1
+
+X
+
+> i=3
+
+ 8( m − i + 1) + 4  = 4 m2 − 8m − 5.
+
+Our proof is thus completed. □
+
+The above Theorem 4 gives a nested-island structure. The first nontrivial β-level D∗ 
+
+> 2
+
+is one outer interval, shown by Lemma 9. Inside the active time of D∗ 
+
+> 2
+
+, the next level D∗ 
+
+> 3
+
+may have active islands. Inside the active time of D∗ 
+
+> 3
+
+, the next level D∗ 
+
+> 4
+
+may again have islands, and so on. The number of possible islands is bounded through Lemma 8. 
+
+6.3. Finite-parameter Reduced Problem 
+
+We now write the finite-dimensional problem implied by Theorem 4. Let Z(A) be the set of endpoint vectors described as follows. First choose the active horizon S ∈ [0 , M ]. Then choose one interval [ a2, b 2] ⊆ [0 , S ], and set D2(t) = 1[a2,b 2](t), which implies that L1 = S and L2 = b2 − a2. For the deeper levels, define 
+
+Ni := 
+
+(
+
+4( m − i + 1) + 2 , i = 3 , . . . , m − 1,
+
+2, i = m. 25 
+
+For each level i = 3 , . . . , m , choose Ni possibly zero-length intervals in the active time of level i − 1: 0 ≤ ai, 1 ≤ bi, 1 ≤ ai, 2 ≤ bi, 2 ≤ · · · ≤ ai,N i ≤ bi,N i ≤ Li−1.
+
+Then we define Di recursively by 
+
+Di(t) = Di−1(t)1n
+
+> Li−1(t)∈SNiℓ=1 [ai,ℓ ,b i,ℓ ]
+> o
+
+.
+
+This construction automatically enforces the constraint D1 ≥ D2 ≥ · · · ≥ Dm. The total activity of level i is Li = R S 
+
+> 0
+
+Di(t)dt . Under the endpoint parametrization above, we have that 
+
+Li =
+
+> Ni
+
+X
+
+> ℓ=1
+
+(bi,ℓ − ai,ℓ ), i = 3 , . . . , m, 
+
+which is required to satisfy the feasibility constraints 
+
+Li+1 ≤ Ai ≤ Li, i = 1 , . . . , m − 1.
+
+Given z ∈ Z (A), let Dz be the beta indicators generated by the endpoint vector z. Let αz be the alpha controls obtained from Dz by the late-fill rule in Lemma 4 and Theorem 2. Let xz be the solution to the state equations in (11f) under these controls. Define Θ A(z, s, M ) to be the objective value of the fixed-A version of PoisOPTRe K (s, M ) evalu-ated under ( Dz , αz , xz ). Equivalently, Θ A(z, s, M ) is the maximum over the normalized left-hand sides of the covering constraints in (11), evaluated under the controls generated by z. Then the fixed-A problem is equivalent to the finite-dimensional optimization min 
+
+> z∈Z (A)
+
+ΘA(z, s, M ).
+
+By Theorem 4, this finite-dimensional problem has the same value as the original fixed-A infinite-dimensional problem. The number of beta timing variables is 1 + 2 + 
+
+> m
+
+X
+
+> i=3
+
+2Ni = 4 m2 − 8m − 5.
+
+Here the first variable is the active horizon S, the next two variables are the endpoints of D2, the next four variables describe the at most two bottom-level islands, and the remaining variables are the endpoints of the intermediate beta islands. If one also optimizes over the alpha masses A, then the outer problem becomes PoisOPTRe K (s, M ) = min  
+
+> A
+
+min 
+
+> z∈Z (A)
+
+ΘA(z, s, M ),
+
+with A = ( A1, . . . , A m−1). This adds additional m − 1 scalar variables to the fixed-A reduced prob-lem and gives the precise value of PoisOPTRe K (s, M ). 26 
+
+6.3.1. Illustration when m = 3 When m = 3, the general structural bound in Theorem 4 becomes 4 m2 − 8m − 5 = 7. The structure has a simple interpretation. The first nontrivial β level 
+
+D2 is active on one interval. Inside the active time of D2, the third level D3 is allowed to have at most two active islands. Thus the β mode can be chosen to follow the mode pattern 1(23232)1 0, where it belongs to mode 0 when even β1 becomes inactive. Equivalently, the active part of the mode sequence has the form 1h1 2h2 3h3 2h4 3h5 2h6 1h7 ,
+
+followed by idle time 0 h0 . The two 3-segments represent the two possible active islands of D3 inside the single D2-interval. Following Section 6.3, one convenient endpoint parametrization is to use the 7 timing vari-ables S, a 2, b 2, a 3,1, b 3,1, a 3,2, b 3,2 for β control. Therefore, for m = 3 and fixed ( A1, A 2), the infinite-dimensional fixed-A problem reduces to the finite-dimensional problem min 
+
+> z∈Z (A1,A 2)
+
+ΘA1,A 2 (z, s, M ),
+
+where z = ( S, a 2, b 2, a 3,1, b 3,1, a 3,2, b 3,2), Z(A1, A 2) is the set of endpoint vectors satisfying the order-ing and feasibility constraints, and Θ A1,A 2 (z, s, M ) is the objective value of PoisOPTRe K (s, M )generated by the corresponding β-schedule and late-filled α-controls. To compute the exact value of PoisOPTRe K (s, M ), we also need to minimize over A, which in total yields 9 variables to op-timize over. The problem can be solved by grid search. Finally, to establish the worst case lower bound, we take M → ∞ (It is direct to see that the value of PoisOPTRe K (s, M ) decreases with 
+
+M ). Similar to Proposition 1, we obtain the following bound regarding the convergence rate. 
+
+Proposition 2. For any s, it holds that 
+
+γ∗ 
+
+> K, 3
+
+≥ min  
+
+> A
+
+min 
+
+> z∈Z (A)
+
+ΘA(z, s, M ) − K − HK (M )
+
+HK (M ) .
+
+The bound of K−HK (M )   
+
+> HK(M)
+
+has been discussed in Proposition 1. We report the values in Table 3 for 
+
+M = 10 6.Value of K 3 4 5 6 7 8Our Ratios ( m = 3) 0.6816 0.7119 0.7324 0.7479 0.7604 0.7707            
+
+> Table 3 Our competitive ratios when m= 3 for K= 3 up to K= 8 , for M= 10 6.
+
+## 7. Concluding Remarks 
+
+In this paper, we provided a comprehensive analysis of stock-based pricing policies for the multi-unit prophet inequality. By introducing a novel reduction to a finite-dimensional Poisson optimization problem, we overcame the challenge of the infinite-dimensional adversarial strategy space. Our 27 
+
+analysis reveals that the worst-case scenarios for these static policies follow a special structure, characterized by extreme arrival intensities. This structural characterization allowed us to lower bound the guarantee for m = 2 and m = 3, for any initial inventory level K, establishing explicit worst-case guarantees of static thresholds in non-stationary environments. Broadly, our findings of-fer a rigorous theoretical justification for the widespread industrial reliance on inventory contingent pricing. the numerical results suggest that the loss from restricting to stock-based thresholds may be modest. Future work may extend this framework to settings with reusable resources or more complex combinatorial constraints, further exploring the boundaries of oblivious decision-making. 
+
+## References 
+
+S. Agrawal, Y. Feng, and W. Tang. Simple and robust quality disclosure: The power of quantile partition. 
+
+arXiv preprint arXiv:2602.01066 , 2026. S. Alaei. Bayesian combinatorial auctions: Expanding single buyer mechanisms to many buyers. SIAM Journal on Computing , 43(2):930–972, 2014. A. AmaniHamedani, A. Aouad, T. Pollner, and A. Saberi. Improved approximations for stationary bipartite matching: Beyond probabilistic independence. arXiv preprint arXiv:2411.08218 , 2024. A. Amil, A. Makhdoumi, and Y. Wei. Multi-item order fulfillment revisited: Lp formulation and prophet inequality. Management Science , 71(12):9917–9935, 2025. M. R. Aminian, R. Niazadeh, and P. Nuti. Stationary online contention resolution schemes. arXiv preprint arXiv:2603.21532 , 2026. N. Arnosti and W. Ma. Tight guarantees for static threshold policies in the prophet secretary problem. In 
+
+Proceedings of the 23rd ACM Conference on Economics and Computation , pages 242–242, 2022. A. Asadpour and H. Nazerzadeh. Maximizing stochastic monotone submodular functions. Management Science , 62(8):2374–2391, 2016. Y. Bai, O. El Housni, B. Jin, P. Rusmevichientong, H. Topaloglu, and D. P. Williamson. Fluid approximations for revenue management under high-variance demand. Management Science , 69(7):4016–4026, 2023. M. O. Ball and M. Queyranne. Toward robust revenue management: Competitive analysis of online booking. 
+
+Operations Research , 57(4):950–963, 2009. S. R. Balseiro, W. Ma, and W. Zhang. Dynamic pricing for reusable resources: The power of two prices. 
+
+Operations Research , 74(3):1476–1495, 2026. O. Besbes, A. N. Elmachtoub, and Y. Sun. Static pricing: Universal guarantees for reusable resources. 
+
+Operations Research , 70(2):1143–1152, 2022. G. R. Bitran and S. V. Mondschein. An application of yield management to the hotel industry considering multiple day stays. Operations research , 43(3):427–443, 1995. 28 J. H. Blanchet, M. I. Reiman, V. Shah, L. M. Wein, and L. Wu. Asymptotically optimal control of a centralized dynamic matching market with general utilities. Operations Research , 70(6):3355–3370, 2022. C. W. Chan and V. F. Farias. Stochastic depletion problems: Effective myopic policies for a class of dynamic optimization problems. Mathematics of Operations Research , 34(2):333–350, 2009. S. Chawla, J. D. Hartline, D. L. Malec, and B. Sivan. Multi-parameter mechanism design and sequential posted pricing. In Proceedings of the Forty-Second ACM Symposium on Theory of Computing , pages 311–320. Association for Computing Machinery, 2010. S. Chawla, N. Devanur, and T. Lykouris. Static pricing for multi-unit prophet inequalities. Operations Research , 72(4):1388–1399, 2024. S. Chawla, T. Dang, Z. Huang, and Y. Wang. Multi-unit combinatorial prophet inequalities. arXiv preprint arXiv:2505.16054 , 2025. N. Collina, N. Immorlica, K. Leyton-Brown, B. Lucier, and N. Newman. Dynamic weighted matching with heterogeneous arrival and departure rates. In International Conference on Web and Internet Economics , pages 17–30. Springer, 2020. J. Correa, P. Foncea, R. Hoeksma, T. Oosterwijk, and T. Vredeveld. Recent developments in prophet inequalities. ACM SIGecom Exchanges , 17(1):61–70, 2019a. J. Correa, P. Foncea, D. Pizarro, and V. Verdugo. From pricing to prophets, and back! Operations Research Letters , 47(1):25–29, 2019b. A. N. Elmachtoub and J. Shi. The power of static pricing for reusable resources. In Proceedings of the 26th ACM Conference on Economics and Computation , pages 357–357, 2025. M. Feldman, O. Svensson, and R. Zenklusen. Online contention resolution schemes with applications to bayesian selection problems. SIAM Journal on Computing , 50(2):255–300, 2021. Y. Feng and G. Gallego. Perishable asset revenue management with markovian time dependent demand intensities. Management Science , 46(7):941–956, 2000. doi: 10.1287/mnsc.46.7.941.12035. M. Fisher and A. Raman. Reducing the cost of demand uncertainty through accurate response to early sales. 
+
+Operations research , 44(1):87–99, 1996. W. H. Fleming and R. W. Rishel. Deterministic and stochastic optimal control . Springer Science & Business Media, 2012. G. Gallego and G. Van Ryzin. Optimal dynamic pricing of inventories with stochastic demand over finite horizons. Management science , 40(8):999–1020, 1994. G. Gallego and G. Van Ryzin. A multiproduct dynamic pricing problem and its applications to network yield management. Operations research , 45(1):24–41, 1997. 29 D. A. Goldberg, D. A. Katz-Rogozhnikov, Y. Lu, M. Sharma, and M. S. Squillante. Asymptotic optimality of constant-order policies for lost sales inventory models with large lead times. Mathematics of Operations Research , 41(3):898–913, 2016. M. T. Hajiaghayi, R. Kleinberg, and T. Sandholm. Automated online mechanism design and prophet in-equalities. In AAAI , volume 7, pages 58–65, 2007. J. Jiang. Constant approximation for network revenue management with markovian-correlated customer arrivals. In International Conference on Web and Internet Economics , pages 704–746. Springer, 2025. J. Jiang, W. Ma, and J. Zhang. Tight guarantees for multiunit prophet inequalities and online stochastic knapsack. Operations Research , 73(3):1703–1721, 2025a. J. Jiang, W. Ma, and J. Zhang. Tightness without counterexamples: A new approach and new results for prophet inequalities. Mathematics of Operations Research , 2025b. M. Kapralov, I. Post, and J. Vondr´ ak. Online submodular welfare maximization: Greedy is optimal. In 
+
+Proceedings of the Twenty-Fourth Annual ACM-SIAM Symposium on Discrete Algorithms , pages 1216– 1225. SIAM, 2013. R. M. Karp, U. V. Vazirani, and V. V. Vazirani. An optimal algorithm for on-line bipartite matching. In 
+
+Proceedings of the Twenty-Second Annual ACM Symposium on Theory of Computing , pages 352–358. Association for Computing Machinery, 1990. K. Kessel, A. Saberi, A. Shameli, and D. Wajc. The stationary prophet inequality problem. In Proceedings of the 23rd ACM Conference on Economics and Computation . Association for Computing Machinery, 2022. R. Kleinberg and S. M. Weinberg. Matroid prophet inequalities. In Proceedings of the forty-fourth annual ACM symposium on Theory of computing , pages 123–136, 2012. A. J. Kleywegt and J. D. Papastavrou. The dynamic and stochastic knapsack problem. Operations Research ,46(1):17–35, 1998. doi: 10.1287/opre.46.1.17. B. Knaster, K. Kuratowski, and S. Mazurkiewicz. Ein beweis des fixpunktsatzes f¨ ur n-dimensionale simplexe. 
+
+Fundamenta Mathematicae , 14(1):132–137, 1929. U. Krengel and L. Sucheston. On semiamarts, amarts, and processes with finite value. Probability on Banach spaces , 4:197–266, 1978. W. Li, P. Rusmevichientong, and H. Topaloglu. Revenue management with calendar-aware and dependent demands: Asymptotically tight fluid approximations. Operations Research , 73(3):1260–1272, 2025. B. Lucier. An economic view of prophet inequalities. ACM SIGecom Exchanges , 16(1):24–47, 2017. W. Ma, D. Simchi-Levi, and J. Zhao. Dynamic pricing (and assortment) under a static calendar. Management Science , 67(4):2292–2313, 2021. A. Mehta, A. Saberi, U. V. Vazirani, and V. V. Vazirani. AdWords and generalized online matching. Journal of the ACM , 54(5), 2007. 30 N. Patel and D. Wajc. Combinatorial stationary prophet inequalities. In Proceedings of the 2024 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA) , pages 4605–4630. SIAM, 2024. S. Perez-Salazar, M. Singh, and A. Toriello. The iid prophet inequality with limited flexibility. Mathematics of Operations Research , 51(1):218–254, 2026. I. J. Schoenberg. On variation-diminishing integral operators of the convolution type. Proceedings of the National Academy of Sciences of the United States of America , 34(4):164–169, 1948. doi: 10.1073/pnas. 34.4.164. R. B. Vinter. Optimal Control . Birkh¨ auser, Boston, 2000. S. Wang. The power of simple menus in robust selling mechanisms. Management Science , 71(6):5268–5287, 2025. L. Xin and D. A. Goldberg. Optimality gap of constant-order policies decays exponentially in the lead time for lost sales models. Operations Research , 64(6):1556–1565, 2016. Q. Yuan, L. Du, and M. Hu. Dynamic pricing under self-exciting arrival processes. Operations Research , 74 (3):1408–1424, 2026. W. Zhao and Y.-S. Zheng. Optimal dynamic pricing for perishable assets with nonhomogeneous demand. 
+
+Management Science , 46(3):375–388, 2000. doi: 10.1287/mnsc.46.3.375.12063. 31 
+
+Appendix A: Missing Proofs of Section 3 
+
+A.1. Proof of Lemma 1 
+
+Let N be the realized number of arrivals and let Q1, . . . , Q N ∈ [0 , 1] be their realized types. Write Q(1) ≥
+
+Q(2) ≥ · · · for the decreasing order statistics, with the convention Q(j) = 0 for j > N . For q ∈ [0 , 1], define 
+
+Nq := PNj=1 1{Qj ≥ q} as the number of arrivals with an index greater than or equal to q. Pathwise, the following identity holds: K
+
+X
+
+> j=1
+
+F (Q(j)) = 
+
+Z
+
+> [0 ,1]
+
+min {Nq , K } dF (q). (23) Indeed, an increment dF (q) is counted once for each of the top K types that is at least q, and the number of such types is exactly min {Nq , K }. It is direct to see that Nq is Poisson with mean A(q) := R 10 λt
+
+ 1 − G′
+
+> t
+
+(q)dt .Taking expectations in (23) gives 
+
+ALG K (πoff , G) = 
+
+Z
+
+> [0 ,1]
+
+Emin {Nq , K }dF (q) = 
+
+Z
+
+> [0 ,1]
+
+E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 10
+
+λt(1 − G′
+
+> t
+
+(q)) dt 
+
+
+
+, K 
+
+ 
+
+dF (q),
+
+which is exactly (3). Our proof is completed. 
+
+A.2. Proof of Lemma 2 
+
+We prove a pointwise strong-duality statement for every fixed ( τ , s, G′), and then take the maximization over ( τ , s) ∈ Γ and the minimization over G′. Throughout the proof, the arrival-rate process λ is fixed and suppressed in the notation. Fix ( τ , s, G′), we write 
+
+gt(q) := dG ′
+
+> t
+
+(q)
+
+dq .
+
+For a valuation mapping F , let μ = dF be the corresponding nonnegative measure on [0 , 1], so that 
+
+F (q) = 
+
+Z
+
+> [0 ,q ]
+
+μ(dr ).
+
+For each q ∈ [0 , 1], define the prophet’s type-cover function 
+
+H1(q) := E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) λtdt 
+
+
+
+, K 
+
+ 
+
+.
+
+This is the expected number of type at least q customers selected by the prophet. Next let ( x, y ) be the unique solution of the forward equations (5c)–(5f), with the convention yK+1  
+
+> t
+
+(q) ≡ 0. Define the online type-cover function 
+
+H2(q) := 
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=q
+
+ykt (q′)dq ′dt. 
+
+This is the expected number of type at least q customers accepted by the stock-based threshold policy ( τ , s). We first show that, after eliminating the value-to-go variables in (4), the objective of OP( τ , s, G′) is exactly 
+
+Z
+
+> [0 ,1]
+
+H2(q) μ(dq ).
+
+For k ∈ [K], define 
+
+akt := 
+
+Z 1
+
+> q=τi(k)
+
+gt(q)λt dq, rkt := 
+
+Z 1
+
+> q=τi(k)
+
+F (q)gt(q)λt dq. 32 Then the backward equations (4b)–(4c) can be rewritten as 
+
+dV kt
+
+dt = −rkt + akt (V kt − V k−1 
+
+> t
+
+), k ∈ [K],
+
+where V 0 
+
+> t
+
+= 0. Meanwhile, the forward equations for the stock process are 
+
+dx kt
+
+dt = −akt xkt + ak+1  
+
+> t
+
+xk+1  
+
+> t
+
+, k ∈ [K],
+
+with the convention aK+1  
+
+> t
+
+xK+1  
+
+> t
+
+= 0. Therefore, we have that 
+
+ddt 
+
+> K
+
+X
+
+> k=1
+
+xkt V kt =
+
+> K
+
+X
+
+> k=1
+
+ −akt xkt + ak+1  
+
+> t
+
+xk+1 
+
+> t
+
+ V kt +
+
+> K
+
+X
+
+> k=1
+
+xkt
+
+ −rkt + akt (V kt − V k−1 
+
+> t
+
+) = −
+
+> K
+
+X
+
+> k=1
+
+xkt rkt .
+
+Using xK 
+
+> 0
+
+= 1, xk 
+
+> 0
+
+= 0 for k < K , and V k 
+
+> 1
+
+= 0 for all k, integrating over t ∈ [0 , 1] gives that 
+
+V K 
+
+> 0
+
+=
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+xkt
+
+Z 1
+
+> q′=τi(k)
+
+F (q′)gt(q′)λt dq ′dt. 
+
+By the definition of ykt (q′), this becomes 
+
+V K 
+
+> 0
+
+=
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=0
+
+F (q′)ykt (q′) dq ′dt. 
+
+Since F (q′) = R 
+
+> [0 ,q ′]
+
+μ(dq ), Fubini’s theorem yields that 
+
+V K 
+
+> 0
+
+=
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=0
+
+Z 
+
+> [0 ,q ′]
+
+μ(dq )
+
+
+
+ykt (q′) dq ′dt =
+
+Z
+
+> [0 ,1]
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=q
+
+ykt (q′)dq ′dt 
+
+!
+
+μ(dq ) = 
+
+Z
+
+> [0 ,1]
+
+H2(q) μ(dq ).
+
+By Lemma 1, the prophet value is 
+
+ALG K (πoff , G) = 
+
+Z
+
+> [0 ,1]
+
+H1(q) μ(dq ).
+
+Therefore, after normalizing the prophet value to one, the inner problem (4) is equivalent to the one-constraint measure linear program 
+
+P (τ , s, G′) := inf 
+
+> μ∈M +([0 ,1])
+
+Z 
+
+> [0 ,1]
+
+H2(q) μ(dq ) : 
+
+Z
+
+> [0 ,1]
+
+H1(q) μ(dq ) = 1 
+
+
+
+, (24) where M+([0 , 1]) denotes the cone of finite nonnegative Borel measures on [0 , 1]. The dual of (24) is 
+
+D(τ , s, G′) := sup 
+
+> θ∈R
+
+{θ : θH 1(q) ≤ H2(q), ∀q ∈ [0 , 1] } . (25) Indeed, after substituting the unique feasible solution ( x, y ) of (5c)–(5f), the constraint θH 1(q) ≤ H2(q) is exactly the type-cover constraint (5b). Thus (25) is exactly Dual( τ , s, G′). It remains to prove that (24) and (25) have the same value. Let 
+
+Q+ := {q ∈ [0 , 1] : H1(q) > 0}.
+
+We exclude the trivial case Q+ = ∅, in which the prophet value is zero for every valuation mapping and the normalized ratio is irrelevant. Define 
+
+ρ := inf 
+
+> q∈Q +
+
+H2(q)
+
+H1(q) .33 Since H1(q) ≥ 0 and H2(q) ≥ 0, we have ρ ≥ 0. Moreover, ρ is finite whenever the normalized problem is nontrivial. First consider the dual. If θ is feasible for (25), then for every q ∈ Q +, we have that θ ≤ H2(q) 
+
+> H1(q)
+
+.Hence θ ≤ ρ. Conversely, by the definition of ρ, we have that 
+
+ρH 1(q) ≤ H2(q), ∀q ∈ [0 , 1] ,
+
+where the inequality is automatic when H1(q) = 0. Thus θ = ρ is dual feasible, and the dual value is ρ. Now consider the primal. For any feasible μ in (24), it holds that 
+
+Z
+
+> [0 ,1]
+
+H2(q)μ(dq ) = 
+
+Z
+
+> Q+
+
+H2(q)
+
+H1(q) H1(q) μ(dq ) + 
+
+Z
+
+> [0 ,1] \Q +
+
+H2(q) μ(dq ) ≥ ρ
+
+Z
+
+> Q+
+
+H1(q) μ(dq ) = ρ. 
+
+Therefore the primal value is at least ρ. Conversely, for every ϵ > 0, choose qϵ ∈ Q + such that 
+
+H2(qϵ)
+
+H1(qϵ) ≤ ρ + ϵ. 
+
+The measure μϵ := 1 
+
+> H1(qϵ)
+
+δqϵ is feasible for (24), and its objective value is 
+
+Z
+
+> [0 ,1]
+
+H2(q) μϵ(dq ) = H2(qϵ)
+
+H1(qϵ) ≤ ρ + ϵ. 
+
+Letting ϵ ↓ 0 gives that the primal value is at most ρ. Thus, we have that 
+
+P (τ , s, G′) = D(τ , s, G′).
+
+Equivalently, it holds that OP( τ , s, G′) = Dual( τ , s, G′)for every fixed ( τ , s, G′). Since the equality OP( τ , s, G′) = Dual( τ , s, G′)holds pointwise for every ( τ , s, G′), we may maximize over ( τ , s) ∈ Γ and then minimize over G′ to obtain inf  
+
+> G′
+
+sup  
+
+> (τ,s)∈Γ
+
+OP( τ , s, G′) = inf  
+
+> G′
+
+sup  
+
+> (τ,s)∈Γ
+
+Dual( τ , s, G′).
+
+This proves the equality part of (6). Since Γ restricts to the class of oblivious and monotone stock-based threshold policies, it is clear to see that γ∗ 
+
+> K,m
+
+≥ γK,m , completing the proof. 
+
+A.3. Proof of Lemma 3 
+
+For fixed distributions G′ and index thresholds τ , we now define a function 
+
+H1(q) = E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+, ∀q ∈ [0 , 1] ,
+
+which denotes the expected number of customers with value index above q accepted by the offline optimum, for any q ∈ [0 , 1]. We also denote a function H2 such that 
+
+H2(q) = 
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=q
+
+yk∗ 
+
+> t
+
+(q′)dq ′dt, ∀q ∈ [0 , 1] ,34 for an optimal solution {θ∗, x k∗ 
+
+> t
+
+, y k∗ 
+
+> t
+
+(q), ∀t ∈ [0 , 1] , k ∈ [K], q ∈ [0 , 1] } to Dual( τ , G′), which denotes the ex-pected number of customers with value index above q accepted by our policy, for any q ∈ [0 , 1]. The constraint (5b) implies that 
+
+θ∗ · H1(q) ≤ H2(q) (26) for any q ∈ [0 , 1]. We now focus on an index ˆ q ∈ B (τ , s, G′) such that ˆ q ∈ [τi, τ i+1 ] for some i ∈ [m − 1]. Set τ0 := 0 and 
+
+τm+1 := 1, and define 
+
+r := max {j ∈ { 0, . . . , m } : τj ≤ ˆq} .
+
+Since ˆ q < 1, we have ˆ q < τ r+1 . Moreover, because ˆ q ∈ [τi, τ i+1 ], we have r ≥ i. Note that ˆ q ∈ B (τ , s, G′) implies that 
+
+θ∗ · H1(ˆ q) = H2(ˆ q). (27) Choose h > 0 sufficiently small that q + h < τ r+1 . The condition in (26) gives that 
+
+θ∗ · H1(ˆ q + h) ≤ H2(ˆ q + h).
+
+Subtracting the two relations give that 
+
+H2(ˆ q) − H2(ˆ q + h) ≤ θ∗ ·  H1(ˆ q) − H1(ˆ q + h).. (28) It is easily seen that H1 is continuously differentiable. We now provide further characterization on H′
+
+> 1
+
+(ˆ q)and H2(ˆ q) − H2(ˆ q + h). In what follows, we define 
+
+∇q G′
+
+> t
+
+(ˆ q) = G′
+
+> t
+
+(ˆ q + h) − G′
+
+> t
+
+(ˆ q)
+
+h .
+
+Characterization of H′
+
+> 1
+
+(ˆ q): By plugging in the probability formulation for Poisson random variables, we know that 
+
+H1(ˆ q) = 
+
+> K
+
+X
+
+> k=1
+
+k ·
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+k
+
+k! · exp 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+| {z }
+
+> I(ˆ q)
+
++
+
+> ∞
+
+X
+
+> k=K+1
+
+K ·
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+k
+
+k! · exp 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+| {z }
+
+> II (ˆ q)
+
+.
+
+It is clear to see that the term (R 1
+
+> t=0
+
+(1−G′
+
+> t(ˆ q)
+
+)·λtdt )k 
+
+> k!
+
+· exp 
+
+
+
+− R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+exactly express the prob-ability that Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+= k, 
+
+which gives the above expression for H1(ˆ q). We now take the derivative over ˆ q and analyze each part separately. 35 We first consider the part I that concerns k ≤ K. We have that 
+
+∇q I = I(ˆ q + h) − I(ˆ q)
+
+h =o(h) + 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt 
+
+
+
+· exp 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+·
+
+
+
+> K−1
+
+X
+
+> k=0
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+k
+
+k! − K ·
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+K
+
+K!
+
+ .
+
+Therefore, we know that 
+
+∇q I =o(h) + 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt 
+
+
+
+·
+
+
+
+Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+≤ K − 1
+
+
+
+− K · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+= K
+
+ 
+
+.
+
+We then consider the k such that k ≥ K + 1. We have that 
+
+∇q II = II (ˆ q + h) − II (ˆ q)
+
+h = o(h) + 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt 
+
+
+
+· exp 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+·
+
+
+
+> ∞
+
+X
+
+> k=K+1
+
+K ·
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+k−1
+
+(k − 1)! −
+
+> ∞
+
+X
+
+> k=K+1
+
+K ·
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+k
+
+k!
+
+
+
+=o(h) + 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt 
+
+
+
+· exp 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+· K ·
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+K
+
+K! .
+
+Therefore, we get that 
+
+H1(ˆ q + h) − H1(ˆ q)
+
+h = ∇q I + ∇q II 
+
+=o(h) + 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt
+
+
+
+· exp 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+·
+
+> K−1
+
+X
+
+> k=0
+
+R 1 
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+k
+
+k!=o(h) + 
+
+
+
+−
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt 
+
+
+
+· Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+≤ K − 1
+
+
+
+.
+
+Characterization of H2(ˆ q) − H2(ˆ q + h): Following the threshold policy rules, there is no policy threshold in (ˆ q, ˆq + h]. Hence, every type in this interval is accepted precisely in states k > s r+1 . We have that 
+
+H2(ˆ q) − H2(ˆ q + h) = 
+
+Z 10
+
+λt
+
+ G′
+
+> t
+
+(ˆ q + h) − G′
+
+> t
+
+(ˆ q) ·
+
+> K
+
+X
+
+> k=sr+1 +1
+
+xk∗ 
+
+> t
+
+dt ≥
+
+> K
+
+X
+
+> k=sr+1 +1
+
+xk∗ 
+
+> 1
+
+·
+
+Z 10
+
+λt
+
+ G′
+
+> t
+
+(ˆ q + h) − G′
+
+> t
+
+(ˆ q)dt, 
+
+where the second inequality follows by noting that from the update dynamics in (5e) and (5f), we have that 
+
+> K
+
+X
+
+> k′=sr+1 +1
+
+xk′∗ 
+
+> t
+
+= 1 −
+
+Z tt′=0 
+
+Z 1
+
+> q=0
+
+y(sr+1 +1) ∗ 
+
+> t′
+
+(q)dqdt ′ ≥ 1 −
+
+Z 1
+
+> t′=0
+
+Z 1
+
+> q=0
+
+y(sr+1 +1) ∗ 
+
+> t′
+
+(q)dqdt ′ =
+
+> K
+
+X
+
+> k′=sr+1 +1
+
+xk′∗
+
+> 1
+
+for any t ∈ [0 , 1]. In this way, we show that 
+
+H2(ˆ q) − H2(ˆ q + h) ≥ h ·
+
+> K
+
+X
+
+> k′=sr+1 +1
+
+xk′∗ 
+
+> t
+
+·
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt ≥ h ·
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′∗ 
+
+> t
+
+·
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt, 
+
+where the second inequality follows from r ≥ i. Therefore, the condition in (28) implies that, by taking h → 0, 
+
+θ∗ ·
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt 
+
+
+
+· Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′∗ 
+
+> t
+
+·
+
+Z 1
+
+> t=0
+
+∇q G′
+
+> t
+
+(ˆ q) · λtdt, 
+
+Therefore, we have that 
+
+θ∗ · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(ˆ q)) · λtdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′∗ 
+
+> 1
+
+. (29) Our proof is thus completed. 36 
+
+Appendix B: Missing Proofs of Section 4 
+
+B.1. Proof of Theorem 1 
+
+Note that from strong duality in Lemma 2, we always have that OP( τ ′, s′, G′) = Dual( τ ′, s′, G′). Thus, it is sufficient to show that PoisOPTRe K (s) ≤ max  
+
+> s′
+
+min  
+
+> G′
+
+max   
+
+> τ′
+
+Dual( τ ′, s′, G′) ≤ min  
+
+> G′
+
+max  
+
+> (τ′,s′)∈Γ
+
+Dual( τ ′, s′, G′).
+
+The second inequality holds from the definition. We only need to prove the first inequality. In order to prove the equality, we first fix s and show that it is optimal to have at least one binding type in each interval [τi, τ i+1 ] for each i. To be specific, we denote Tm := {τ ∈ [0 , 1] m : 0 ≤ τ1 ≤ · · · ≤ τm ≤ 1} to be the feasible set for the monotone threshold τ and define the m + 1 threshold cells 
+
+Ii(τ ) := [ τi, τ i+1 ], i = 0 , . . . , m. (30) For each index q ∈ [0 , 1], we further define 
+
+H1(q) = E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+and H2(q, τ ) = 
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=q
+
+ykt (q′, τ )dq ′dt 
+
+where we denote by ( x(τ ), y(τ )) the trajectory and the acceptance probabilities under the threshold policies (τ , s). Under the standing regularity convention, it is easy to show that H2(q; τ ) is jointly continuous in (q, τ ). Then, it is clear to see that Dual( τ , s, G′) = inf 
+
+> {q:H1(q)>0}
+
+R(q; τ ) with R(q; τ ) := H2(q; τ )
+
+H1(q) . (31) We now introduce a vanishing regularization. For ε > 0, define the quantity 
+
+Rε(q; τ ) := H2(q; τ ) + εH1(q) + ε ,
+
+and, for the cell Ii(τ ), define the bottleneck of cell i by 
+
+cεi (τ ) := min  
+
+> q∈Ii(τ)
+
+Rε(q; τ ), i = 0 , . . . , m. (32) In other words, cεi (τ ) refers to the minimum regularized type-cover ratio within the interval Ii(τ ) under the thresholds τ . We now obtain the following result. 
+
+Lemma 10. For every fixed environment G′ and switching vector s, for every ε > 0, there exists a mono-tone threshold vector τ ε ∈ T m and a scalar θε such that 
+
+cε
+
+> 0
+
+(τ ε) = cε
+
+> 1
+
+(τ ε) = · · · = cεm(τ ε) = θε. (33) Note that the above Lemma 10 essentially implies that for each interval [ τ εi , τ εi+1 ] there exists one regularized minimizer q (when the interval is degenerate such that τ εi = τ εi+1 , the regularized minimizer q is the threshold 
+
+τ εi itself), as long as the thresholds τ ε are chosen to satisfy the conditions in Lemma 10 for each fixed G′
+
+and s.Now for each fixed G′ and s, we prove that PoisOPTRe K (s) ≤ max   
+
+> τ′
+
+Dual( τ ′, s, G′).37 For any ε > 0, fix τ ε as the monotone thresholds satisfying the conditions in Lemma 10. Importantly, we know that such τ ε exists for every G′ and s. Further from Lemma 10, for each interval [ τ εi , τ εi+1 ] for i ∈ [m − 1], we know that there exists one regularized minimizer qεi . Therefore, we know that 
+
+θε · ε + θε · E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(qεi )) · λtdt 
+
+
+
+, K 
+
+ 
+
+= ε +
+
+> K
+
+X
+
+> k=1
+
+Z 1
+
+> t=0
+
+Z 1
+
+> q′=qεi
+
+ykt (q′, τ ∗)dq ′dt. 
+
+Moreover, we have the following result as a direct corollary of the condition (9) in Lemma 3, 
+
+θε · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(qεi )) · λtdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> 1
+
+(τ ε)dt, ∀i = 1 , . . . , m − 1.
+
+When i = m, for every q ∈ [τ εm, 1], every customer with an index at least q is accepted as long as there is inventory left, which implies that 
+
+H2(q, τ ε) = 
+
+Z 10
+
+λt · (1 − G′
+
+> t
+
+(q)) ·
+
+> K
+
+X
+
+> k=1
+
+xkt (τ ε)dt ≥
+
+> K
+
+X
+
+> k=1
+
+xk
+
+> 1
+
+(τ ε) ·
+
+Z 10
+
+λt · (1 − G′
+
+> t
+
+(q)) dt. 
+
+Also, we have that 
+
+H1(q) = E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt 
+
+
+
+, K 
+
+ 
+
+≤
+
+Z 1
+
+> t=0
+
+(1 − G′
+
+> t
+
+(q)) · λtdt. 
+
+As a result, we have that 
+
+H2(q, τ ε) + ε ≥
+
+> K
+
+X
+
+> k=1
+
+xk
+
+> 1
+
+(τ ε) ·
+
+Z 10
+
+λt · (1 − G′
+
+> t
+
+(q)) dt + ε ≥
+
+> K
+
+X
+
+> k=1
+
+xk
+
+> 1
+
+(τ ε) · (H1(q) + ε),
+
+which implies that 
+
+θε = min  
+
+> q∈[τεm,1]
+
+Rε(q; τ ε) = min  
+
+> q∈[τεm,1]
+
+H2(q, τ ε) + εH1(q) + ε ≥
+
+> K
+
+X
+
+> k=1
+
+xk
+
+> 1
+
+(τ ε).
+
+We now let ε → 0 and there exists a sequence εn → 0 such that τ εn
+
+→ τ ∗, θτ n
+
+→ θ∗, and qεn
+
+→ q∗, for some τ ∗, θ∗, and q∗. Now, we do the change of variables, by using a decision variable αit to denote the arrival rate (1 − G′
+
+> t
+
+(q∗ 
+
+> i
+
+)) · λt for the index q∗ ∈ [τ ∗ 
+
+> i
+
+, τ ∗
+
+> i+1
+
+], as well as using a decision variable βit to denote the arrival rate (1 − G′
+
+> t
+
+(τ ∗ 
+
+> i
+
+)) · λt. Then, we recover exactly the constraints (11b) and (11c) that 
+
+θ∗ · Pr 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+αitdt 
+
+
+
+≤ K − 1
+
+
+
+≥
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> 1
+
+(τ ∗)dt ∀i ∈ { 1, . . . , m },
+
+and 
+
+θ∗ · E
+
+
+
+min 
+
+
+
+Pois 
+
+Z 1
+
+> t=0
+
+αitdt 
+
+
+
+, K 
+
+ 
+
+≥
+
+> si+1
+
+X
+
+> k′=1
+
+Z 1
+
+> t=0
+
+βi(k′) 
+
+> t
+
+xk′ 
+
+> t
+
+(τ ∗)dt +
+
+> K
+
+X
+
+> k′=si+1 +1
+
+Z 1
+
+> t=0
+
+αitxk′ 
+
+> t
+
+(τ ∗)dt ∀0 ≤ i ≤ m − 1.
+
+Moreover, the constraints (11d), (11e), and (11f) can be recovered from the dynamics described in (5c), (5d), (5e), and (5f). Therefore, we know that we construct a feasible solution to PoisOPTRe K (s) from a feasible solution to the problem max τ ′ Dual( τ ′, s, G′), for fixed G′ and s. Since PoisOPTRe K (s) takes the min objective, we know that PoisOPTRe K (s) ≤ max   
+
+> τ′
+
+Dual( τ ′, s, G′)for every fixed G′ and s. Therefore, for every s, we show that PoisOPTRe K (s) ≤ min  
+
+> G′
+
+max   
+
+> τ′
+
+Dual( τ ′, s, G′) ≤ max  
+
+> s′
+
+min  
+
+> G′
+
+max   
+
+> τ′
+
+Dual( τ ′, s′, G′) ≤ min  
+
+> G′
+
+max  
+
+> (τ′,s′)∈Γ
+
+Dual( τ ′, s′, G′).
+
+Our proof is thus completed. 38 
+
+B.2. Proof of Lemma 10 
+
+We use the well-known KKM lemma (Knaster et al. 1929) to complete our proof. We first parameterize the threshold vector by its m + 1 cell lengths: 
+
+zi := τi+1 − τi, i = 0 , . . . , m. 
+
+Then, we have that zi ≥ 0 and Pmi=0 zi = 1. Thus, we know that the vector z = ( z0, . . . , z m) belongs to the simplex ∆m := 
+
+(
+
+z ∈ Rm+1 + :
+
+> m
+
+X
+
+> i=0
+
+zi = 1 
+
+)
+
+.
+
+Conversely, we can obtain that τi(z) = Pi−1 
+
+> j=0
+
+zj . For each i = 0 , . . . , m , define the bottleneck set 
+
+Eεi := 
+
+
+
+z ∈ ∆m : cεi (τ (z)) = min 
+
+> 0≤j≤m
+
+cεj (τ (z)) 
+
+
+
+. (34) It is easy to see that their union is ∆ m. Moreover, since the function Rε is continuous, it is direct to see that the function cεi (τ ) is a continuous function for each i, which implies that the set Eεi is a closed set for each i.We now verify the face-covering condition of the KKM lemma. For a set S such that ∅̸ = S ⊆ { 0, . . . , m },consider the face ∆S := {z ∈ ∆m : zj = 0 for all j / ∈ S} .
+
+Take any z ∈ ∆S , and let j(z, S ) be a cell attaining the smallest bottleneck such that cεj(z,S )(τ (z)) = min 0≤h≤m cεh(τ (z)). It is clear to see that if j(z, S ) ∈ S, then z ∈ E εj(z,S ). Suppose otherwise j(z, S ) /∈ S. Then from definition, we know that zj(z,S ) = 0, so cell Ij(z,S ) is degenerate in that τj(z,S )+1 = τj(z,S ). The common endpoint must belong to the closure of a nondegenerate cell Ii with i ∈ S (i / ∈ S would imply Ii is degenerate). Since the cellwise cover expressions coincide at the common finite endpoint, we must have that 
+
+cεi (τ (z)) ≤ cεj(z,S )(τ (z)) .
+
+Since from definition of j(z, S ), we know that cεj(z,S ) is the global minimum, equality holds in the above formula, and as a result, we have that z ∈ E εi .In summary, we have shown that ∆S ⊆ [
+
+> i∈S
+
+Eεi ∀ ∅̸ = S ⊆ { 0, . . . , m }.
+
+The KKM lemma therefore gives that Tmi=0 Eεi̸ = ∅. Choose zε in this intersection and set τ ε = τ (zε). Then every cell bottleneck equals the global bottleneck, proving (33). Our proof is thus completed. 
+
+B.3. Proof of Lemma 4 
+
+We denote by {θ, α it, β it , ∀i ∈ [m], ∀t ∈ [0 , 1] } a feasible solution to PoisOPTRe K (s) in (11). We now make adjustment to the values of {αit, ∀i ∈ [m − 1] , ∀t ∈ [0 , 1] }, while keeping the values of the other variables in the solution fixed. Note that according to the update in (11d), (11e), and (11f), the values of the variables {xkt , y kt , ∀k ∈
+
+[K], ∀t ∈ [0 , 1] } depend only on the variables {βit , ∀i ∈ [m], ∀t ∈ [0 , 1] }, which would remain fixed as long as the 39 variables {βit , ∀i ∈ [m], ∀t ∈ [0 , 1] } are fixed. Therefore, we can define a new set of solutions to PoisOPTRe K (s)in (11), which we denote by {ˆθ, ˆαit, ˆβit , ∀i ∈ [m], ∀t ∈ [0 , 1] }, and it holds that ˆθ = θ, ˆβit = βit , ∀i ∈ [m], ∀t ∈ [0 , 1] .
+
+For each i ∈ [m − 1], we define the variable ˆ αit such that (ˆ αmt = 0 for any t)ˆαit = βi+1  
+
+> t
+
+, ∀t ∈ [0 , w i] and ˆαit = βit , ∀t ∈ (wi, 1] and the value of wi is selected such that 
+
+Z 1
+
+> t=0
+
+αitdt =
+
+Z 1
+
+> t=0
+
+ˆαitdt. 
+
+Since from the constraint that βi+1  
+
+> t
+
+≤ αit ≤ βit , we know that 
+
+Z 1
+
+> t=0
+
+βi+1  
+
+> t
+
+dt ≤
+
+Z 1
+
+> t=0
+
+αitdt ≤
+
+Z 1
+
+> t=0
+
+βit dt, 
+
+which implies that we must be able to select a value wi ∈ [0 , 1] such that 
+
+Z 1
+
+> t=0
+
+ˆαitdt =
+
+Z wi
+
+> t=0
+
+βi+1  
+
+> t
+
+dt +
+
+Z 1
+
+> t=wi
+
+βkt dt =
+
+Z 1
+
+> t=0
+
+αitdt. 
+
+Therefore, we know that the newly defined solution {ˆθ, ˆαit, ˆβit , ∀i ∈ [m], ∀t ∈ [0 , 1] } will keep the values of the variables {xkt , y kt , ∀k ∈ [K], ∀t ∈ [0 , 1] } fixed and the left-hand-side of the constraints (11b) and (11c) fixed. The right-hand-side of the constraint (11b) also remains fixed. It only remains to show that the right hand of the constraint (11c) becomes smaller under the newly defined solution {ˆθ, ˆαit, ˆβit , ∀i ∈ [m], ∀t ∈ [0 , 1] }. We note that for any 0 ≤ t1 < t 2 ≤ 1, for any k ∈ [K], we have that K
+
+X
+
+> k′=k
+
+xk′ 
+
+> t1
+
+≥
+
+> K
+
+X
+
+> k′=k
+
+xk′ 
+
+> t2
+
+.
+
+Then, for each i ∈ [m − 1], we have that 
+
+> K
+
+X
+
+> k′=si+1 +1
+
+Z 1
+
+> t=0
+
+αitxk′ 
+
+> t
+
+dt −
+
+> K
+
+X
+
+> k′=si+1 +1
+
+Z 1
+
+> t=0
+
+ˆαitxk′ 
+
+> t
+
+dt =
+
+Z wi
+
+> t=0
+
+(αit − ˆαit) ·
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> t
+
+dt +
+
+Z 1
+
+> t=wi
+
+(αit − ˆαit) ·
+
+> K
+
+X
+
+> k′=st+1 +1
+
+xk′ 
+
+> t
+
+dt 
+
+≥ (
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> wi
+
+) ·
+
+Z wi
+
+> t=0
+
+(αit − ˆαit)dt + ( 
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> wi
+
+) ·
+
+Z 1
+
+> t=wi
+
+(αit − ˆαit)dt = ( 
+
+> K
+
+X
+
+> k′=si+1 +1
+
+xk′ 
+
+> wi
+
+) ·
+
+Z 1
+
+> t=0
+
+(αit − ˆαit)dt = 0 where the inequality follows from the fact that αit − ˆαit ≥ 0 and PKk′=si+1 +1 xk′ 
+
+> t
+
+≥ PKk′=si+1 +1 xk′ 
+
+> sk
+
+, when t ≤ wi,and αit − ˆαit ≤ 0 and PKk′=si+1 +1 xk′ 
+
+> t
+
+≤ PKk′=si+1 +1 xk′ 
+
+> wi
+
+, when t > w i. In this way, we show that under the newly defined solution {ˆθ, ˆαit, ˆβit , ∀i ∈ [m], ∀t ∈ [0 , 1] }, the right-hand-side of the constraint (11c) can only become smaller. Therefore, we know that {ˆθ, ˆαit, ˆβit , ∀i ∈ [m], ∀t ∈ [0 , 1] } is still a feasible solution to PoisOPTRe K (s)in (11) with the objective value ˆθ equals the optimal objective value of PoisOPTRe K (s) in (11). As a result, we know that {ˆθ, ˆαit, ˆβit , ∀i ∈ [m], ∀t ∈ [0 , 1] } is a feasible solution to PoisOPTRe K (s) in (11) with the same objective, which completes our proof. 40 
+
+B.4. Proof of Lemma 5 
+
+For each t ∈ [0 , 1], we define a normalized variable 
+
+uit = βit
+
+λt
+
+for each i ∈ [m]. Then, the feasible region for ut = ( u1 
+
+> t
+
+, . . . , u mt ) can be given as 
+
+U = (u1, . . . , u m) : 0 ≤ um ≤ · · · ≤ u1 ≤ 1 . (35) An important fact we can obtain, which leads to our final conclusion, is that the extreme points of the set 
+
+U can be given as Ext( U ) = 
+
+( 1 , . . . , 1
+
+| {z } 
+
+> m′entries
+
+, 0, . . . , 0) 
+
+| {z } 
+
+> m−m′entries
+
+: m′ = 0 , 1, . . . , m 
+
+ . (36) The set of extreme points in (36) follows from observation that any point in U with some coordinate strictly between its neighbors admits a ±ϵ perturbation preserving feasibility, hence is not extreme; the only points without such directions are the 0 /m step vectors. From now on, we use uit to represent the variable βit following the relationship uit = βit 
+
+> λt
+
+. Then, given any feasible solution {θ, α it, u it, ∀i ∈ [m], ∀t ∈ [0 , 1] } to PoisOPTRe K (s) in (11) satisfying the condition in Lemma 4, we construct another set of feasible solution {ˆθ, ˆαit, ˆuit, ∀i ∈ [m], ∀t ∈ [0 , 1] } such that ˆθ ≤ θ + o(1) and ˆ ut ∈ Ext( U ) for each t ∈ [0 , 1]. In order to construct such a {ˆθ, ˆαit, ˆuit, ∀i ∈ [m], ∀t ∈ [0 , 1] }, we partition the time interval [0 , 1] into N + 1 evenly distributed discrete points with N intervals given by In =  n−1 
+
+> N
+
+, nN
+
+
+
+for each n ∈ [N ]. For each i ∈ [m], we define the average quantity ¯uin =
+
+R 
+
+> t∈In
+
+βit dt 
+
+R 
+
+> t∈In
+
+λtdt . (37) It is clear to see that for each n ∈ [N ], we have that ¯ un ∈ U , which implies that ¯ un can be written as the convex combination of the extreme points of U , i.e., ¯un =
+
+> P
+
+X
+
+> p=1
+
+πpn · up 
+
+> Ext
+
+(38) where P = |Ext( U )|, Ext( U ) = {up
+
+> Ext
+
+, p = 1 , . . . , P }, and it holds that PPp=1 πpn = 1 for each n ∈ [N ]. On each interval In, we define ˆ u to cycle through the extreme points {up
+
+> Ext
+
+, p = 1 , . . . , P } in Ext( U ), using duration πpn 
+
+> N
+
+. Concretely, subdivide the interval In into consecutive sub-intervals In,p with length |In,p | = πpn
+
+> N
+
+and set ˆut = up
+
+> Ext
+
+, for t ∈ In,p . (39) We define ˆ α according to the conditions described in Lemma 4 with respect to ˆ u, which guarantees that the switching time ˆ wi for ˆ α is equivalent to the switching time wi for α, for each i ∈ [m]. By construction, we get exact preservation of the α-integral: 
+
+Z 1
+
+> t=0
+
+ˆαitdt =
+
+Z 1
+
+> t=0
+
+αitdt (40) 41 for each i ∈ [m]. Without loss of generality, we can assume that wi = ki 
+
+> N
+
+for some integer ki, for each i ∈ [m]. Then, a even stronger condition we can get is that 
+
+Z
+
+> t∈In
+
+ˆαitdt =
+
+Z
+
+> t∈In
+
+αitdt (41) for each i ∈ [m] and n ∈ [N ]. We let ( ˆ x, ˆy) be the dynamics driven by ( ˆ α, ˆβ) and let ( x, y) be the dynamics driven by ( α, β). We write the dynamics as 
+
+dx
+
+dt = F (x, u) and d ˆx
+
+dt = F ( ˆ x, ˆu).
+
+As we can directly tell from the formulation, the function F (x, u) is linear in u and Lipschitz continuous in x. On each interval In, we compare the true evolution under the original control u versus the chattering control ˆ u. Because the vector field for F is bounded, a standard estimate gives a local error of order O(1 /N 2)per interval, and thus a global O(1 /N ) error over [0 , 1]. Explicitly, it is easy to show that 
+
+∥x − ˆx∥∞ ≤ C1 · 1
+
+N
+
+for some constant C1. Then, the right-hand-side of constraints (11b) and (11c) under the solution ( ˆ x, ˆu)deviate at most O(1 /N ) from those under the solution ( x, u). Therefore, from the feasibility of θ to the solutions ( x, α, u) and from the conditions in (40) and (41), we know that by setting ˆθ = θ + O(1 /N ),
+
+we have that ( ˆθ, ˆx, ˆα, ˆu) forms a feasible solution to PoisOPTRe K (s) in (11) while ensuring that ˆ ut ∈ Ext( U )for each t ∈ [0 , 1] and ˆθ = θ + O(1 /N ). Our proof is completed by letting N → ∞ .
+
+Appendix C: Missing Proofs of Section 5 
+
+C.1. Proof of Lemma 6 
+
+Fix any instance I = ( λ, G ′, F ) with 0 ≤ λt ≤ M . We construct an equivalent constant-rate instance. Add a bottom type ⊥ with value F (⊥) = 0, lower than all genuine types, and define the new type distribution by 
+
+eG′ 
+
+> t
+
+=
+
+
+
+1 − λt
+
+M
+
+
+
+δ⊥ + λt
+
+M G′
+
+> t
+
+.
+
+The new instance has calendar arrival rate M and type distribution eG′
+
+> t
+
+.By the thinning property of Poisson processes, the non-bottom arrivals in the new instance form exactly the same marked Poisson process as the arrivals in the original instance. The remaining arrivals are bottom-type dummy customers with value zero. Therefore the prophet’s expected reward is unchanged, since dummy arrivals add no value. We now compare the best stock-based threshold policy in the two instances. Any policy in the original instance can be used in the new instance by rejecting the bottom type and applying the same thresholds to all genuine types, so the optimal policy reward in the new instance is at least that in the original instance. Conversely, in the new instance, accepting a bottom-type customer earns zero reward and can only reduce future inventory. Hence there is an optimal stock-based threshold policy that rejects all bottom-type cus-tomers. After removing these rejected dummy arrivals, this policy induces a feasible stock-based threshold policy in the original instance with the same reward. Thus the optimal policy reward is also unchanged. 42 Hence both the prophet reward and the optimal stock-based policy reward are the same in I and in its constant-rate representation. Therefore the competitive ratio of every variable-rate instance can be matched by a constant-rate instance with λt ≡ M . Since constant-rate instances are a subclass of the original instance class, the two worst-case competitive ratios are equal. 
+
+C.2. Proof of Lemma 7 
+
+For notational simplicity, we write s := s2. We first introduce a normalized version of the α and β control for convenience. Note that we already restrict the active time of β1 control to be among [0 , S/M ]. Therefore, in the following derivations, we normalize the β1 control to always equals 1 among the interval [0 , S ]. Under such a normalization, we can define 
+
+D(t) := β2
+
+> t
+
+β1
+
+> t
+
+, c(t) := αt
+
+β1
+
+> t
+
+(42) to be the normalized representation of the β1 and α control. In this way, all the controls are defined on [0 , S ]and satisfy the chaining constraints 0 ≤ D(t) ≤ c(t) ≤ 1 (43) for any t. Moreover, under the constraint Λ 1 := R 10 αtdt , we have the requirement that 
+
+Z S
+
+> 0
+
+c(t)dt = Λ 1. (44) The state equations can be written in the following way under the normalized representation ˙xkt = −rk (t)xkt + rk+1 (t)xk+1  
+
+> t
+
+, k = 1 , . . . , K, (45) where we have 
+
+rk (t) = 
+
+(
+
+D(t), 1 ≤ k ≤ s, 
+
+1, s < k ≤ K, (46) with the convention rK+1 xK+1 = 0, and with the same initial condition xK 
+
+> 0
+
+= 1 and xk 
+
+> 0
+
+= 0 for k < K .Define the probability mass above the switching state and its boundary mass by 
+
+H(t) := 
+
+> K
+
+X
+
+> k=s+1
+
+xkt , h(t) := xs+1  
+
+> t
+
+. (47) Summing (45) over k = s + 1 , . . . , K gives that 
+
+H′(t) = −xs+1  
+
+> t
+
+. (48) The upper states evolve independently of ( D, c ). In fact, since the β1-control is active (equals 1) in the entire interval [0 , S ], it is direct to show that 
+
+xs+1  
+
+> t
+
+= e−t tK−s−1
+
+(K − s − 1)! , (49) so h(t) > 0 for every t > 0. Now for fixed ( S, Λ1), the four right-hand sides in (14b), (14c), (14d), and (14e) can be written as 
+
+F1(D, c ) := 
+
+> K
+
+X
+
+> k=1
+
+xkS , F2(D, c ) := H(S),43 
+
+F3(D, c ) := 
+
+Z S
+
+> 0
+
+"
+
+D(t)
+
+> s
+
+X
+
+> k=1
+
+xkt + c(t)H(t)
+
+#
+
+dt, F4(D, c ) := 
+
+Z S
+
+> 0
+
+"
+
+D(t)
+
+> s
+
+X
+
+> k=1
+
+xkt + H(t)
+
+#
+
+dt. 
+
+Thus the fixed-( S, Λ1) problem is to minimize θ subject to the following constraints 
+
+θ ≥ F1(D, c ), θ · Pr[Pois(Λ 1) ≤ K − 1] ≥ F2(D, c ),θ · E[min {Pois(Λ 1), K }] ≥ F3(D, c ), θ · E[min {Pois( M ), K }] ≥ F4(D, c ),
+
+(51) together with the constraints given in (45), (43), and (44). It is without loss of generality to assume that 0 < S ≤ M and 0 < Λ1 < S since the boundary cases are handled easily. We now prove that the fixed-( S, Λ1) problem has an exact optimum for which D is the indicator of one interval, which directly proves our argument that β2 control is active on a single interval. We introduce the regularization below is to remove flat switching ties and all perturbation terms will be sent to zero at the end. We define the integral of the state xs+1  
+
+> t
+
+to be 
+
+U (t) := 
+
+Z t
+
+> 0
+
+xs+1  
+
+> v
+
+dv, Umax := U (S). (52) By (49), we know that the function U is strictly increasing on [0 , S ]. To derive the regularization, we choose a countable dense set {un : n ≥ 1} ⊂ (0 , U max ) and define 
+
+H⋆(u) := 
+
+> ∞
+
+X
+
+> n=1
+
+2−n(u − un)+, r⋆(u) := 
+
+> ∞
+
+X
+
+> n=1
+
+2−n1{u>u n}. (53) It is clear to see that the series defining H⋆ converges uniformly. Each summand is convex, and every interval contains at least one un and therefore a strict kink. Hence, we know that the function H⋆ is strictly convex. At every point distinct from the countable set {un}, termwise differentiation gives that 
+
+H′
+
+> ⋆
+
+(u) = r⋆(u). (54) The function r⋆ is bounded and strictly increasing, but it changes only through jumps. Consequently, we know that r′
+
+> ⋆
+
+(u) = 0 wherever its derivative exists, and in particular almost everywhere. Now we choose the parameters 
+
+δ > 0, ε > 0, ζ > 0, 0 < τ < ζ/ 2,
+
+and define a term 
+
+ψ(t) := −ζU (t) + τ H ⋆(U (t)) . (55) We keep the constraints (51) unchanged and minimize the regularized objective given by 
+
+θ + δF1 + F2 + F3 + F4
+
+ + ε
+
+Z S
+
+> 0
+
+D(t) dt +
+
+Z S
+
+> 0
+
+ψ(t)D(t) dt. (56) The perturbation vanishes uniformly with ( δ, ε, ζ, τ ). Indeed, we have the bounded relationships that 0 ≤
+
+F1, F 2 ≤ 1, 0 ≤ F3, F 4 ≤ S ≤ M , 0 ≤ U ≤ 1, and 0 ≤ H⋆(U ) ≤ U ≤ 1. Therefore the absolute value of the added terms is bounded by 
+
+δ(2 + 2 M ) + εM + M (ζ + τ ),
+
+which tends to zero with the regularization parameters. 44 We can see that the pointwise control set {(D, c ) : 0 ≤ D ≤ c ≤ 1} is compact and convex. The state dynamics in (45) are affine in ( D, c ) and Lipschitz in x, while all terminal and running expressions are continuous. The standard existence theorem (e.g., Theorem 4.1 of Chapter III in Fleming and Rishel (2012)) for optimal control problems with compact convex control sets therefore gives an optimal ordinary control for the fixed-( S, Λ1) problem (regularized or unregularized version). We introduce the auxiliary states ˙a(t) = c(t), ˙g3(t) = D(t) ·
+
+> s
+
+X
+
+> k=1
+
+xkt + c(t) · H(t), ˙g4(t) = D(t) ·
+
+> s
+
+X
+
+> k=1
+
+xkt + H(t),
+
+with zero initial values. Then the alpha-mass restriction is the endpoint equality a(S) = Λ 1, while F3(D, c ) = 
+
+g3(S) and F4(D, c ) = g4(S). Thus all constraints are endpoint constraints, and the normal Pontryagin min-imum principle (e.g. Vinter (2000)) applies. The relevant constraint qualification is quite direct here. The equality a(S) = Λ 1 has a nonzero gradient in the a-coordinate, while none of the four covering inequalities depends on that coordinate. Moreover, the endpoint direction ∆ θ = 1, with all other endpoint coordinates fixed, is tangent to the equality and strictly relaxes every active covering inequality. Hence the endpoint con-straint qualification holds, abnormal multipliers are excluded, and the objective multiplier can be normalized to one. Let the multipliers of the two terminal covering constraints be absorbed into positive coefficients ρ1, ρ 2 > 0, and let the multipliers of the two running covering constraints be absorbed into positive coefficients η0, η 1 > 0. Their strict positivity follows from the δ(F1 + F2 + F3 + F4) term, which have been included in the definition of ρ1, ρ 2, η 0, η 1. Let κ be the multiplier of (44), and let pk be the costate of xk , with p0 ≡ 0. Up to constants independent of the controls, the regularized objective can he written as 
+
+J =ρ2F1(D, c ) + ρ1F2(D, c ) + η1F3(D, c ) + η0F4(D, c ) + κ
+
+Z S
+
+> 0
+
+c(t)dt − Λ1
+
+
+
++ ε
+
+Z S
+
+> 0
+
+D(t)dt +
+
+Z S
+
+> 0
+
+ψ(t)D(t)dt. 
+
+(57) The terminal costate conditions are therefore can be written as 
+
+pk (S) = 
+
+(
+
+ρ2, 1 ≤ k ≤ s, ρ1 + ρ2, s < k ≤ K. (58) We further define 
+
+C := η0 + η1, μk (t) := C + pk−1(t) − pk (t), 1 ≤ k ≤ s. (59) The Hamiltonian can be written as 
+
+H(t) = 
+
+> K
+
+X
+
+> k=1
+
+pk (t)−rk (t)xkt + rk+1 (t)xk+1 
+
+> t
+
+ + CD (t)
+
+> s
+
+X
+
+> k=1
+
+xkt + η1c(t)H(t)+ η0H(t) + κc (t) + ( ε + ψ(t)) D(t).
+
+(60) For 1 ≤ k ≤ s, the coefficient of xk in the Hamiltonian is D(C + pk−1 − pk ) = Dμ k . Hence, we have that 
+
+p′ 
+
+> k
+
+(t) = −D(t) · μk (t), 1 ≤ k ≤ s. (61) Using the definition in (59), we know that the condition (61) is equivalent to 
+
+μ′
+
+> 1
+
+(t) = D(t) · μ1(t), μ′ 
+
+> k
+
+(t) = D(t) · (μk (t) − μk−1(t)) , k = 2 , . . . , s. (62) 45 Further note that the coefficient of c in (60) is 
+
+χ(t) := κ + η1H(t). (63) By (48), we have that 
+
+χ′(t) = −η1 · xs+1  
+
+> t
+
+< 0, t > 0. (64) For a fixed value of D, pointwise minimization over D ≤ c ≤ 1 gives the following principle to determine the value of the c control, 
+
+c(t) = D(t) + (1 − D(t)) 1{χ(t)<0}, (65) except possibly at the unique zero of χ. A direct observation is that the optional part of the α control is placed as late as possible, which corresponds to the findings in Theorem 2. We then define the aggregated term Σ( t) := 
+
+> s
+
+X
+
+> k=1
+
+xkt μk (t). (66) The terms of the Hamiltonian that depend on ( D, c ) can be represented as 
+
+DΣ + χc + ( ε + ψ)D. 
+
+For fixed D, we have that min 
+
+> D(t)≤c(t)≤1
+
+χ(t) · c(t) = χ−(t) + D(t) · χ+(t), with the notation z+ := max {z, 0}, z− := min {z, 0}.
+
+Therefore, after minimizing over c, the difference between choosing D = 1 and choosing D = 0 can be represented by Φ( t) := Σ( t) + χ(t)+ + ε + ψ(t). (67) The Pontryagin minimum condition (Vinter 2000) yields that Φ( t) < 0 = ⇒ D(t) = 1 , Φ( t) > 0 = ⇒ D(t) = 0 . (68) We next compute the derivative of Σ. The lower-state dynamics are ˙xkt = D(t) · (xk+1  
+
+> t
+
+− xkt ), 1 ≤ k < s, ˙xst = h(t) − D(t) · xst .
+
+Combining these equations with (62) gives that Σ′(t) =( xs+1  
+
+> t
+
+− D(t)xst ) · μs(t) + 
+
+> s−1
+
+X
+
+> k=1
+
+D(t) · (xk+1  
+
+> t
+
+− xkt ) · μk (t) + D(t) · x1 
+
+> t
+
+· μ1(t)+
+
+> s
+
+X
+
+> k=2
+
+D(t) · xkt · (μk (t) − μk−1(t)) = xs+1  
+
+> t
+
+· μs(t). (69) Note that all internal terms cancel in the second equality. Since we have U ′(t) = xs+1  
+
+> t
+
+and H′ 
+
+> ⋆
+
+= r⋆ almost everywhere, we also have 
+
+ψ′(t) = xs+1  
+
+> t
+
+· −ζ + τ r ⋆(U (t))  almost entirely .
+
+Together with (64), this yields that Φ′(t) = xs+1  
+
+> t
+
+· μs(t) − η11{χ(t)>0} − ζ + τ r ⋆(U (t))  almost entirely . (70) We further prove the following result, which removes the existence of fractional D controls and active tie arcs. 46 
+
+Claim 1. It holds that 
+
+{t ∈ [0 , S ] : D(t) > 0, Φ( t) = 0 } = 0 . (71) Note that the minimized Hamiltonian is affine in D. Therefore, the conditions (68) and (71) imply that 
+
+D(t) = 1{Φ( t)<0}. (72) We now show that the strict negative set of Φ is connected. Consider a nondegenerate open interval I on which D = 0. From (61), we know that every lower-block costate is constant on I. In particular, we know that 
+
+μs is constant on I. Since the function U is strictly increasing, we may use u = U (t) as the time coordinate on I. Equations (48) and (52) imply that 
+
+H(t) + U (t) = H(0) ,
+
+and as a result, we have that 
+
+χ(t(u)) = κ + η1
+
+ H(0) − u,
+
+where t(u) transfer the time coordinate on the interval I to the original time indexed by t ∈ [0 , S ]. Moreover, the condition (69) gives that dΣ/du = μs on I. Substituting these identities into (67), we obtain, up to an additive constant independent of u, that Φ( t(u)) = ( μs − ζ)u + κ + η1(H(0) − u)+ + τ H ⋆(u) + constant . (73) The first term is affine, the second term is convex, and the third term is strictly convex. Hence, we know that the function u 7 → Φ( t(u)) is strictly convex on every interval on which D = 0. Suppose that the set {Φ < 0} could not be represented by one interval. Then two consecutive components of {Φ < 0} would be separated by a nondegenerate open gap I. (If two components were separated only by a single point, their union would already agree almost everywhere with one interval.) By (72), we have that 
+
+D = 0 on I, and by definition of the gap, Φ ≥ 0 on I. Since it is clear to see that Φ is continuous, it equals zero at both endpoints of I. Strict convexity from (73) then implies that Φ < 0 at every interior point of 
+
+I, contradicting Φ ≥ 0. In this way, we prove that the set {Φ < 0} must be able to be represented by one interval, which implies that the D control is active on an interval. Thus there exist 0 ≤ a ≤ b ≤ S such that 
+
+D(t) = 1[a,b ](t) for almost every t ∈ [0 , S ]. (74) Note that here, the interval is allowed to have zero length. We have proved the desired result with regularization. We now remove the regularization and show that the active set of the D control can still be represented by one interval. Choose a sequence of regularization parameters converging to zero, with 0 < τ n < ζ n/2, and let ( θn, D n, c n, xn) be an optimum of the n-th regularized fixed-( S, Λ1) problem that satisfies the desired property that Dn is active on a single interval, i.e., there exists 0 ≤ an ≤ bn ≤ S such that 
+
+Dn = 1[an,b n].47 The perturbation terms are uniformly bounded in absolute value by numbers en ↓ 0. Let ( θ⋆, D ⋆, c ⋆, x⋆) be an optimum of the unregularized fixed-( S, Λ1) problem. Optimality of the regularized solution gives that 
+
+θn ≤ [regularized objective at ( θn, D n, c n, xn)] + en ≤ [regularized objective at ( θ⋆, D ⋆, c ⋆, x⋆)] + en
+
+≤ θ⋆ + 2 en.
+
+Passing to a subsequence, assume that an → a, bn → b, and θn → ¯θ. Then, we have that 
+
+Dn −→ D := 1[a,b ] in L1[0 , S ].
+
+Since the coefficients in the linear state equations converge, the integral equations for xn − x gives that sup 
+
+> 0≤t≤S
+
+∥xn(t) − x(t)∥ −→ 0. (75) Consequently, the terminal expressions F1, F 2 and the running expressions F3, F 4 all converge. Passing to the limit in (51) shows that ( ¯θ, D, c, x) is feasible for the unregularized fixed problem. The preceding objective bound gives ¯θ ≤ θ⋆, while optimality of θ⋆ gives the reverse inequality. Hence ¯θ = θ⋆, and the limit control is an exact optimum with D = 1[a,b ].The boundary cases are simpler. If Λ 1 = 0, then 0 ≤ D ≤ c and R S 
+
+> 0
+
+c = 0 imply D = c = 0. If Λ 1 = S, then 
+
+c = 1 almost everywhere. In this case one removes c from the control variables; the same switching-function argument applies with the term χ+ deleted. The active-tie level becomes ζ − τ r ⋆(U ) > 0, and the switching gap on every D = 0 interval is still the sum of an affine function and the strictly convex term τ H ⋆. Thus D
+
+is again the indicator of one interval. The case S = 0 is immediate. In this way, we complete our proof of Lemma 7. 
+
+C.2.1. Proof of Claim 1 Suppose, to the contrary, that this set has positive length. Since we have 
+
+{D > 0} = S
+
+> n≥1
+
+{D ≥ 1/n }, there are a number d0 > 0 and a positive-length subset E on which D ≥ d0. By splitting E if necessary, we may also assume that the sign of χ is fixed on E.An absolutely continuous function that is constant on the set E has derivative zero at almost every point of the set E. Hence we know that Φ ′(t) = 0 at almost every point of E. Since we have h(t) > 0 for t > 0, the condition (70) gives that 
+
+μs(t) = η11{χ(t)>0} + ζ − τ r ⋆(U (t)) =: g(t) for a.e. t ∈ E. (76) Because from definition we have 0 ≤ r⋆ ≤ 1 and τ < ζ/ 2, we know that 
+
+g(t) ≥ ζ − τ > ζ/ 2 > 0. (77) Moreover, we have that g′(t) = 0 at almost every point of E. Indeed, the indicator in (76) is constant on E.Also, because U is strictly increasing, for each n there is at most one time tn such that U (tn) = un, and 
+
+r⋆(U (t)) = 
+
+> ∞
+
+X
+
+> n=1
+
+2−n1{t>t n},
+
+with the terms for which un > U (S) omitted. Thus, we know that r⋆(U (t)) is a pure-jump function of t and has derivative zero almost everywhere, which implies g′(t) = 0 at almost every point of E.48 We now use one elementary fact, repeatedly: if an absolutely continuous function f agrees with a function 
+
+g on a set E, and both derivatives exist at a density point of E, then f ′ = g′ at that point. This follows by taking a sequence of points of E converging to the density point and comparing the two difference quotients. Applying this fact to (76) gives that μ′ 
+
+> s
+
+= g′ = 0 almost everywhere on E. If s = 1, then the first equation in (62) gives that 0 = μ′ 
+
+> 1
+
+= Dμ 1 = Dg > 0,
+
+which is a contradiction. Now suppose s ≥ 2. From the last equation in (62) and D ≥ d0, we obtain 
+
+μs−1 = μs = g a.e. on E. 
+
+Applying the same argument to μs−1 = g gives that μ′ 
+
+> s−1
+
+= 0, and hence μs−2 = μs−1 = g. Repeating this step through the lower block yields the following relationship 
+
+μ1 = μ2 = · · · = μs = g a.e. on E. 
+
+The first equation in (62) now gives again 0 = μ′ 
+
+> 1
+
+= Dμ 1 = Dg > 0,
+
+which is impossible. This completes the proof of (71). 
+
+C.3. Proof of Proposition 1 
+
+Fix z = ( S, a, b, Λ1) ∈ Z 2,M . Under the change of variables u = M t , the controls and state equations are expressed on the active-time interval [0 , S ] with normalized rates in {0, 1}. Consequently, for fixed z, the quantities R1(z), . . . , R4(z) do not otherwise depend on M .The limiting objective is therefore the same expression as ΘK,s 2,M (z), except that its last term 
+
+R4(z)/H K (M ) is replaced by R4(z)/K . Since HK (M ) ≤ K and R4(z) is the expected number of allocated units, we have 0 ≤ R 4(z) ≤ K and hence 0 ≤ ΘK,s 2,M (z) − max 
+
+
+
+R1(z), R2(z)
+
+PK (Λ 1) , R3(z)
+
+HK (Λ 1) , R4(z)
+
+K
+
+
+
+≤ R 4(z)
+
+ 1
+
+HK (M ) − 1
+
+K
+
+
+
+≤ K − HK (M )
+
+HK (M ) .
+
+Finally, it is direct to see that the value of PoisOPTRe K (s, M ) decreases with M . Combining Lemma 2, Theorem 1, Theorem 3, and minimizing over Z2,M proves the result. 
+
+Appendix D: Missing Proofs of Section 6 
+
+D.1. Proof of Lemma 8 
+
+We first introduce the notation used throughout the proof. Recall that we work in active time, so we have 1 = D1(t) ≥ D2(t) ≥ · · · ≥ Dm(t) ≥ 0, t ∈ [0 , S ],
+
+Here, we do not require at this stage that the controls are binary. We simply regard the D-control as an equivalent representation of the β control. In the original calendar-time formulation, we define ζ(t) := R t 
+
+> 0
+
+β1 
+
+> s
+
+ds .On the set {β1 > 0}, divide every β and α intensity by β1 and use dζ = β1dt . By the nesting constraints, all β and α intensities vanish whenever β1 = 0. Therefore, the state equations, all running expressions, all α
+
+masses, and all terminal expressions are preserved by this change of variables; periods with β1 = 0 contribute 49 only idle time. Conversely, any active-time control of length S ≤ R 10 λtdt can be lifted to calendar time by placing its active clock on a set of total λ-mass S and setting β1 = λ there and all β controls to zero elsewhere. Thus the active-time formulation is exactly equivalent to the original fixed-A problem and we use this convenient representation throughout the proof. With the conventions sm+1 := 0 and Dm+1 (t) := 0, we define the normalized α controls 
+
+ci(t) := αit
+
+β1
+
+> t
+
+, i = 1 , . . . , m − 1. (78) Then, we have that 
+
+Di+1 (t) ≤ ci(t) ≤ Di(t),
+
+Z S
+
+> 0
+
+ci(t) dt = Ai.
+
+For notational convenience, we set c0(t) ≡ 1. For each i = 1 , . . . , m , define the upper-tail mass 
+
+Ri(t) := 
+
+> K
+
+X
+
+> k=si+1 +1
+
+xkt .
+
+For i = 1 , . . . , m − 1, mass exits this upper tail only through the boundary state si+1 + 1, and only while level 
+
+i is active. Hence, we have 
+
+R′
+
+> i
+
+(t) = −Di(t)xsi+1 +1  
+
+> t
+
+≤ 0. (79) Thus each Ri is nonincreasing. Once the β controls and the masses A are fixed, Lemma 4 and Theorem 2 imply that the optional α mass is late-filled. In the Hamiltonian derivation below, we first treat each ci as an independent control subject to its pointwise bounds and mass constraint; the late-fill rule is recovered from the corresponding switching coefficient. Each state k belongs to the unique block 
+
+Bi := {si+1 + 1 , . . . , s i}, i = 1 , . . . , m. 
+
+If k ∈ Bi, its active-time transition rate is rk (t) = Di(t). The state equations are ˙xkt = −rk (t)xkt + rk+1 (t)xk+1  
+
+> t
+
+, k = 1 , . . . , K, (80) with 
+
+rK+1 (t)xK+1  
+
+> t
+
+:= 0 , xK 
+
+> 0
+
+= 1 , xk 
+
+> 0
+
+= 0 (k < K ).
+
+For i = 0 , . . . , m − 1, define the running expression 
+
+Gi(D, c, x) := 
+
+Z S
+
+> 0
+
+
+
+> si+1
+
+X
+
+> k=1
+
+rk (t)xkt +
+
+> K
+
+X
+
+> k=si+1 +1
+
+ci(t)xkt
+
+ dt, (81) where the second sum is empty for i = 0 because s1 = K. The terminal expressions are Ri(S), i = 1 , . . . , m .The original fixed-A problem is generally nonconvex. We therefore use Pontryagin/KKT conditions only as first-order necessary conditions, not as a sufficient argument. To remove singular switching arcs, we first study a family of strictly regularized problems and later let all perturbations vanish. If Ai = 0 for some i,then from 0 = R S 
+
+> 0
+
+ci(t)dt and Di+1 (t) ≤ ci(t), we have that ci(t) = Di+1 (t) = 0 almost entirely. The nesting constraints then force every deeper level to be inactive. In that case we apply the argument to the remaining active levels and reinsert the deleted intervals with zero length. We may therefore assume below that all nonredundant Poisson denominators are positive. 50 We choose fixed constants ar > 0 for r = 1 , . . . , m , and br > 0 for r = 0 , . . . , m − 1. Choose positive regular-ization parameters 
+
+δ > 0, ε2, . . . , ε m > 0, ζ > 0, 0 < τ < ζ
+
+2 .
+
+We consider constructing the following regularizer. 
+
+Claim 2. For every Umax > 0, there exists a Lipschitz strictly convex function H⋆ : [0 , U max ] → R and a bounded strictly increasing function r⋆ : [0 , U max ] → [0 , 1] such that 
+
+H′
+
+> ⋆
+
+(u) = r⋆(u) for a.e. u, and r′
+
+> ⋆
+
+(u) = 0 for a.e. u. 
+
+Let ¯ x(t) denote the trajectory of the boundary state xs2+1  
+
+> t
+
+generated by the always-active top block B1. This trajectory is independent of D2, . . . , D m. Define 
+
+U (t) := 
+
+Z t
+
+> 0
+
+¯x(s) ds, Umax := U (M ). (82) For every t > 0, ¯ x(t) > 0, so U is strictly increasing. Choose r⋆ and H⋆ from Claim 2 on [0 , U max ], and define 
+
+ωζ,τ (t) := −ζU (t) + τ H ⋆(U (t)) . (83) Then we know that 
+
+ω′ 
+
+> ζ,τ
+
+(t) = ¯ x(t)−ζ + τ r ⋆(U (t)) . (84) Because 0 ≤ r⋆ ≤ 1 and τ < ζ/ 2, we have that 
+
+ζ − τ r ⋆(U (t)) ≥ ζ − τ > ζ
+
+2 > 0. (85) Moreover, from the properties of r⋆, it holds that 
+
+ddt r⋆(U (t)) = 0 for a.e. t ∈ [0 , M ]. (86) Consider the regularized problem obtained by replacing the objective θ by 
+
+θ + δ
+
+> m
+
+X
+
+> r=1
+
+ar Rr (S) + δ
+
+> m−1
+
+X
+
+> r=0
+
+br Gr (D, c, x) + 
+
+> m
+
+X
+
+> i=2
+
+εi
+
+Z S
+
+> 0
+
+Di(t)dt +
+
+Z M
+
+> 0
+
+ωζ,τ (t)D2(t)dt, (87) where all controls are extended by zero after their active horizon. Since all perturbations are uniformly bounded, we have sup 
+
+> D,c
+
+δ X
+
+> r
+
+ar Rr (S) + δ X
+
+> r
+
+br Gr + X
+
+> i
+
+εi
+
+Z
+
+Di +
+
+Z
+
+ωζ,τ D2 −→ 0as δ, ε, ζ, τ ↓ 0 with 0 < τ < ζ/ 2. The regularization contains three conceptually distinct parts. First, the terms multiplied by δ assign a small positive weight to every terminal and running covering expression. Their only purpose is to make all effective coefficients (defined later) strictly positive. Second, the penalties εi
+
+R S 
+
+> 0
+
+Di(t)dt 
+
+break zero-level ties between two adjacent modes. They are used to exclude zero-valued singular switching arcs. Third, the selector R M 
+
+> 0
+
+ωζ,τ (t)D2(t)dt is used only at the outer β level. Its linear part −ζU (t) makes every outer active tie occur at a strictly positive marginal level, which is further needed to prove the bang– bang argument. Its strictly convex part τ H ⋆(U (t)) makes the outer switching gap strictly convex on every 51 mode-1 interval, which forces D2 to be connected. The slope of H⋆ has derivative zero almost everywhere, so this second part does not disturb the later equations. Let ϖ := ( δ, ε, ζ, τ ) denote the vector of regularization parameters, and let ( Pϖ ) denote the corresponding regularized fixed-A problem. The argument has two stages. First, we fix ϖ and prove that an optimal solution of ( Pϖ ) has the desired bang–bang and finite-island structure. The resulting component bounds will not depend on ϖ. Second, after these uniform bounds have been established, we choose a sequence 
+
+ϖn = ( δn, εn, ζ n, τ n) −→ 0and pass to a limit of the corresponding structured optimal solutions. Since the perturbations vanish uni-formly, the limiting control is an exact optimum of the original fixed-A problem and retains the same component bounds. For every fixed ϖ, the relaxed regularized problem ( Pϖ ) attains its minimum. This follows from the standard existence theorem for relaxed finite-dimensional optimal-control problems: after extending the controls by zero to the common interval [0 , M ], the pointwise control set is compact and convex, the state dynamics are affine in the controls and Lipschitz in the state, the active horizon belongs to the compact interval [0 , M ], and all objective and constraint functionals are continuous under the standard weak control and uniform state convergence. Fix one optimal relaxed solution of ( Pϖ ), and denote its active horizon by S. Fix the active horizon S of such an optimum. Introduce auxiliary states ˙ai(t) = ci(t), ai(0) = 0 , i = 1 , . . . , m − 1, and ˙gr (t) = 
+
+> sr+1
+
+X
+
+> k=1
+
+rk (t)xkt +
+
+> K
+
+X
+
+> k=sr+1 +1
+
+cr (t)xkt , r = 0 , . . . , m − 1.
+
+Then the alpha-mass restrictions are the endpoint equalities ai(S) = Ai, and Gr = gr (S). We apply the standard Pontryagin minimum principle with endpoint equalities and inequalities; see, e.g., (Vinter 2000). Every nonredundant covering inequality has the form Fj (D, c, x) − θd j ≤ 0 for dj > 0. We can see that the endpoint constraint qualification holds, the Pontryagin multiplier is normal, and the objective multiplier can be normalized to one. Let λr ≥ 0 for r = 1 , . . . , m be the multipliers of the terminal covering constraints, and let γr ≥ 0 for r = 0 , . . . , m − 1 be the multipliers of the running covering constraints. Define the effective coefficients ρr := λr + δa r > 0 for r = 1 , . . . , m and ηr := γr + δb r > 0 for r = 0 , . . . , m − 1. Let κi for i =1, . . . , m − 1 be the multipliers of the fixed alpha-mass constraints. After removing terms independent of (D, c, x), the scalarized first-order objective is 
+
+Jδ, ε,ζ,τ =
+
+> m
+
+X
+
+> r=1
+
+ρr Rr (S) + 
+
+> m−1
+
+X
+
+> r=0
+
+ηr Gr (D, c, x) + 
+
+> m−1
+
+X
+
+> i=1
+
+κi
+
+Z S
+
+> 0
+
+ci(t)dt − Ai
+
+
+
++
+
+> m
+
+X
+
+> i=2
+
+εi
+
+Z S
+
+> 0
+
+Di(t)dt +
+
+Z M
+
+> 0
+
+ωζ,τ (t)D2(t)dt. 
+
+(88) Let pk (t) be the costate associated with xkt , with convention p0(t) := 0. For block Bi, define 
+
+Ci := η0 + η1 + · · · + ηi−1. (89) If k ∈ Bi, the transition rate rk = Di appears directly in the running expressions with total coefficient Ci.Consequently, the marginal value of activating the transition k → k − 1 is 
+
+μk (t) := Ci + pk−1(t) − pk (t), k ∈ Bi. (90) 52 For k ∈ Bi, the coefficient of xkt in the Hamiltonian is Di(t)μk (t) + Pm−1 
+
+> ℓ=i
+
+ηℓcℓ(t). Therefore the costate equation is 
+
+p′ 
+
+> k
+
+(t) = −Di(t)μk (t) −
+
+> m−1
+
+X
+
+> ℓ=i
+
+ηℓcℓ(t), k ∈ Bi. (91) The terminal conditions are 
+
+pk (S) = 
+
+> m
+
+X
+
+> r=i
+
+ρr , k ∈ Bi. (92) For i = 1 , . . . , m − 1, define the α switching coefficient 
+
+χi(t) := κi + ηiRi(t). (93) By (79), we have that 
+
+χ′
+
+> i
+
+(t) = −ηiDi(t)xsi+1 +1  
+
+> t
+
+≤ 0. (94) Thus χi is nonincreasing and has at most one zero cutoff. Pointwise minimization of χi(t)ci(t) over Di+1 (t) ≤
+
+ci(t) ≤ Di(t) gives the expression, away from the cutoff set {χi = 0 }, that 
+
+ci(t) = Di+1 (t) +  Di(t) − Di+1 (t)1{χi(t)<0}. (95) Since χi is nonincreasing, the rule in (95) uses the lower feasible bound before its cutoff and the upper feasible bound after its cutoff. If χi = 0 on an interval, we choose the optional α mass (the c-control) as late as possible on that interval. Following an argument similar to Lemma 4, we know that every regularized problem admits an optimal representative whose α controls are late-filled. We use such a representative in the compactness argument at the end of the proof. For each block, define the full block score 
+
+Si(t) := 
+
+> si
+
+X
+
+> k=si+1 +1
+
+xkt μk (t). (96) For each cutoff mode r ∈ { 1, . . . , m }, define its optimized Hamiltonian score, up to terms common to all modes, by 
+
+bHr (t) = 
+
+> r
+
+X
+
+> j=2
+
+Sj (t) + 
+
+> r−1
+
+X
+
+> j=1
+
+χj (t) + 1{r<m }χr (t)− +
+
+> r
+
+X
+
+> j=2
+
+εj + ωζ,τ (t)1{r≥2}, (97) where u− := min {u, 0} and u+ := max {u, 0}. Indeed, in cutoff mode r, we have cj = 1 for j < r , the optimized value of χr cr is χ− 
+
+> r
+
+when r < m , and all deeper alpha controls are zero. Define the adjacent mode gap 
+
+bAj (t) := bHj+1 (t) − bHj (t). Then we have 
+
+bAj (t) = Sj+1 (t) + χj (t)+ + χj+1 (t)− + εj+1 + ωζ,τ (t)1{j=1 }, (98) where χ− 
+
+> m
+
+:= 0. We further define Γi(t) := μsi+1 (t) − ηi1{χi(t)>0}, i = 1 , . . . , m − 1, and ϑi(t) := xsi+1 +1  
+
+> t
+
+Γi(t), ϑm(t) := 0 , (99) and obtain the following expression. 53 
+
+Claim 3. Along every relaxed regularized control, we have that 
+
+bA′ 
+
+> j
+
+(t) = Dj (t)ϑj (t) − Dj+2 (t)ϑj+1 (t) + ω′ 
+
+> ζ,τ
+
+(t)1{j=1 } (100) 
+
+for j = 1 , . . . , m − 1, with Dm+1 := 0 .
+
+We also have the following result. 
+
+Claim 4. Fix a block Bi and a set E of positive measure on which it holds that Di(t) ≥ d0 > 0. Let a differentiable function g satisfy that g′ = 0 almost everywhere on E, and suppose 
+
+μsi (t) = g(t) for a.e. t ∈ E. 
+
+Then, after discarding a null subset of E, we have that μk (t) = g(t) for all k ∈ Bi, and, if i < m , it holds that 
+
+Di+1 (t)
+
+Di(t) μsi+1 (t) − ηi
+
+ci(t)
+
+Di(t) = g(t). (101) 
+
+If i = m, the same assumptions force g(t) = 0 almost everywhere on E.
+
+Note that Lemma 5 implies that the β-control can take binary values for the original problem. We can further show that for the regularized problem, every normal optimal solution also satisfies that Di(t) ∈ { 0, 1}
+
+for almost entirely t and all i = 1 , . . . , m . Thus every regularized problem admits an optimal cutoff-valued representative. We formalize the binary value of D control in the following claim. 
+
+Claim 5. Every normal optimal solution of the regularized relaxed problem satisfies 
+
+Di(t) ∈ { 0, 1} for a.e. t, i = 1 , . . . , m. 
+
+For i = 1 , . . . , m − 1, define the full switching gap between cutoff mode i and the deeper envelope by 
+
+bΦi(t) := min 
+
+> r=i+1 ,...,m
+
+h bHr (t) − bHi(t)
+
+i
+
+. (102) For r > i , we let that 
+
+bΨi,r := bHr − bHi =
+
+> r−1
+
+X
+
+> j=i
+
+bAj .
+
+Summing (100) gives the exprssion that 
+
+bΨ′ 
+
+> i,r
+
+= Diϑi +
+
+> r−1
+
+X
+
+> j=i+1
+
+(Dj − Dj+1 )ϑj − Dr+1 ϑr + ω′ 
+
+> ζ,τ
+
+1{i=1 }.
+
+Note that the actual D control has a cutoff mode. If that mode is i, every deeper Dj is zero and every branch has derivative ϑi. If the actual mode is q > i , then the branch r = q is minimizing, due to the fact that 
+
+Di = · · · = Dq = 1 and Dq+1 = 0, all internal terms cancel and the same derivative remains. On a positive-measure branch-tie set, tied absolutely continuous branches have equal derivatives almost everywhere. With the definitions in (99), this proves that for i = 2 , . . . , m − 1, in the active time of level i, we have 
+
+ddL i
+
+bΦi(t) = xsi+1 +1  
+
+> t
+
+Γi(t) almost entirely (103) Finally, substituting (84), for the outer gap, we have that 
+
+bΦ′
+
+> 1
+
+(t) = xs2+1  
+
+> t
+
+[Γ 1(t) − ζ + τ r ⋆(U (t))] almost entirely (104) 54 We can further see that, for i ≥ 2, if the active time of level i up to time t is greater than 0, i.e., if 
+
+Li−1(t) > 0, then we must have 
+
+xsi+1  
+
+> t
+
+> 0, (105) which follows directly from the state-transition dynamics that once a level becomes active, the probability mass on that level will always be positive. We next eliminate active singular switching arcs in every level below D2.
+
+Claim 6. For every regularized optimum and every i = 3 , . . . , m , after changing the control on a null set if necessary, we have that 
+
+Di = 1 ⇐⇒ bΦi−1 < 0 a.e. in Li−1-time . (106) We now derive the block representation used in the remaining proof. For every level, define the remaining future activity 
+
+Bi(t) := 
+
+Z St
+
+Di(s)ds. 
+
+Deleting intervals on which Di = 0 and reversing the resulting clock does not change the number of connected components. We therefore write z = Bi(t) ∈ [0 , L i] and use any right-continuous generalized inverse ti(z) of this collapsed reverse clock. 
+
+Claim 7. In the remaining Li-active clock, it holds that 
+
+μsi (ti(z)) = CiΠsi−si+1 −1(z) − ρiπsi−si+1 −1(z) + 
+
+Z z
+
+> 0
+
+πsi−si+1 −1(z − y)Wi(y)dy, (107) 
+
+where we define πℓ(u) := e−u u ℓ 
+
+> ℓ!
+
+1{u≥0}, Πℓ(z) := e−z Pℓr=0  
+
+> zr
+> r!
+
+, and 
+
+Wi(y) := Di+1 (ti(y)) μsi+1 (ti(y)) − ηici(ti(y)) . (108) 
+
+Specifically, when i = m, it holds that 
+
+μsm (t) = CmΠsm−1(Bm(t)) − ρmπsm−1(Bm(t)) , (109) 
+
+Moreover, as a function of z = Bm(t), the right-hand side of (109) is monotone or valley-shaped. 
+
+Regarding the expression given in Claim 7, we can obtain the following intermediate result. 
+
+Claim 8. Let W ∈ L1(0 , L ) and, for z ∈ [0 , L ], let 
+
+Q(z) = CΠℓ(z) − ρπ ℓ(z) + 
+
+Z z
+
+> 0
+
+πℓ(z − y)W (y) dy, (110) 
+
+where C, ρ ≥ 0. Fix ζ ≥ 0. Suppose that, for every a > ζ , the positivity set {y ∈ (0 , L ) : W (y) > a } has at most r connected components. Then every superlevel set {z ∈ [0 , L ] : Q(z) > ζ } has at most r + 2 connected components, for every real number ζ.
+
+Finally, we show the following result. 
+
+Claim 9. Fix i ∈ { 2, . . . , m − 1} and a ≥ 0. Then, in Li-time, it holds that 
+
+{Wi > a } = {Di+1 = 1 } ∩ { μsi+1 > η i + a}. (111) 
+
+Moreover, inside every connected component of the set {μsi+1 > η i + a}, the set {Wi > a } has at most one connected component. 55 For i = 2 , . . . , m , let Pi be a uniform upper bound on the number of connected components of every superlevel set {μsi > ξ }, for any value ξ, in the active time of level i − 1 ( Li−1 time). At the bottom, Claim 7 implies 
+
+Pm ≤ 2. (112) Now suppose Pi+1 is known. For every a ≥ 0, Claim 9 gives that the number of connected components of the superlevel set {Wi > a } is upper bounded by Pi+1 . Applying Claim 8 to (107) gives that 
+
+Pi ≤ Pi+1 + 2 .
+
+Backward induction therefore yields that 
+
+Pi ≤ 2( m − i + 1) , i = 2 , . . . , m. (113) We now convert the superlevel bounds into beta-island bounds for the regularized problem. Fix i ∈{3, . . . , m − 1}. By (103) and (99), we have that 
+
+ddL i−1
+
+bΦi−1 = xsi+1 μsi − ηi−11{χi−1>0}
+
+ .
+
+Before the cutoff of χi−1, the positive derivative set is {μsi > η i−1}, and after the cutoff it is {μsi > 0}. Each of these sets has at most Pi components. Therefore, we know that the number of connected components of the set 
+
+n ddL i−1
+
+bΦi−1 > 0
+
+o
+
+is upper bounded by 2 Pi. The complement of a union of at most 2 Pi open intervals has at most 2 Pi + 1 interval components. On each such complementary interval, we have that 
+
+ddL i−1
+
+bΦi−1 ≤ 0 a.e. ,
+
+so bΦi−1 is nonincreasing and can enter the strict negative half-line at most once. There may additionally be one negative component already present at the left endpoint. Hence, we know that 
+
+Ji ≤ 2Pi + 2 .
+
+Using (113), we obtain that 
+
+Ji ≤ 4( m − i + 1) + 2 , i = 3 , . . . , m − 1. (114) By Claim 6, the active set agrees almost everywhere with the strict negative set of the full switching gap, so this is a bound on the actual β islands. For the bottom level, at the beginning of the Lm−1-clock the bottom block is empty. Hence Sm = 0, and the regularized adjacent gap satisfies that 
+
+bΦm−1(0) = χm−1(0) + + εm > 0.
+
+Before the cutoff of χm−1, the bottom gap decreases only where μsm < η m−1, and after the cutoff it decreases only where μsm < 0. By Claim 7, μsm is monotone or valley-shaped, so each of these two strict sublevel sets has at most one component. The bottom gap can therefore decrease on at most two intervals. Starting from a strictly positive value, each decreasing interval can create at most one strict negative component. By Claim 6, we have that 
+
+Jm ≤ 2. (115) The preceding bounds hold uniformly for every regularized pure-mode optimum. We carry out the vanishing-regularization passage jointly with the connectedness argument for D2 in the proof of Lemma 9. The common endpoint-compactness argument at the end of that proof produces one exact optimum satisfying all the bounds above. Our proof of Lemma 8 is thus completed. 56 
+
+D.1.1. Prof of Claim 2 Choose a countable dense set (can be the set of all rational numbers) {un : n ≥
+
+1} ⊂ (0 , U max ). Then, we define 
+
+H⋆(u) := 
+
+> ∞
+
+X
+
+> n=1
+
+2−n(u − un)+, (x)+ := max {x, 0}, (116) and define 
+
+r⋆(u) := 
+
+> ∞
+
+X
+
+> n=1
+
+2−n1{u>u n}. (117) The series defining H⋆ converges uniformly, because we have 0 ≤ 2−n(u − un)+ ≤ 2−nUmax . Thus H⋆ is continuous and Lipschitz. Each summand in (116) is convex, so H⋆ is convex. Moreover, every nondegenerate interval contains some un. Hence H⋆ has a positive kink inside every nondegenerate interval and therefore cannot be affine on any such interval. A convex function with no nondegenerate affine interval is strictly convex. At every point different from all un, termwise differentiation gives H′
+
+> ⋆
+
+(u) = r⋆(u). Thus this identity holds almost everywhere. Also, we have that 0 ≤ r⋆(u) ≤ P∞ 
+
+> n=1
+
+2−n = 1. If u < v for arbitrary two points u
+
+and v, density gives some un ∈ (u, v ), and therefore we have 
+
+r⋆(v) − r⋆(u) ≥ 2−n > 0.
+
+Hence r⋆ is strictly increasing. Finally, the derivative measure of r⋆ is 
+
+dr ⋆ =
+
+> ∞
+
+X
+
+> n=1
+
+2−nδun ,
+
+which is purely atomic and therefore singular with respect to Lebesgue measure. Consequently, we have 
+
+r′
+
+> ⋆
+
+(u) = 0 for a.e. u, 
+
+which completes our proof. 
+
+D.1.2. Proof of Claim 3 We first differentiate a block score. For j = 2 , . . . , m − 1, it holds that 
+
+S′ 
+
+> j
+
+(t) = Dj−1(t)xsj +1  
+
+> t
+
+μsj (t) + xsj+1 +1 
+
+> t
+
+ηj cj (t) − Dj+1 (t)μsj+1 (t) . (118) For j = m, the same formula holds with the second line omitted. For an interior state k > s j+1 + 1 of Bj ,subtracting the two costate equations in (91) gives that 
+
+μ′ 
+
+> k
+
+= Dj (μk − μk−1).
+
+At the lower boundary k = sj+1 + 1, subtraction across the two adjacent blocks gives 
+
+μ′ 
+
+> sj+1 +1
+
+= Dj μsj+1 +1 − Dj+1 μsj+1 + ηj cj .
+
+Differentiating Sj = P 
+
+> k∈Bj
+
+xk μk and substituting the state and marginal equations cancels every internal term, leaving precisely (118). Next, by (94), we have (χ+ 
+
+> j
+
+)′ = −ηj Dj xsj+1 +1 1{χj >0}, and (χ−
+
+> j+1
+
+)′ = −ηj+1 Dj+1 xsj+2 +1 1{χj+1 <0}.
+
+Using (95), it holds that 
+
+ηj+1 cj+1 − ηj+1 Dj+1 1{χj+1 <0} = ηj+1 Dj+2 1{χj+1 >0}.
+
+For j = m − 1, all terms involving χm, cm, and ηm are absent, and the same calculation gives the formula with Dm+1 ϑm = 0. Differentiating (98) and using these identities yields (100). 57 
+
+D.1.3. Proof of Claim 4 For j = 1 , . . . , n i where ni = si − si+1 , set 
+
+Mj (t) := μsi+1 +j (t).
+
+The ordinary-time marginal equations obtained from (91) are ˙Mj = Di(Mj − Mj−1), j = 2 , . . . , n i, (119) and, when i < m , we have that ˙M1 = DiM1 − Di+1 μsi+1 + ηici. (120) For i = m, the first equation is instead ˙M1 = DmM1.Since Mni = g on E, it is easy to see that ˙Mni = g′ = 0 almost everywhere on E. Because we also have the condition that Di ≥ d0 > 0, from (119), we obtain Mni−1 = Mni = g there. Restricting to the full set on which this equality holds and repeating the argument yields that 
+
+M1 = · · · = Mni = g a.e. on E. 
+
+Substitution into (120) gives (101). In the bottom block it gives 0 = Dmg. Since Dm ≥ d0, this forces g = 0. Our proof is thus completed. 
+
+D.1.4. Proof of Claim 5 For a feasible solution, denote 
+
+νr (t) := Dr (t) − Dr+1 (t), r = 1 , . . . , m, Dm+1 := 0 .
+
+Then we have νr (t) ≥ 0, P 
+
+> r
+
+νr (t) = D1(t) = 1, and Di(t) = Pmr=i νr (t). Indeed, after pointwise minimization over the alpha controls, (95) gives that 
+
+c∗ 
+
+> i
+
+(t) = Di+1 (t) + ( Di(t) − Di+1 (t)) · 1{χi(t)<0} = X
+
+> r>i
+
+νr (t) + νi(t) · 1{χi(t)<0},
+
+which is the same convex combination of the α choices in the cutoff modes. When χi(t) = 0, the Hamiltonian is independent of ci(t), so the identity remains valid. The Pontryagin minimum condition (Vinter 2000) therefore implies that 
+
+νr (t) > 0 =⇒ bHr (t) = min 
+
+> q
+
+bHq (t) a.e. (121) Suppose that D is nonbinary on a set of positive measure. Since there are only finitely many mode supports and sign patterns of the functions χi(t), there is a positive-measure set E on which both are fixed. Let a < b 
+
+be the two largest supported modes. By restricting to one of the sets {νa ≥ 1/n, ν b ≥ 1/n }, we may also assume 
+
+νa, ν b ≥ d0 > 0 on E. 
+
+Since no supported mode lies strictly between a and b, we have that 
+
+Da+1 = · · · = Db =: d ≥ d0, Db+1 = 0 on E. (122) Modes a and b are tied on E. Therefore, differentiating their gap yields value 0 and summing (100) from 
+
+j = a to b − 1 gives 0 = Daϑa + ω′ 
+
+> ζ,τ
+
+1{a=1 } a.e. on E. (123) 58 If a = 1, then Da = 1, and the condition in (84) and (123) give that 
+
+μs2 = η11{χ1>0} + ζ − τ r ⋆(U ) =: g. (124) By (85), we have g > ζ/ 2 > 0. On the selected sign component of E, the condition in (86) establishes that 
+
+g′ = 0 almost everywhere. If a ≥ 2, then Da > 0, and we have that 
+
+μsa+1 = ηa1{χa>0} =: g, (125) where g is either 0 or the positive constant ηa.Apply Claim 4 first to block Ba+1 . For every intermediate supported block i = a + 1 , . . . , b − 1, from (122), we have that 
+
+Di = Di+1 = ci = d. 
+
+Thus, the condition in (101) establishes that 
+
+μsi+1 = gi + ηi, (126) where gi is the propagated top marginal in block Bi. The new comparison function again has derivative zero almost everywhere on E. Consequently, after the first intermediate block the propagated marginal is strictly positive, and each further block adds the positive number ηi.At the last supported block Bb, we have Db = d and Db+1 = 0. If its propagated top marginal is strictly positive, then (101) gives that −ηbcb 
+
+> d
+
+> 0 when b < m , while the bottom-block conclusion of Claim 4 gives a positive quantity equal to zero when b = m. Both are impossible. The only remaining case is 
+
+a ≥ 2, b = a + 1 , g = 0 .
+
+Claim 4 gives that every marginal in Bb is zero. If b < m , it also gives cb = 0, and pointwise α minimization yields χb ≥ 0; when b = m, the χ− 
+
+> b
+
+term is absent. Moreover, g = 0 and ηa > 0 imply χa ≤ 0. Therefore 
+
+bHb − bHa = Sb + χ+ 
+
+> a
+
++ 1{b<m }χ− 
+
+> b
+
++ εb = εb > 0,
+
+contradicting the tie. Hence no fractional minimizing face has positive measure. Our proof is thus completed. 
+
+D.1.5. Proof of Claim 6 Suppose instead that a positive-measure set in the Li−1-clock satisfies Di = 1 and bΦi−1 = 0. Pull it back to ordinary active time and denote the pullback by E. Since Di = 1 implies 
+
+Di−1 = 1, the ordinary-time and Li−1 measures agree on E, so E has positive measure. From bΦi−1 = 0, we know that ddL i−1
+
+bΦi−1 = 0 almost entirely on E. Then, from (103) and (105), we know that Γ i(t) = 0 almost entirely on E. Thus, from the expression (99), we know that 
+
+μsi = ηi−11{χi−1>0} a.e. on E. 
+
+Split E at the unique cutoff of χi−1. On a positive-measure subset, we have that 
+
+μsi = ξ, ξ ∈ { 0, η i−1}. (127) Apply Claim 4 to block Bi, with Di = 1 and comparison function g ≡ ξ.59 If ξ > 0, the condition that requires g = 0 for i = m in Claim 4 rules out the case i = m. If i < m , from (101) and the conditions that Di = 1, g ≡ ξ, we have that 
+
+Di+1 (t)μsi+1 (t) − ηici(t) = ξ (128) which shows that Di+1 cannot be zero. Hence we have Di+1 = ci = 1 and μsi+1 = ξ + ηi > 0. Applying the same argument successively to all lower active blocks reaches the bottom block ( i = m) with a strictly positive value for the corresponding μ, which is impossible by the condition that requires g = 0 for i = m in Claim 4. Now suppose ξ = 0. If Di+1 = 1 on a positive-measure subset, then we have ci = 1 and (128) gives μsi+1 =
+
+ηi > 0, where ηi > 0 comes from the definition that ηi = γi + δb i with γi ≥ 0, δ > 0, and bi > 0 from regu-larization. This would reduce to the preceding case that results in the bottom block ( i = m) with a strictly positive value for the corresponding μ, which is impossible by the condition that requires g = 0 for i = m
+
+in Claim 4. Therefore Di+1 = 0 almost everywhere on the selected set. Since ηi > 0, (128) gives that ci = 0. Pointwise α minimization (95) then implies χi ≥ 0, while (127) and ηi−1 > 0 imply χi−1 ≤ 0. All marginals in Bi are zero, so Si = 0. Since the actual mode is exactly i, from (98), we have that 
+
+bAi−1 = Si + χ+ 
+
+> i−1
+
++ 1{i<m }χ− 
+
+> i
+
++ εi = εi > 0,
+
+contradicting Hamiltonian minimization that forces bAi−1 ≤ 0. Both cases are impossible. Finally, in Li−1-time, bΦi−1 < 0 forces the minimizing mode to be at least i, hence Di = 1. The reverse implication holds outside the null active-tie set just excluded. This proves (106). 
+
+D.1.6. Proof of Claim 7 For j = 1 , . . . , s i − si+1 , define 
+
+Mj (z) := μsi+1 +j (ti(z)) .
+
+In the reverse block clock, the formula in (91) gives that 
+
+M ′
+
+> 1
+
+(z) = Wi(z) − M1(z), and M ′ 
+
+> j
+
+(z) = Mj−1(z) − Mj (z), j = 2 , . . . , s i − si+1 .
+
+From (92), we know that 
+
+M1(0) = Ci − ρi, Mj (0) = Ci j = 2 , . . . , s i − si+1 .
+
+Solving this linear equation gives that 
+
+Msi−si+1 (z) = CiΠsi−si+1 −1(z) − ρiπsi−si+1 −1(z) + 
+
+Z z
+
+> 0
+
+πsi−si+1 −1(z − y)Wi(y)dy. 
+
+Since Msi−si+1 = μsi , we know that (107) holds. The formula (109) follows from (107) with i = m. Define the function 
+
+Fm(z) := CmΠsm−1(z) − ρmπsm−1(z).
+
+If sm = 1, then we have 
+
+Fm(z) = ( Cm − ρm)e−z ,
+
+which is monotone. Suppose sm ≥ 2. Using the relationship 
+
+ddz Πsm−1(z) = −πsm−1(z) and ddz πsm−1(z) = πsm−2(z) − πsm−1(z),60 we obtain that 
+
+F ′
+
+> m
+
+(z) = ( ρm − Cm)πsm−1(z) − ρmπsm−2(z). (129) For z > 0, it is direct to verify that 
+
+πsm−1(z)
+
+πsm−2(z) = zsm − 1 .
+
+Thus F ′ 
+
+> m
+
+has at most one zero. Since its sign near zero is nonpositive, Fm is either decreasing or decreases first and then increases. Hence it is monotone or valley-shaped. Our proof is thus completed. 
+
+D.1.7. Proof of Claim 8 The proof has two steps. First, we bound the number of sign changes of Q − a
+
+for every a > ζ . We then convert this sign-change bound into a component bound at the original level ζ.Fix a > ζ . For a real-valued function v, let sc( v) denote its number of strict sign changes: namely, the largest possible number N − 1 for which there exist 
+
+y1 < y 2 < · · · < y N
+
+such that every v(yj ) is nonzero and consecutive selected values have opposite signs. The expression Q − a
+
+can be viewed as an Erlang convolution with three pieces of input: a constant input C − a before time 0; a negative mass −ρ at time 0; the input W − a after time 0. For an expression using ordinary integrable functions, let T > 1 and 0 < ϵ < 1, and define 
+
+vT,ϵ (y) := ( C − a)1[−T, −ϵ)(y) + 
+
+
+
+C − a − ρϵ
+
+
+
+1[−ϵ, 0) (y) + ( W (y) − a)1(0 ,L )(y). (130) By assumption, the positive set of W − a has at most r components. Therefore W − a has at most 2 r strict sign changes on (0 , L ). The two constant pieces on the negative half-line can add at most one sign change between them, and the transition across 0 can add at most one more. Hence we have that sc( vT,ϵ,a ) ≤ 2r + 2 . (131) The Erlang kernel πℓ is the ( ℓ + 1)-fold convolution of the one-sided exponential kernel. By Schoenberg’s variation-diminishing theorem (Schoenberg 1948), convolution with πℓ cannot increase the number of strict sign changes and we have that sc  πℓ ∗ vT,ϵ,a 
+
+ ≤ 2r + 2 . (132) We now identify the limit of this convolution. For z ∈ [0 , L ], we have (πℓ ∗ vT,ϵ,a )( z) = ( C − a)
+
+Z 0
+
+> −T
+
+πℓ(z − y)dy − ρϵ
+
+Z 0
+
+> −ϵ
+
+πℓ(z − y)dy +
+
+Z z
+
+> 0
+
+πℓ(z − y) W (y) − ady. (133) For the first term, the change of variables u = z − y gives 
+
+Z 0
+
+> −∞
+
+πℓ(z − y) dy =
+
+Z ∞
+
+> z
+
+πℓ(u) du = Π ℓ(z).
+
+Therefore, as T → ∞ , we have that Z 0
+
+> −T
+
+πℓ(z − y) dy −→ Πℓ(z)61 uniformly for z ∈ [0 , L ]. For the second term, uniform continuity of πℓ on [0 , L + 1] gives 1
+
+> ϵ
+
+R 0 
+
+> −ϵ
+
+πℓ(z − y) dy −→ 
+
+πℓ(z) uniformly for z ∈ [0 , L ]. Finally, we have that 
+
+Z z
+
+> 0
+
+πℓ(z − y) W (y) − ady =
+
+Z z
+
+> 0
+
+πℓ(z − y)W (y)dy − a
+
+Z z
+
+> 0
+
+πℓ(z − y)dy. 
+
+Since it holds Z z
+
+> 0
+
+πℓ(z − y)dy =
+
+Z z
+
+> 0
+
+πℓ(u)du = 1 − Πℓ(z),
+
+the limit of (133) is (C − a)Π ℓ(z) − ρπ ℓ(z) + 
+
+Z z
+
+> 0
+
+πℓ(z − y)W (y) dy − a 1 − Πℓ(z) = Q(z) − a. 
+
+Thus, we proved that πℓ ∗ vT,ϵ,a −→ Q − a uniformly on [0 , L ] as T → ∞ and ϵ ↓ 0. If Q − a had more than 2 r + 2 strict sign changes, then there would exist finitely many ordered points at which its values are nonzero and alternate in sign more than 2 r + 2 times. Uniform convergence would preserve all these signs for sufficiently large T and sufficiently small ϵ, contradicting (132). Therefore we show that sc( Q − a) ≤ 2r + 2 for every a > ζ. (134) If {Q > ζ } had more than r + 2 components, choose one point in r + 3 of them and one separating point between each consecutive pair. Choose a > ζ sufficiently close to ζ that Q > a at all the selected positive points. At the separating points Q − a < 0. This gives at least 2 r + 4 strict sign variations of Q − a, a contradiction. Our proof is thus completed. 
+
+D.1.8. Proof of Claim 9 If Di+1 (t) = 0, then we have 
+
+Wi(t) = −ηici(t) ≤ 0 ≤ a, 
+
+so Wi(t) > a is impossible. If Di+1 (t) = 1, then the constraint Di+1 (t) ≤ ci(t) ≤ Di(t) forces ci(t) = 1, and therefore, it holds that 
+
+Wi(t) = μsi+1 (t) − ηi.
+
+This proves (111). Fix a connected component I of the set {μsi+1 > η i + a}. On I, we have that Γi(t) = μsi+1 (t) − ηi1{χi(t)>0} > 0.
+
+By (103), we know that bΦi is nondecreasing on I. By Claim 6, it holds that 
+
+Di+1 = 1 ⇐⇒ bΦi < 0 a.e. The strict negative set of a nondecreasing function has at most one connected component. Combining this fact with (111) finishes the proof of the claim. 62 
+
+D.2. Proof of Lemma 9 
+
+We begin with an optimal β representative satisfying the safe island bound from Lemma 8. We then select, within the optimal set, a representative whose D2-support is connected. Similar to the proof of Lemma 8, we start with an optimal cutoff-valued solution of the compatible regularized problem. We first rule out active ties in the outer switching gap. Following the same procedure as the proof of Claim 6, we can show that 
+
+D2 = 1 ⇐⇒ bΦ1 < 0 a.e. (135) We next show that the strict negative set of the outer gap is connected. Consider a positive-length interval 
+
+I on which mode 1 is used. On I, since mode 1 is used, we have that 
+
+D2 = D3 = · · · = Dm = 0 .
+
+The costate equation in (91) gives that p′ 
+
+> s2
+
+(t) = p′
+
+> s2−1
+
+(t) = 0, so, from (90), we know that the term μs2 (t) = 
+
+C2 + ps2−1(t) − ps2 (t) is constant on I. We now use a coordinate u to denote the base-level active time, i.e., 
+
+u = U (t) where U (t) is defined in (82). For every branch r ≥ 2, summing (100) while the actual mode is 1 gives that (with the expression shows up in Claim 2) 
+
+ddu 
+
+ bHr − bH1
+
+
+
+= μs2 − η11{χ1>0} − ζ + τ r ⋆(u). (136) On the interval I, the first term of the right hand side of (136) is constant. The indicator can switch only from one to zero and therefore creates only an upward jump. Since the function r⋆ is strictly increasing, the right-hand side of (136) is strictly increasing in u. All deeper branches have the same derivative on a mode-1 interval, so their pairwise differences are constant there. Their minimum, the function u 7 → bΦ1(t(u)), following definition in (102), is consequently strictly convex. Suppose {bΦ1 < 0} had two separated components. If the separating set were a single point, filling that point changes the control only on a null set and merges the two components. Otherwise, the closed interval between the two components has positive length and satisfies bΦ1 ≥ 0. On that interval, we have D2 = 0 almost everywhere. In the u-coordinate, we know that bΦ1 is strictly convex. A sublevel set of a convex function is an interval; equivalently, if its two endpoint values are zero, strict convexity makes every interior value negative. This contradicts bΦ1 ≥ 0 on the separating interval. Hence, after a null-set modification, the strict negative set has at most one component. By Equation (135), we have that 
+
+J2 ≤ 1 (137) for every compatible regularized optimum. We now let all perturbations vanish. Choose a sequence 
+
+δn ↓ 0, εi,n ↓ 0 (i = 2 , . . . , m ), ζn ↓ 0, 0 < τ n < ζn
+
+2 , τn ↓ 0,
+
+and choose an optimal cutoff-valued, late-filled solution ( Dn, cn, xn) of the corresponding regularized prob-lem. For each n, the component bounds hold 
+
+J2(Dn) ≤ 1, Jm(Dn) ≤ 2, and Ji(Dn) ≤ 4( m − i + 1) + 2 , i = 3 , . . . , m − 1.63 Pad every level by zero-length intervals up to its stated maximum number of components. The active hori-zon and every collapsed-time endpoint then belong to a fixed compact finite-dimensional set. Passing to a subsequence, all endpoints converge. The convergence of the β controls follows recursively. Since Dn 
+
+> 2
+
+is the indicator of one interval, endpoint convergence gives Dn 
+
+> 2
+
+→ D02 almost everywhere and in L1. If Dni−1 → D0
+
+> i−1
+
+in L1, then we have Lni−1(t) = R t 
+
+> 0
+
+Dni−1(s)ds converges uniformly. Convergence of the collapsed endpoints of level i therefore gives Dni → D0 
+
+> i
+
+almost everywhere and in L1. Induction yields convergence of the entire 
+
+β schedule. Because the α controls are chosen late-filled and the masses A are fixed, the optional part of every cni is described by one cutoff in the cumulative clock of {Dni = 1 , D ni+1 = 0 }. The total lengths of these optional sets and the required optional masses converge with the β endpoints. Passing to a further subsequence, the cutoff locations converge, and hence cn → c0 almost everywhere and in L1. The linear state equations then give uniform convergence xn → x0, and every terminal and running expression converges. Thus ( D0, c0) is an exact optimum of the original fixed-A problem, and the closed endpoint bounds give 
+
+J2(D0) ≤ 1, Jm(D0) ≤ 2, and Ji(D0) ≤ 4( m − i + 1) + 2 , i = 3 , . . . , m − 1.
+
+Our proof is completed. 
+
+D.3. Proof of Proposition 2 
+
+For a fixed feasible pair ( A, z), the active-time controls, state trajectory, and all terminal and running expressions are independent of M . The only difference between the finite-M objective and its limiting counterpart is that the base covering term G0(D,c,x)   
+
+> HK(M)
+
+is replaced by G0(D,c,x) 
+
+> K
+
+. Since G0(D, c, x) is the expected number of allocated units, we have that 0 ≤ G0(D, c, x) ≤ K. 
+
+Therefore, for every feasible ( A, z), 0 ≤ ΘA(z) − lim  
+
+> M→∞
+
+ΘA(z) ≤ K − HK (M )
+
+HK (M ) .
+
+Minimizing over A and z ∈ Z (A) does not change the bound. Our proof is completed from combining Lemma 2, Theorem 1, Theorem 4, and using the fact that the value of PoisOPTRe K (s, M ) decreases with 
+
+M .

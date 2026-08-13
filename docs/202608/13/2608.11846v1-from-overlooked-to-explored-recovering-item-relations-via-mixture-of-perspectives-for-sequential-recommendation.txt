@@ -1,0 +1,906 @@
+Title: From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation
+
+URL Source: https://arxiv.org/pdf/2608.11846v1
+
+Published Time: Thu, 13 Aug 2026 00:42:53 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation 
+
+## Junyoung Kim 
+
+junyoungkim@postech.ac.kr Pohang University of Science and Technology Pohang, South Korea 
+
+## Wonbin Kweon 
+
+wonbin@illinois.edu University of Illinois Urbana-Champaign Urbana, IL, USA 
+
+## Woojoo Kim 
+
+kimuj0103@postech.ac.kr Pohang University of Science and Technology Pohang, South Korea 
+
+## Jaehyung Lim 
+
+jaehyunglim@postech.ac.kr Pohang University of Science and Technology Pohang, South Korea 
+
+## Dongha Kim 
+
+dhkim0317@postech.ac.kr Pohang University of Science and Technology Pohang, South Korea 
+
+## Hwanjo Yu ∗
+
+hwanjoyu@postech.ac.kr Pohang University of Science and Technology Pohang, South Korea 
+
+## Abstract 
+
+Capturing user preference from a user’s interaction sequence is the central challenge of Sequential Recommendation (SR). This preference intuitively emerges from inter-item relations: each item transition reflects a preference embedded in the relations between items, making the faithful capture of these relations essential for accurate recommendation. For this reason, self-attention is domi-nant in sequential recommendation for its ability to compute pair-wise item interactions, yet our empirical analysis reveals that it consistently suffers from similarity bias across various types of transformer-based SR models: dot-product attention scores dispro-portionately favor similar items, systematically overlooking hetero-geneous relations with meaningful preference signals and directly limiting recommendation performance. To address this, we propose 
+
+PRISM (Perspective-based Relational Insight Synthesis Module), a module that re-examines item relations from multiple perspec-tives. PRISM employs 𝐾 Perspective Lenses to calibrate attention from distinct viewpoints, combining an Affinity View that refines homogeneous relations and a Contrast View that exposes hetero-geneous ones suppressed by similarity bias, enabling the model to capture the full spectrum of user preferences. Extensive experi-ments on seven real-world benchmarks demonstrate that PRISM consistently outperforms state-of-the-art baselines. Our code is available at https://github.com/327aem/PRISM/. 
+
+## CCS Concepts 
+
+• Information systems → Recommender systems .
+
+> ∗Corresponding authors. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> CIKM ’26, Rome, Italy
+> © 2026 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX
+
+## Keywords 
+
+Sequential Recommendation, Attention Calibration, Mixture of Experts 
+
+ACM Reference Format: 
+
+Junyoung Kim, Wonbin Kweon, Woojoo Kim, Jaehyung Lim, Dongha Kim, and Hwanjo Yu. 2026. From Overlooked to Explored: Recovering Item Re-lations via Mixture of Perspectives for Sequential Recommendation . In 
+
+Proceedings of The 35th ACM International Conference on Information and Knowledge Management (CIKM ’26). ACM, New York, NY, USA, 12 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+Sequential Recommendation (SR) aims to predict a user’s next item from their interaction history. Given diverse and dynamic consump-tion patterns, the central challenge in SR is to faithfully model the user’s preference driving these interactions from the sequence. In practice, this preference surfaces through inter-item relations: when a user transitions from one item to the next, that choice re-flects a specific preference embedded in the relation between the two items, and which preference each item carries depends on its surrounding context. Capturing the user’s preference, therefore, calls for a closer look at these inter-item relations. For this reason, transformer-based models [5, 6, 14, 20, 28, 35] have become dom-inant in SR. By computing pairwise interactions across all items in the sequence, self-attention weighs how much each item relates to every other, making it naturally suited for capturing inter-item relations and achieving strong recommendation performance. Despite this success, prior work [45] has reported that self-attention often produces erroneous attention distributions. We argue that this stems from how attention is computed: attention scores are dot-product similarities between queries and keys, so each item’s representation is dominated by items already similar to it, while dissimilar ones contribute little. We call this tendency 
+
+similarity bias that overlooks heterogeneous relations. As described in Fig. 1 (top), given a query item of running shoes, attention in-herently concentrates on the relation to the pants, similar to the shoes, while relations to the relatively dissimilar water bottle, soc-cer ball, and watch are suppressed. As a result, only the fashion 
+
+cue is captured, and additional meaningful cues such as exercise arXiv:2608.11846v1 [cs.IR] 12 Aug 2026 CIKM ’26, November 7-11, 2026, Rome, Italy Kim et al. Problem: Similarity Bias in Self-Attention mechanism 
+
+> Our Motivation
+> User
+> Query Item
+> Perspective 3
+> Strong Attention to Homogeneous Relations
+> Incomplete
+> User Preference
+> Fashion Cue
+> Exercise Cue
+> Collecting Cue
+> Overlooked Heterogeneous Relations
+> Query Item
+> Rich, Complete
+> User Preference
+> Perspective 1
+> Perspective 2
+
+Figure 1: Motivation of PRISM. (Top) Standard self-attention favors homogeneous relations, capturing only a partial pref-erence. (Bottom) Examining the sequence from multiple per-spectives, each surfacing a distinct cue (e.g., Fashion, Exercise, Collecting), can combine them into a richer preference. 
+
+or collecting are missed, leaving the model unable to capture the diverse preferences embedded in the user’s sequence. We empirically verify this in Sec. 3 across four transformer-based baseline categories: vanilla self-attention [14], attention calibration for correcting attention scores [45], intent-based modeling for cap-turing user intent [4, 29], and mixture-of-experts for multi-faceted preference modeling [22]. Our analyses reveal that items impor-tant for target prediction are systematically overlooked within self-attention. As shown in Sec. 3.2, the correlation between each item’s attention score and its actual contribution to target prediction is consistently low, and in some cases even negative; this misalign-ment persists across all four categories. Furthermore, in Sec. 3.3, when we artificially boost attention on the overlooked items, the predicted probability of the target item increases. These overlooked relations carry meaningful preference signals, and recovering them calls for a mechanism that complements standard attention. To this end, we propose PRISM (Perspective-based Relational 
+
+Insight Synthesis Module), a module placed between transformer layers. Analogous to an optical prism that decomposes a single beam of light into a spectrum of colors, PRISM employs 𝐾 Per-spective Lenses to calibrate attention at each layer from multiple semantic perspectives, recovering the relations that the preceding transformer layer overlooked. Each lens operates in one of two com-plementary views: the Affinity View refines homogeneous relations already captured by attention, while the Contrast View surfaces heterogeneous relations suppressed by similarity bias. In Fig. 1 (bottom), one Perspective Lens connects the shoes with the pants for a fashion cue, another with the water bottle and the soccer ball for an exercise cue, and another with the watch for a collecting cue. Combining these cues recovers the full spectrum of user preference that similarity bias would otherwise suppress. Through successive layers, the user’s preference emerges more clearly. Extensive experi-ments on diverse benchmarks demonstrate that PRISM consistently outperforms existing baselines and proves robust across various real-world scenarios. Our contributions are as follows: 
+
+• We identify similarity bias as a cause of overlooked relational preference signals. 
+
+• We propose PRISM , whose 𝐾 Perspective Lenses refine homoge-neous relations and recover suppressed heterogeneous ones via 
+
+Affinity and Contrast Views .
+
+• Experiments show that PRISM outperforms baselines and re-mains robust across diverse scenarios. 
+
+## 2 Related Works 
+
+Transformer-based SR. Transformer-based models like SASRec [14] and BERT4Rec [35] dominate SR by leveraging self-attention to capture inter-item relations [9, 10, 32, 36, 44]. AC-SASRec [45] further calibrates attention scores to correct erroneous attention distributions. However, such calibration relies on a learnable matrix without explicit relational guidance. Our PRISM calibrates attention from multiple perspectives, using inter-item relations as explicit guidance to recover the heterogeneous relations. 
+
+Intent-based SR. ICLRec [4], IOCRec [21], ICSRec [29], and EL-CRec [23] capture user intent by assigning each sequence a single global intent representation learned via contrastive learning. Model-ing preference at the sequence level, however, suppresses item-level relational signals that drive individual transitions; furthermore, as they typically build on self-attention, they inherit similarity bias. PRISM complements sequence-level modeling by operating at the item level: 𝐾 Perspective Lenses analyze each item’s relational con-text from distinct semantic viewpoints, enabling heterogeneous preference signals to surface within the sequence. 
+
+Mixture-of-Experts for Recommendation. MoE architectures [7, 13, 19, 33, 34] have been widely adopted in recommendation, includ-ing multi-task [24–26], multi-modal [2, 12, 42], and SR [22, 38, 41]. Sequence-level MoE models (e.g., STAR-Rec [38], FamouSRec [41]) route sequences to different experts, while FAME [22] treats each attention head as a distinct item facet and applies MoE within each head. Although FAME leverages multiple heads to capture multi-faceted item properties, each head still computes dot-product attention, so similarity bias persists within every facet. PRISM ad-dresses this through its dual-view design: the Affinity View refines homogeneous relations and the Contrast View explicitly recovers the heterogeneous relations that similarity bias suppresses. 
+
+## 3 Motivating Analysis: Overlooked Relations in Self-Attention 
+
+We empirically test whether self-attention overlooks relations that are important for predicting the target item. 
+
+## 3.1 Problem Setup 
+
+SR aims to predict a user’s next item from their historical interaction sequence. Let U and V denote the sets of users and items. For a user 
+
+𝑢 ∈ U , we denote the sequence of user 𝑢 as S𝑢 = [𝑣 1, 𝑣 2, . . . , 𝑣 | S 𝑢 | ],where 𝑣 𝑡 ∈ V is the item interacted at step 𝑡 .ˆ𝑣 | S 𝑢 |+ 1 = arg max   
+
+> 𝑣 ∈ V
+
+𝑃 (𝑣 | S 𝑢 ). (1) Each item is mapped to a 𝑑 -dimensional embedding via the em-bedding table E ∈ R| V | × 𝑑 . A stack of 𝐿 transformer layers [37] produces representations H𝑙 ∈ R𝑇 ×𝑑 at each layer 𝑙 ∈ { 1, . . . , 𝐿 }From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation CIKM ’26, November 7-11, 2026, Rome, Italy SASRec AC-SASRec ICLRec ICSRec FAME PRISM(Ours) 
+
+> 0.0 2.5 5.0 7.5 10.0 12.5
+> Confidence  (%)
+
+Toys      
+
+> SASRec AC-SASRec ICLRec ICSRec FAME PRISM(Ours)
+> 0.0 2.5 5.0 7.5 10.0 12.5
+> Confidence  (%)
+
+Beauty    
+
+> C1: Top boost C2: Random C3: Blind bottom C4: Informed bottom
+
+Figure 2: Analysis of counterfactual attention intervention. Δconfidence (%) when boosting attention at positions in the top 20% by attention (C1), a random 20% (C2), the bottom 20% (C3), and the bottom 20% that are also top-50% by causal importance (C4). SASRec AC-SASRec ICLRec ICSRec FAME PRISM (Ours) 0.04   
+
+> 0.02
+> 0.00 0.02
+> Spearman correlation  Toys
+> SASRec AC-SASRec ICLRec ICSRec FAME PRISM (Ours) 0.04
+> 0.02
+> 0.00 0.02
+> Spearman correlation  Beauty
+> 010 20 30 40 Align@1 (%)
+> 010 20 30 40 Align@1 (%)
+> (A,I)Align@1
+
+Figure 3: Attention-Importance alignment across models. 
+
+with max sequence length 𝑇 via 
+
+A𝑙 = Q𝑙 (K𝑙 )⊤
+
+√𝑑 𝑘 
+
+∈ R𝑇 ×𝑇 ,
+
+H𝑙 = FeedForward (Softmax (CM (A𝑙 )) V𝑙 ),
+
+(2) where the query, key, and value matrices are Q𝑙 = H𝑙 −1W𝑙 𝑞 , K𝑙 =
+
+H𝑙 −1W𝑙 𝑘 , and V𝑙 = H𝑙 −1W𝑙 𝑣 , respectively, 𝑑 𝑘 denotes the dimen-sionality of the key vectors, and CM (·) denotes the causal masking. The last hidden state of the last transformer layer, h𝑢 := H𝐿 𝑇 , : ∈ R𝑑 ,serves as the sequence representation. 
+
+## 3.2 Attention Overlooks Important Items 
+
+3.2.1 Measuring Item Importance. To identify which items most contribute to predicting the target, we measure each posi-tion’s causal importance . For a sequence S𝑢 with ground-truth next item 𝑦 , the causal importance of position 𝑗 is the drop in target probability (i.e., model confidence toward target item) when that item is masked: 
+
+𝐼 𝑗 (S 𝑢 ) = 𝑃 (𝑦 | S 𝑢 ) − 𝑃 (𝑦 | mask (S 𝑢 , 𝑗 )) , (3) where mask (S 𝑢 , 𝑗 ) masks the item of S𝑢 at position 𝑗 . A large 𝐼 𝑗 
+
+means that item 𝑗 causally contributes to predicting the target, regardless of how much attention it receives. 
+
+3.2.2 Setup. We extract the last-layer, head-averaged attention weight 𝐴 𝑗 = 1#heads 
+
+Íhead 𝐴 head  
+
+> 𝑇 ,𝑗
+
+(𝑇 : the last query position used for prediction) and compute 𝐼 𝑗 for 1,000 test sequences on the Amazon Toys and Beauty datasets. We evaluate five transformer-based SR models: vanilla self-attention (SASRec), attention calibrated (AC-SASRec, which directly corrects attention scores), intent-based models (ICLRec, ICSRec), and MoE within attention heads (FAME). Within each sequence, we compute 𝜌 (𝐴, 𝐼 ), the Spearman rank correlation between attention and causal importance, and Align@1, the fraction of sequences where the top-attended position matches the most causally important one (i.e., arg max 𝑗 𝐴 𝑗 = arg max 𝑗 𝐼 𝑗 ). 
+
+3.2.3 Results. To assess whether attention aligns with causal importance, we report 𝜌 (𝐴, 𝐼 ) and Align@1 across all baselines (Fig. 3), and observe the following. 
+
+Finding 1: Attention misses causally important items. In SAS-Rec, which uses only dot-product self-attention, 𝜌 (𝐴, 𝐼 ) is negative on both Toys and Beauty, and Align@1 is similarly low, indicating that dot-product attention favors items similar to the query rather than items the model actually relies on for prediction. 
+
+Finding 2: Existing designs do not close this gap. AC-SASRec recalibrates attention scores, yet 𝜌 (𝐴, 𝐼 ) worsens on Beauty com-pared to SASRec. FAME adds MoE within attention heads, yet Align@1 drops below SASRec. ICLRec and ICSRec cluster user pref-erences, yet the misalignment persists. None of these designs revises how attention selects items, and so all fail to close the gap. We next ask whether recovering overlooked items improves prediction. 
+
+## 3.3 Recovering Overlooked Items Improves Prediction 
+
+3.3.1 Defining Intervention Conditions. To examine which types of items benefit most from increased attention, we define four intervention conditions: 
+
+• C1 (Top boost): boost the top-20% positions by attention. 
+
+• C2 (Random): boost a random 20% of positions. 
+
+• C3 (Blind bottom): boost the bottom-20% by attention, recover-ing items overlooked by attention. 
+
+• C4 (Informed bottom): boost only the bottom-20% positions that are also in the top-50% by causal importance 𝐼 𝑗 , selectively recovering items that are overlooked yet causally important. 
+
+3.3.2 Setup. For each test sequence, we modify the last-layer attention logits A𝐿 at inference. Under each condition, each 𝑗 ∈ P 
+
+(the set of selected positions) is boosted by the mean attention logits over P: A𝐿 𝑇 ,𝑗 ← A𝐿 𝑇 ,𝑗 + 𝛽 boost · 1
+
+> | P |
+
+Í𝑗 ′ ∈ P A𝐿 𝑇 ,𝑗 ′ , with boosting strength 𝛽 boost = 5.0. We then measure the change in the model’s confidence for the target item Δconfidence (%) = 100 × ( 𝑃 modified −
+
+𝑃 original )/ 𝑃 original .CIKM ’26, November 7-11, 2026, Rome, Italy Kim et al. 𝑖𝑖1 
+
+𝑖𝑖2 
+
+𝑖𝑖3 
+
+𝑖𝑖4 
+
+𝑖𝑖5 
+
+Item 
+
+𝒗𝒗 ′
+
+𝑨𝑨 𝑷𝑷𝑷𝑷𝑨𝑨𝟏𝟏 
+
+> SoftMax
+> MatMul
+> Linear
+
+𝑨𝑨 𝑷𝑷𝑷𝑷𝑨𝑨2 
+
+> SoftMax
+> MatMul
+> Linear
+
+𝑨𝑨 𝑷𝑷𝑷𝑷𝑨𝑨𝑲𝑲 
+
+> SoftMax
+> MatMul
+> Linear
+> Linear
+> Transformer Layer ( ℓ + 1 )
+> Transformer Layer ( ℓ)
+
+𝐌𝐌 𝒍𝒍 ,𝟏𝟏  𝐌𝐌 𝒍𝒍 ,𝟐𝟐  𝐌𝐌 𝒍𝒍 ,𝑲𝑲 
+
+Base Attention Map (𝐀𝐀 𝒍𝒍 )
+
+Semantic Focus Masks (𝐌𝐌 𝒍𝒍 ,𝑲𝑲 )
+
+PRISM Framework Overview 
+
+> Transformer Layer ( 𝑙𝑙 )
+
+𝐡𝐡𝟏𝟏 𝒍𝒍 
+
+𝐡𝐡𝟐𝟐 𝒍𝒍 
+
+𝐡𝐡𝟑𝟑 𝒍𝒍 
+
+𝐡𝐡𝟒𝟒 𝒍𝒍 
+
+𝐡𝐡 𝟓𝟓 𝒍𝒍 
+
+Item Sequence 
+
+Representation ( 𝐡𝐡 𝒍𝒍 )
+
+> Linear
+
+𝒗𝒗𝟏𝟏 ′
+
+> FeedForward Network
+> Transformer Layer ( 𝑙𝑙  + 1 )
+
+Perspective-Guided Attention ( 𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀 )    
+
+> 𝐡𝐡𝟏𝟏 𝒍𝒍
+> 𝐡𝐡𝟐𝟐 𝒍𝒍
+> 𝐡𝐡𝟑𝟑 𝒍𝒍
+> 𝐡𝐡𝟒𝟒 𝒍𝒍
+> 𝐡𝐡 𝟓𝟓 𝒍𝒍
+> 𝐡𝐡𝟏𝟏 𝒍𝒍 𝐡𝐡𝟐𝟐 𝒍𝒍 𝐡𝐡𝟑𝟑 𝒍𝒍 𝐡𝐡𝟒𝟒 𝒍𝒍 𝐡𝐡 𝟓𝟓 𝒍𝒍
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝟏𝟏 
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝟐𝟐 
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝑲𝑲 
+
+Calibration 
+
+Dual-Views: Affinity and Contrast 
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝟏𝟏 
+
+Row 1 
+
+(Query 𝐡𝐡𝟏𝟏 𝒍𝒍 ) 𝐡𝐡𝟑𝟑 𝒍𝒍 
+
+𝐡𝐡𝟐𝟐 𝒍𝒍 
+
+𝐡𝐡𝟏𝟏 𝒍𝒍 
+
+𝐡𝐡𝟒𝟒 𝒍𝒍  𝐡𝐡𝟓𝟓 𝒍𝒍 
+
+Contrast View 
+
+Affinity View 
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝟐𝟐 
+
+𝐡𝐡𝟏𝟏 𝒍𝒍 
+
+𝐡𝐡𝟑𝟑 𝒍𝒍 
+
+𝐡𝐡𝟐𝟐 𝒍𝒍  𝐡𝐡𝟒𝟒 𝒍𝒍  𝐡𝐡 𝟓𝟓 𝒍𝒍 
+
+in 𝑷𝑷𝑳𝑳𝟐𝟐 𝒍𝒍 
+
+... 
+
+in 𝑷𝑷𝑳𝑳𝑲𝑲 𝒍𝒍 
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝑲𝑲 
+
+𝐡𝐡𝟑𝟑 𝒍𝒍 
+
+𝐡𝐡𝟐𝟐 𝒍𝒍  𝐡𝐡𝟒𝟒 𝒍𝒍  𝐡𝐡𝟓𝟓 𝒍𝒍 
+
+𝐡𝐡𝟏𝟏 𝒍𝒍 
+
+Row 1 
+
+(for Query 𝐡𝐡𝟏𝟏 𝒍𝒍 )
+
+Row 1 
+
+(for Query 𝐡𝐡𝟏𝟏 𝒍𝒍 )
+
+Contrast View 
+
+> ...
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝟐𝟐 
+
+> SoftMax
+> MatMul
+> Linear
+
+𝑷𝑷𝑳𝑳𝟏𝟏 𝒍𝒍 
+
+PRISM 
+
+in 𝑷𝑷𝑳𝑳𝟏𝟏 𝒍𝒍  
+
+> Semantic Composition
+> Ratio ( 𝐠𝐠𝟏𝟏 𝒍𝒍 )
+
+... 
+
+Weighted 
+
+Sum 
+
+Semantic Anchor Router 
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝟏𝟏 
+
+> SoftMax
+> MatMul
+> Linear
+
+𝐀𝐀 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐀𝐀𝑲𝑲 
+
+> SoftMax
+> MatMul
+> Linear
+
+Semantic Group 
+
+Sharing Value Projection layer ( 𝐖𝐖𝐕𝐕 𝒍𝒍 )
+
+𝑷𝑷𝑳𝑳𝟐𝟐 𝒍𝒍 
+
+𝑷𝑷𝑳𝑳𝑲𝑲 𝒍𝒍   
+
+> Sharing
+> Sharing
+> 𝐠𝐠 𝟏𝟏 𝒍𝒍 ,𝟏𝟏 𝐠𝐠 𝟏𝟏 𝒍𝒍 ,𝟐𝟐 𝐠𝐠 𝟏𝟏 𝒍𝒍 ,𝑲𝑲
+
+𝐡𝐡 𝒍𝒍 ,𝐏𝐏𝐏𝐏𝐏𝐏𝐏𝐏 𝐌𝐌  𝐡𝐡 𝒍𝒍+𝟏𝟏 
+
+𝒛𝒛 𝟏𝟏 𝒍𝒍 ,𝟏𝟏 
+
+𝒛𝒛 𝟏𝟏 𝒍𝒍 ,𝟐𝟐 
+
+𝒛𝒛 𝟏𝟏 𝒍𝒍 ,𝑲𝑲     
+
+> 𝐡𝐡𝟏𝟏 𝒍𝒍
+> 𝐡𝐡𝟐𝟐 𝒍𝒍
+> 𝐡𝐡𝟑𝟑 𝒍𝒍
+> 𝐡𝐡𝟒𝟒 𝒍𝒍
+> 𝐡𝐡 𝟓𝟓 𝒍𝒍
+> 𝐡𝐡𝟏𝟏 𝒍𝒍 𝐡𝐡𝟐𝟐 𝒍𝒍 𝐡𝐡𝟑𝟑 𝒍𝒍 𝐡𝐡𝟒𝟒 𝒍𝒍 𝐡𝐡 𝟓𝟓 𝒍𝒍
+
+𝐡𝐡𝟏𝟏 𝒍𝒍  𝐡𝐡𝟐𝟐 𝒍𝒍  𝐡𝐡𝟑𝟑 𝒍𝒍  𝐡𝐡𝟒𝟒 𝒍𝒍  𝐡𝐡 𝟓𝟓 𝒍𝒍 
+
+𝐡𝐡𝟏𝟏 𝒍𝒍  𝐡𝐡𝟐𝟐 𝒍𝒍  𝐡𝐡𝟑𝟑 𝒍𝒍  𝐡𝐡𝟒𝟒 𝒍𝒍  𝐡𝐡 𝟓𝟓 𝒍𝒍  𝐡𝐡𝟏𝟏 𝒍𝒍  𝐡𝐡𝟐𝟐 𝒍𝒍  𝐡𝐡𝟑𝟑 𝒍𝒍  𝐡𝐡𝟒𝟒 𝒍𝒍  𝐡𝐡 𝟓𝟓 𝒍𝒍 
+
+Figure 4: PRISM framework: PRISM performs item-wise multi-perspective analysis followed by relational insight synthesis. All learnable parameters are shared across lenses for efficiency, while the outputs differ solely by relational perspective. 
+
+3.3.3 Results. To test whether recovering overlooked items bene-fits prediction, we report Δconfidence under each intervention condi-tion (Fig. 2), and observe the following. 
+
+Finding 1: All modifications improve prediction. All baselines show large improvement of Δconfidence values across all conditions. Even random perturbation (C2) helps substantially, indicating that baseline attention poorly reflects which items the model actually relies on, so almost any redistribution improves prediction. 
+
+Finding 2: Overlooked items contain useful signals. On both datasets, each baseline shows 𝐶 3 > 0: boosting any low-attention item improves prediction, confirming that the overlooked positions contain genuinely useful relational signals. 
+
+Finding 3: Useful signals span diverse relational facets. C4 consistently outperforms C3: not all overlooked relations contribute equally to target prediction, and useful signals are distributed across diverse relational facets rather than concentrated in a single group. 
+
+## 3.4 Summary 
+
+Together, these analyses reveal that self-attention systematically overlooks inter-item relations that carry meaningful evidence for target prediction, and that these overlooked relations are hetero-geneous rather than confined to a single type. This motivates a mechanism that examines item relations from multiple perspec-tives, enabling the model to capture user preferences that a single uniform view of the sequence would miss. 
+
+## 4 Methodology 
+
+To address these limitations, we propose PRISM (Perspective-based 
+
+Relational Insight Synthesis Module), a module placed between transformer layers that recovers inter-item relations overlooked by a single attention pattern, with 𝐿 −1 PRISM modules in an 𝐿 -layer transformer. PRISM consists of two parts: 
+
+• (§4.1) Model Architecture. To re-examine the sequence from multiple viewpoints, we first identify each item’s semantic com-position over 𝐾 groups ( §4.1.1). 𝐾 Perspective Lenses then re-examine the attention from distinct viewpoints, recovering over-looked relations ( §4.1.2), and the outputs are synthesized into a unified representation ( §4.1.3). The resulting representations are integrated into the transformer stack for final prediction ( §4.1.4). 
+
+• (§4.2) Training Objectives. We introduce LSPCL to complement the item-level analysis with sequence-level preference ( §4.2.1), and LCCL to ensure cross-lens agreement without collapsing their diversity ( §4.2.2). The overall framework is shown in Fig. 4. From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation CIKM ’26, November 7-11, 2026, Rome, Italy 
+
+## 4.1 Model Architecture 
+
+4.1.1 Semantic Anchor Router . To quantitatively measure and classify the complex semantic characteristics of each item’s rep-resentation, we introduce the Semantic Anchor Router . First, we define the number of semantic groups 𝐾 and compute the routing logits r𝑙 𝑖 ∈ R𝐾 for item 𝑖 ’s representation h𝑙 𝑖 using a noisy gating mechanism [33] to encourage exploration in training: 
+
+r𝑙 𝑖 = h𝑙 𝑖 W𝑙  
+
+> g
+
++ 𝜂 𝑙 𝑖 ⊙ Softplus (h𝑙 𝑖 W𝑙 
+
+> noise
+
+), 𝜂 𝑙 𝑖 ∼ N ( 0, I𝐾 ), (4) where W𝑙 𝑔 , W𝑙  
+
+> noise
+
+∈ R𝑑 ×𝐾 are learnable matrices, 𝜂 𝑙 𝑖 ∈ R𝐾 is a Gaussian noise vector, I𝐾 ∈ R𝐾 ×𝐾 is the identity matrix, and ⊙
+
+denotes element-wise multiplication. At inference, the noise term is disabled. Then, we obtain the Semantic Composition Ratio (g𝑙 𝑖 ∈ R𝐾 ): 
+
+g𝑙 𝑖 = Softmax (r𝑙 𝑖 ). (5) Each value g𝑙,𝑘 𝑖 represents the degree to which item 𝑖 belongs to semantic group 𝑘 (1 ≤ 𝑘 ≤ 𝐾 ). Based on this ratio, we identify each item’s dominant semantic group, termed the Primary Semantic Anchor (PSA) , by selecting the index with the maximum value: PSA 𝑙 𝑖 = argmax   
+
+> 𝑘 ∈ { 1,...,𝐾 }
+
+(g𝑙,𝑘 𝑖 ). (6) 
+
+4.1.2 Mixture of Perspective Lenses . To address the overlooked relations identified in Sec. 3, we propose Perspective Lens ( 𝑃𝐿 𝑙 𝑘 ), specialized for semantic group 𝑘 , that calibrates the attention logits map A𝑙 from the previous transformer layer through this group’s perspective, adaptively strengthening both homogeneous and het-erogeneous item relations. 
+
+Semantic Focus Mask. First, each 𝑃𝐿 𝑙 𝑘 constructs a binary Seman-tic Focus Mask , M𝑙,𝑘 ∈ { 0, 1}𝑇 ×𝑇 . This mask is determined solely by the PSA 𝑙 𝑗 at each key position 𝑗 , and is shared across all queries: 
+
+M𝑙,𝑘 𝑖 𝑗 = I(PSA 𝑙 𝑗 = 𝑘 ), (7) where I(·) is the indicator function. The resulting mask sets columns for group-𝑘 keys to 1, so every query 𝑖 evaluates the sequence through the same group-𝑘 filter in 𝑃𝐿 𝑙 𝑘 .
+
+Relational Signal Boosting. Next, we calculate a Relational Boost Signal S𝑙,𝑘 ∈ R𝑇 ×𝑇 to quantify the group-specific importance for each lens 𝑘 :
+
+S𝑙,𝑘 𝑖 𝑗 = 1
+
+𝑇 
+
+> 𝑇
+
+∑︁  
+
+> 𝑗 ′=1
+
+A𝑙 𝑖 𝑗 ′ · M𝑙,𝑘 𝑖 𝑗 ′
+
+!
+
+· M𝑙,𝑘 𝑖 𝑗 (8) For each query item 𝑖 , S𝑙,𝑘 𝑖 captures the average attention logits toward all key items anchored to the semantic group 𝑘 .
+
+Perspective Guided Attention. We then fuse this signal into the previous attention logits A𝑙 using a learnable scalar 𝛽 𝑙 :
+
+A𝑙, PGA 𝑘 = A𝑙 + exp (𝛽 𝑙 · S𝑙,𝑘 ) (9) This yields the final Perspective Guided Attention (PGA) logits map for 𝑃𝐿 𝑙 𝑘 , denoted as A𝑙, PGA 𝑘 , containing the recalibrated scores for all query-key item relation pairs (Fig. 4, lower-left). Here, exp (·) 
+
+ensures that the added boost signal is always non-negative. Con-sequently, the final representation Z𝑙,𝑘 ∈ R𝑇 ×𝑑 produced by 𝑃𝐿 𝑙 𝑘 is computed as: 
+
+Z𝑙,𝑘 = Linear 𝑙 
+
+Softmax (A𝑙, PGA 𝑘 ) V′𝑙 
+
+, V′𝑙 = H𝑙 W𝑙 𝑣 , (10) where V′𝑙 ∈ R𝑇 ×𝑑 , and z𝑙,𝑘 𝑖 ∈ R𝑑 , the 𝑖 -th row of Z𝑙,𝑘 , is the lens out-put for item 𝑖 . Importantly, PRISM shares all learnable parameters (𝛽 𝑙 in Eq. 9 and Linear layer in Eq. 10) across lenses. This design guarantees efficiency while ensuring that distinct lens outputs re-flect solely the influence of the 𝑘 -th perspective assigned to each 
+
+𝑃𝐿 𝑙 𝑘 , via M𝑙,𝑘 𝑖 𝑗 .
+
+How the Dual Views Emerge. This perspective-guided calibra-tion dynamically yields two complementary relational views (Fig. 4 lower-right), depending on the alignment between the query item 
+
+𝑖 ’s semantic anchor PSA 𝑙 𝑖 and the lens’s semantic group 𝑘 .When query item 𝑖 belongs to the semantic group of lens 𝑃𝐿 𝑙 𝑘 
+
+(i.e., PSA 𝑙 𝑖 = 𝑘 ), the lens operates in the Affinity View . This lens strengthens homogeneous relations among items in the same se-mantic group, refining their shared semantics into a more precise form. For instance, an Electronics lens strengthens the relation be-tween a laptop and a monitor , refining their connection into the more specific concept of building a workstation .Conversely, when query item 𝑖 falls outside the lens’s seman-tic group 𝑘 (PSA 𝑙 𝑖 ≠ 𝑘 ), the lens operates in the Contrast View .This mode attends to cross-group items otherwise suppressed by 
+
+similarity bias , revealing latent preferences across semantic groups. For example, a Travel lens connects a laptop (Electronics) with a 
+
+backpack (Travel) despite their different semantic groups, surfacing the novel concept of a digital nomad from item relations that might otherwise be neglected. Since each item has a unique PSA 𝑙 𝑖 , every item is guaranteed to be analyzed under exactly one Affinity View and 𝐾 −1 Contrast Views. Together, the two views jointly cover both within-group and cross-group item relations. 
+
+4.1.3 Relational Insight Synthesis . To synthesize the relational insights derived from all 𝐾 Perspective Lenses, PRISM aggregates the diverse representations z𝑙,𝑘 𝑖 into a single unified representation 
+
+h𝑙, PRISM  
+
+> 𝑖
+
+. This is accomplished via a weighted sum using the entries of the Semantic Composition Ratio g𝑙 𝑖 (Eq. 5) as weights, preserving the item’s composite semantic membership. 
+
+h𝑙, PRISM  
+
+> 𝑖
+
+= FeedForward 𝑙 
+
+> 𝐾
+
+∑︁ 
+
+> 𝑘 =1
+
+g𝑙,𝑘 𝑖 · z𝑙,𝑘 𝑖 
+
+!
+
+(11) The resulting vector is then processed by a Feed-Forward Network before entering the next transformer layer. 
+
+4.1.4 Integration and Prediction . The representations produced by PRISM, H𝑙, PRISM = [h𝑙, PRISM 1 , . . . , h𝑙, PRISM  
+
+> 𝑇
+
+], are passed as input to the (𝑙 +1)-th transformer layer. The sequence representation 
+
+h𝑢 ∈ R𝑑 from the last transformer layer and the item embedding matrix E are used to compute the prediction over all items: ˆy𝑢 = Softmax (h𝑢 E⊤) ∈ R| V | . (12) 
+
+## 4.2 Training Objective 
+
+4.2.1 Sequence-level Preference Contrastive Loss . PRISM captures preferences at the item-relation level, but preferences also manifest at the broader sequence level. To incorporate this, we propose LSPCL , a contrastive loss that aligns sequences at the shared sequence-level preference without collapsing the distinct relational patterns each lens captures. CIKM ’26, November 7-11, 2026, Rome, Italy Kim et al. 
+
+Same-Target Augmentation. Following [29, 30], we adopt same-target augmentation to effectively capture sequence-level prefer-ence: for each training sequence, we retrieve another sequence whose target item is identical, forming a positive pair. However, directly applying contrastive learning on these pairs causes over-alignment : the loss aligns sequences not only at the shared goal but also at perspective-specific relations, collapsing the diversity that distinguishes users with different relational patterns. 
+
+Stochastic Perspective Masking. To prevent over-alignment, we introduce Stochastic Perspective Masking (SPM), which preserves the primary semantic signal while stochastically masking non-primary lenses, regularizing the contrastive alignment. At each PRISM layer 
+
+𝑙 , for item 𝑖 we generate a binary mask m𝑙 𝑖 ∈ { 0, 1}𝐾 :
+
+m𝑙,𝑘 𝑖 ∼
+
+(
+
+Bernoulli (1 − 𝜌 ), if 𝑘 ≠ PSA 𝑙 𝑖 
+
+1, if 𝑘 = PSA 𝑙 𝑖 
+
+(13) where 𝜌 is the perspective dropout rate. This mask is applied to the routing logits r𝑙 𝑖 (Eq. 4) via a log-mask operation: ˜r𝑙 𝑖 = r𝑙 𝑖 + log (m𝑙 𝑖 + 𝜖 ), (14) which drives masked entries to near-zero probability after softmax, ensuring that only the sequence-level preference is aligned while each user’s perspective-specific relations remain distinct. 
+
+Contrastive Learning. The masked gate ˜ g𝑙 𝑖 = Softmax (˜r𝑙 𝑖 ) flows through Eq. 11 and the remaining layers, yielding the anchor and positive sequence representations ˜h𝑎 , ˜h𝑝 at the last transformer layer (as in Sec. 4.1.4). LSPCL is then defined as: 
+
+LSPCL = − log exp 
+
+
+
+sim ( ˜h𝑎 , ˜h𝑝 )/ 𝜏 
+
+Í𝐵 𝑏 =1 exp 
+
+
+
+sim ( ˜h𝑎 , ˜h𝑏 )/ 𝜏 
+
+ , (15) where sim (· , ·) denotes dot-product similarity, 𝜏 is a temperature, and 𝐵 is the batch size. 
+
+4.2.2 Collaborative Consistency Loss . Because each Perspec-tive Lens receives the same item as input to analyze with distinct perspectives, their outputs should share a consistent item-space interpretation while preserving each lens’s unique perspective; to enforce this, we propose LCCL . Specifically, for each lens output 
+
+z𝑙,𝑘 𝑖 of item 𝑖 (Eq. 10), we compute a similarity distribution 𝑝 𝑙,𝑘 𝑖 :
+
+𝑝 𝑙,𝑘 𝑖 = Softmax (z𝑙,𝑘 𝑖 E⊤
+
+> sample
+
+) ∈ R𝑁 , (16) where Esample ∈ R𝑁 ×𝑑 contains sampled item embeddings and 
+
+𝑁 = |Esample |.We then minimize the Symmetric KL divergence SKL (𝑝, 𝑞 ) := 
+
+> 12
+
+[KL (𝑝 ∥𝑞 ) + KL (𝑞 ∥𝑝 )] between lens pairs and average across the 
+
+𝐿 −1 PRISM modules: 
+
+LCCL = 1
+
+𝐿 − 1
+
+> 𝐿 −1
+
+∑︁ 
+
+> 𝑙 =1
+> 𝑇
+
+∑︁ 
+
+> 𝑖 =1
+
+∑︁ 1≤𝑘 <𝑘 ′ ≤𝐾 
+
+𝑤 𝑙,𝑘,𝑘 ′ 
+
+> 𝑖
+
+· SKL (𝑝 𝑙,𝑘 𝑖 , 𝑝 𝑙,𝑘 ′ 
+
+> 𝑖
+
+). (17) Since not all lenses contribute equally to item 𝑖 ’s representation, we weight each pair by their semantic composition ratios g𝑙,𝑘 𝑖 (Eq. 5): 
+
+𝑤 𝑙,𝑘,𝑘 ′ 
+
+> 𝑖
+
+= g𝑙,𝑘 𝑖 · g𝑙,𝑘 ′
+
+> 𝑖
+
+g𝑙,𝑘 𝑖 + g𝑙,𝑘 ′ 
+
+> 𝑖
+
++ 𝜖 . (18) This keeps the weight small whenever either lens is weakly acti-vated, focusing alignment only on lenses that meaningfully con-tribute to item 𝑖 ’s representation. As a result, LCCL aligns lens outputs across the distinct item subsets (Eq. 8) without collapsing their individual focus. 
+
+4.2.3 Overall Objectives . We optimize the SR task using the standard cross-entropy loss Lrec :
+
+Lrec = −y𝑢 · log ( ˆy𝑢 ), Laux = LSPCL + L CCL (19) where y𝑢 ∈ { 0, 1}| V | denotes the one-hot ground-truth vector. The final objective jointly optimizes this main loss with the auxiliary objectives, weighted by a hyperparameter 𝜆 :
+
+L = Lrec + 𝜆 Laux . (20) 
+
+Table 1: Statistics of various datasets used in the experiments. Dataset #Users #Items #Interactions Avg. Length Sparsity                                    
+
+> Toys 19,412 11,924 167,597 8.6 99.93% Beauty 22,363 12,101 198,502 8.9 99.93% Games 24,303 10,672 231,780 9.5 99.91% Sports 35,598 18,357 296,337 8.3 99.95% ML-1M 6,040 3,416 999,610 165.5 95.16% Yelp 29,915 21,572 345,186 11.5 99.95% Electronics 192,403 63,001 1,689,188 8.8 99.99%
+
+## 5 Experiments 5.1 Experimental Setup 
+
+5.1.1 Datasets . To evaluate the performance of our proposed model, we conduct experiments on seven widely used benchmark datasets for SR. The standard benchmarks include five Amazon subcategories [27] ( Toys , Beauty , Games , and Sports as medium-scale datasets, and Electronics as a large-scale industrial dataset), as well as MovieLens-1M [8] (ML-1M) and Yelp [1] (interactions after January 1, 2020) to evaluate robustness across platforms. To mitigate data sparsity issues, we follow [11, 14, 16, 30, 40] the strategy that retains only users and items with at least five interactions. Dataset statistics are shown in Tab. 1. 
+
+5.1.2 Evaluation Settings . We follow the leave-one-out evalua-tion protocol [14, 31, 43]: for each user, the last item is held out for testing, the second-to-last for validation, and the rest for training. We evaluate with Hit Rate (H@K) and Normalized Discounted Cu-mulative Gain (N@K), reporting averages over 5 random seeds for 
+
+𝐾 ∈ { 5, 10 , 20 } without negative sampling [18]. 
+
+5.1.3 Baselines . To verify the effectiveness of our proposed model, PRISM, we compare it against a comprehensive set of state-of-the-art baseline models from five distinct categories: 
+
+• General SR : This category includes foundational and widely recognized models for SR. We include GRU4Rec [10], an RNN-based approach, as well as dominant transformer-based models like SASRec [14] and BERT4Rec [35]. 
+
+• Attention Calibrated SR : We compare against AC-SASRec [45], which addresses the issue of misaligned attention distributions by introducing a calibration to refine the self-attention mechanism. From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation CIKM ’26, November 7-11, 2026, Rome, Italy 
+
+Table 2: Performance comparison of different methods on top-𝑘 recommendation. The symbol * denotes statistical significance with p-values < 0.05 based on paired t-tests over 5 random seeds. 
+
+Dataset Metric SASRec BERT4Rec GRU4Rec AC-SASRec CL4SRec DuoRec ICLRec IOCRec ICSRec ELCRec FAME FamouSRec STAR-Rec PRISM Improv. 
+
+Toys 
+
+H@5 0.0689 0.0487 0.0358 0.0710 0.0732 0.0727 0.0716 0.0726 0.0726 0.0721 0.0734 0.0755 0.0757 0.0802* 5.94% H@10 0.0911 0.0722 0.0547 0.0953 0.0980 0.0989 0.0985 0.0976 0.0996 0.0965 0.0991 0.1027 0.1018 0.1063* 3.51% H@20 0.1198 0.1048 0.0809 0.1256 0.1293 0.1306 0.1306 0.1273 0.1305 0.1287 0.1329 0.1352 0.1345 0.1410* 4.29% N@5 0.0503 0.0333 0.0251 0.0521 0.0528 0.0541 0.0525 0.0524 0.0532 0.0532 0.0526 0.0551 0.0553 0.0585* 5.79% N@10 0.0577 0.0408 0.0308 0.0602 0.0612 0.0623 0.0616 0.0606 0.0622 0.0605 0.0631 0.0637 0.0632 0.0666* 4.55% N@20 0.0653 0.0489 0.0377 0.0674 0.0691 0.0700 0.0696 0.0678 0.0700 0.0682 0.0705 0.0721 0.0717 0.0751* 4.16% 
+
+Beauty 
+
+H@5 0.0597 0.0474 0.0463 0.0634 0.0644 0.0631 0.0642 0.0628 0.0653 0.0646 0.0658 0.0666 0.0661 0.0713* 7.06% H@10 0.0826 0.0706 0.0692 0.0884 0.0910 0.0910 0.0912 0.0895 0.0918 0.0903 0.0942 0.0946 0.0943 0.0996* 5.29% H@20 0.1143 0.1008 0.0994 0.1204 0.1251 0.1250 0.1250 0.1228 0.1263 0.1232 0.1288 0.1291 0.1298 0.1366* 5.24% N@5 0.0421 0.0307 0.0302 0.0450 0.0459 0.0452 0.0464 0.0443 0.0464 0.0460 0.0465 0.0468 0.0471 0.0509* 8.07% N@10 0.0500 0.0383 0.0377 0.0532 0.0545 0.0541 0.0543 0.0529 0.0546 0.0547 0.0551 0.0558 0.0553 0.0603* 8.06% N@20 0.0574 0.0459 0.0453 0.0613 0.0630 0.0625 0.0629 0.0612 0.0632 0.0627 0.0637 0.0647 0.0640 0.0696* 7.57% 
+
+Games 
+
+H@5 0.0802 0.0722 0.0674 0.0842 0.0872 0.0883 0.0883 0.0879 0.0893 0.0891 0.0902 0.0907 0.0912 0.0992* 8.77% H@10 0.1211 0.1161 0.1083 0.1248 0.1341 0.1345 0.1348 0.1348 0.1361 0.1352 0.1373 0.1385 0.1375 0.1487* 7.36% H@20 0.1758 0.1762 0.1643 0.1828 0.1919 0.1966 0.1960 0.1944 0.1969 0.1966 0.1988 0.2003 0.2003 0.2136* 6.64% N@5 0.0531 0.0473 0.0441 0.0561 0.0582 0.0592 0.0586 0.0590 0.0593 0.0588 0.0597 0.0602 0.0607 0.0659* 8.57% N@10 0.0663 0.0614 0.0571 0.0689 0.0732 0.0735 0.0736 0.0737 0.0743 0.0735 0.0749 0.0751 0.0756 0.0827* 9.39% N@20 0.0803 0.0763 0.0714 0.0834 0.0874 0.0894 0.0887 0.0882 0.0897 0.0899 0.0916 0.0899 0.0925 0.0982* 6.16% 
+
+Sports 
+
+H@5 0.0329 0.0242 0.0220 0.0343 0.0342 0.0358 0.0364 0.0336 0.0358 0.0361 0.0377 0.0385 0.0378 0.0416* 8.01% H@10 0.0465 0.0381 0.0358 0.0486 0.0526 0.0520 0.0532 0.0513 0.0532 0.0530 0.0547 0.0553 0.0550 0.0595* 7.59% H@20 0.0662 0.0592 0.0553 0.0686 0.0738 0.0740 0.0746 0.0732 0.0757 0.0737 0.0779 0.0781 0.0773 0.0836* 7.04% N@5 0.0239 0.0156 0.0145 0.0245 0.0252 0.0253 0.0255 0.0228 0.0261 0.0258 0.0264 0.0268 0.0266 0.0291* 8.61% N@10 0.0271 0.0197 0.0186 0.0283 0.0301 0.0303 0.0307 0.0276 0.0304 0.0298 0.0312 0.0322 0.0320 0.0345* 7.14% N@20 0.0324 0.0254 0.0239 0.0339 0.0365 0.0364 0.0367 0.0340 0.0366 0.0367 0.0371 0.0377 0.0379 0.0406* 7.12% 
+
+ML-1M 
+
+H@5 0.1584 0.1490 0.1577 0.1653 0.1702 0.1727 0.1770 0.1759 0.1771 0.1778 0.1807 0.1797 0.1839 0.1987* 8.05% H@10 0.2383 0.2268 0.2297 0.2420 0.2542 0.2545 0.2582 0.2556 0.2611 0.2569 0.2618 0.2697 0.2712 0.2883* 6.31% H@20 0.3218 0.3263 0.3235 0.3325 0.3496 0.3513 0.3558 0.3545 0.3566 0.3545 0.3721 0.3771 0.3761 0.3942* 4.53% N@5 0.1060 0.0958 0.1020 0.1099 0.1150 0.1182 0.1181 0.1180 0.1189 0.1176 0.1202 0.1213 0.1253 0.1354* 8.06% N@10 0.1318 0.1211 0.1251 0.1347 0.1418 0.1442 0.1447 0.1435 0.1459 0.1427 0.1478 0.1503 0.1535 0.1645* 7.17% N@20 0.1530 0.1456 0.1488 0.1572 0.1662 0.1685 0.1670 0.1701 0.1675 0.1674 0.1754 0.1767 0.1772 0.1913* 7.96% 
+
+Yelp 
+
+H@5 0.0275 0.0263 0.0250 0.0281 0.0294 0.0296 0.0302 0.0312 0.0317 0.0289 0.0328 0.0335 0.0339 0.0371* 9.44% H@10 0.0453 0.0459 0.0435 0.0475 0.0509 0.0519 0.0502 0.0542 0.0543 0.0494 0.0570 0.0576 0.0581 0.0636* 9.47% H@20 0.0744 0.0766 0.0720 0.0771 0.0855 0.0865 0.0835 0.0889 0.0892 0.0878 0.0942 0.0949 0.0947 0.1041* 9.69% N@5 0.0170 0.0163 0.0156 0.0173 0.0181 0.0187 0.0186 0.0191 0.0199 0.0181 0.0207 0.0210 0.0204 0.0232* 10.48% N@10 0.0230 0.0230 0.0214 0.0237 0.0253 0.0253 0.0253 0.0262 0.0268 0.0263 0.0276 0.0287 0.0280 0.0319* 11.15% N@20 0.0301 0.0304 0.0285 0.0312 0.0336 0.0342 0.0330 0.0360 0.0360 0.0344 0.0361 0.0372 0.0376 0.0418* 11.17% 
+
+Elec. 
+
+H@5 0.0312 0.0254 0.0279 0.0338 0.0352 0.0353 0.0350 0.0349 0.0357 0.0353 0.0362 0.0374 0.0373 0.0398* 6.42% H@10 0.0453 0.0389 0.0414 0.0485 0.0508 0.0504 0.0502 0.0508 0.0510 0.0499 0.0529 0.0539 0.0536 0.0556* 3.15% H@20 0.0634 0.0572 0.0605 0.0685 0.0708 0.0714 0.0704 0.0717 0.0707 0.0702 0.0742 0.0755 0.0756 0.0779* 3.04% N@5 0.0216 0.0168 0.0188 0.0237 0.0245 0.0246 0.0244 0.0238 0.0248 0.0247 0.0248 0.0259 0.0256 0.0272* 5.02% N@10 0.0262 0.0212 0.0232 0.0284 0.0294 0.0293 0.0293 0.0290 0.0297 0.0294 0.0304 0.0313 0.0312 0.0323* 3.19% N@20 0.0324 0.0257 0.0280 0.0340 0.0345 0.0347 0.0343 0.0345 0.0347 0.0345 0.0360 0.0368 0.0367 0.0383* 4.08% 
+
+• Contrastive Learning based SR : This category features mod-els that employ contrastive learning for robust representation learning, including CL4SRec [39] and DuoRec [30]. 
+
+• Intent-based SR : We compare against recent models that explic-itly model the intent prototypes to consider the user preferences, such as ICLRec [4], IOCRec [21], ICSRec [29], and ELCRec [23]. 
+
+• MoE-based SR : To compare against models with similar ar-chitectural principles and capacity, we include MoE-based rec-ommendation models such as FAME [22], FamouSRec [41], and STAR-Rec [38]. 
+
+5.1.4 Implementation Details . All models are implemented in PyTorch and trained with the Adam optimizer [17], using a learning rate of 0.001, 𝛽 1=0.9, 𝛽 2=0.999, a batch size of 256, a dropout rate of 0.5, and a patience of 10 epochs for early stopping on N@20. Following the traditional SR settings [23, 29, 30, 35, 39], we adopt 
+
+𝐿 =2 transformer layers and 2 attention heads, with a hidden di-mension of 𝑑 =64, yielding 1 PRISM layer, and the max sequence length is set to 50. We search for the number of perspective lenses 
+
+𝐾 ∈ { 2, 4, 6, 8}, the loss weight 𝜆 ∈ { 0.01 , 0.05 , 0.1, 0.3, 0.5}, and the temperature 𝜏 ∈ { 0.05 , 0.7, 1.0, 2.0}. The perspective dropout rate 𝜌 is set to 0.25, and we use in-batch target items as Esample 
+
+for LCCL . Other hyperparameters for all baseline models are tuned according to the search spaces provided in their original papers. All experiments are conducted on a single RTX 3090. 
+
+## 5.2 Performance Comparison 
+
+PRISM consistently outperforms all baselines across datasets and metrics (Tab. 2). Detailed analysis follows: General SR models such as SASRec, BERT4Rec, and GRU4Rec perform well but struggle with diverse inter-item relations. AC-SASRec calibrates attention distributions with a learnable matrix but lacks explicit relational guidance, treating the symptom rather than the structural cause. CL4SRec and DuoRec achieve gains via sequence-level contrastive learning, but their sequence-level aug-mentation misses item-level relational structure. Intent-based SR models perform competitively, confirming the value of modeling user preference beyond raw item sequences. How-ever, they rely on fixed prototypes and sequence-level modeling, overlooking fine-grained inter-item relations underlying diverse preferences. ICSRec seeks to capture coarse and fine-grained pat-terns, but its prototypes cannot represent nuanced preferences embedded in item-level relations. PRISM addresses this through item-level Dual-View analysis, refining homogeneous relations and recovering overlooked heterogeneous ones, while LSPCL provides sequence-level preference alignment. CIKM ’26, November 7-11, 2026, Rome, Italy Kim et al. 
+
+Table 3: Ablation study of PRISM training objectives on Toys and ML-1M datasets. Models Toys ML-1M 
+
+H@20 N@20 H@20 N@20 PRISM 0.1410* 0.0751* 0.3942* 0.1913* 
+
+w/o LSPCL 0.1362 0.0732 0.3776 0.1804 
+
+→w/ LSPCL w/o Same Target 0.1401 0.0746 0.3829 0.1833 
+
+→w/ LSPCL w/o SPM 0.1395 0.0740 0.3844 0.1852 
+
+w/o LCCL 0.1403 0.0744 0.3887 0.1878 H@20 N@20      
+
+> 0.120 0.125 0.130 0.135 0.140 0.145
+> H@20
+> Toys
+> H@20 N@20
+> 0.32 0.34 0.36 0.38 0.40
+> H@20
+> ML-1M
+> 0.066 0.068 0.070 0.072 0.074 0.076
+> N@20
+> 0.15 0.16 0.17 0.18 0.19
+> N@20
+> SASRec Only Affinity Only Contrast PRISM w/o PGA PRISM
+
+Figure 5: Ablation study of PRISM’s dual view design on the Toys and ML-1M datasets. 
+
+The strong performance of MoE baselines like FAME, FamouS-Rec, and STAR-Rec confirms that expanding model capacity ben-efits the modeling of diverse user behaviors. Yet capacity alone is not the determining factor: PRISM achieves the strongest results with fewer parameters than these baselines (more detailed analysis in Sec. 5.3.7), demonstrating that how the added capacity is used matters more than its size, and that directing it toward inter-item relational modeling is effective. 
+
+## 5.3 Further Analysis 
+
+5.3.1 Revisiting the Preliminary Diagnostics . We revisit the diagnostics in Sec. 3 to verify whether PRISM alleviates the observed attention failures. Fig. 2 shows that the attention interventions (C1–C4) yield near-zero or even negative Δconfidence for PRISM. Unlike the baselines, where any redistribution of attention helped prediction, perturbing PRISM’s attention provides no benefit and can even degrade it. This indicates that PRISM already attends to the items that are causally important for target prediction; disturbing these well-calibrated relations removes useful evidence rather than adding missing signals. Fig. 3 further corroborates this: PRISM improves both 𝜌 (𝐴, 𝐼 ) and Align@1 over all baselines, confirming that its attention distribution is now aligned with the items the model actually relies on for prediction. 
+
+5.3.2 Ablation of Training Objectives . To verify the role of each training objective, we ablate LSPCL and LCCL individually (Tab. 3). Removing LSPCL entirely causes the largest performance drop, confirming that aligning users who share the same target is critical for capturing sequence-level preference. Within LSPCL , its two sub-components serve complementary roles. Without Same Target augmentation, performance degrades, showing that users with a shared target effectively provide each other’s sequence-level 
+
+(a) Toys (b) Sports 
+
+Figure 6: t-SNE projection of item embeddings colored by PSA assignment ( 𝐾 = 4). 
+
+preference signal. Without Stochastic Perspective Masking (SPM), the contrastive loss over-aligns all perspectives into a single shared pattern, collapsing the distinct relational patterns each lens cap-tures. As a result, users who arrive at the same target through different item compositions become indistinguishable. Removing 
+
+LCCL also lowers performance, confirming that without distribution alignment, the weighted sum of lens outputs mixes incompatible representation spaces, degrading the final item representation. 
+
+5.3.3 Ablation of Dual-View Analysis . To evaluate the individ-ual contributions of the Dual-View Analysis , we design two variants (Fig. 5): Only Affinity , which is forced to use only the primary (PSA) lens of the items by setting all other routing logits to −∞ (Eq. 5), and Only Contrast , which retains only non-PSA lenses. Remarkably, while even single-view variants outperform the baseline, integrat-ing both yields the highest performance. Each variant improves over the baseline through a distinct mechanism: Only Affinity re-fines the homogeneous relations already captured by SASRec, while 
+
+Only Contrast recovers the heterogeneous relations that SASRec overlooks. To isolate the contribution of the calibration itself from increased capacity, we further test w/o PGA , which removes the relational boost signal S𝑙,𝑘 (Eq. 9) while keeping the parameter count identical to the full PRISM. w/o PGA performs worse than even the single-view variants on both datasets, confirming that PRISM’s gains originate from the perspective-guided calibration of attention, the mechanism that directly addresses the overlooked relations identified in Sec. 3. 
+
+5.3.4 Visualizing the Semantic Anchor Router . To examine whether the Semantic Anchor Router (Sec. 4.1.1) learns meaningful groupings, we visualize the item embeddings via t-SNE on Toys and Sports, coloring each item by its PSA assignment (Fig. 6). Al-though PRISM is not designed as a clustering method, the lens groups form clearly separated regions, showing that the router consistently assigns items into distinct semantic groups. Moreover, items are spread evenly across the four groups, as the noisy gating mechanism (Eq. 4) promotes balanced exploration across lenses during training. This balanced routing structure enables the Dual-View synergy to operate effectively: clear PSA boundaries give the Affinity View coherent within-group material to refine, while ensuring the Contrast View has sufficient cross-group diversity. From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation CIKM ’26, November 7-11, 2026, Rome, Italy 
+
+Table 4: Ranking performance and sensitivity analysis on real users and item IDs (ML-1M). We analyze the model’s confidence drop ( ΔConf) when masking the Bridge Item (marked in Red) that contains the bridging minor genre required for the target. User Interaction Sequence (Item ID GenreID ) Target SASRec ICSRec PRISM (Ours) 
+
+Rank ΔConf Rank ΔConf Rank ΔConf 5979 1794 (G1,G2) → 1959 (G2,G3) → 345 (G1,G2) → 410 (G1) → 1081 (G1) → 3033 (G1, G6 ) 435 -25.42% 327 -3.26% 3 -43.62% 
+
+2362 (G2) → 1924 (G5, G6 ) → 319 (G7) → 2712 (G2) → 597 (G1,G3) 
+
+1397 237 (G8, G9 ) → 203 (G1,G3) → 574 (G8) → 1306 (G5,G8) → 92 (G1) → 386 (G1, G9 ) 197 -10.57% 22 -5.66% 9 -12.17% 
+
+34 (G1) → 1611 (G1) → 290 (G1) → 521 (G1,G2) → 626 (G1,G2) 
+
+Table 5: Performance on Conventional (top 50%, high sequence-target similarity) and Novel (bottom 20%, low sim-ilarity) ML-1M subsets, testing robustness to target prefer-ences not explicit in the sequence. Models Conventional Set Novel Set All (Orig.) 
+
+N@20 vs. All (%) N@20 vs. All (%) SASRec 0.1098 -28.24 0.0572 -62.61 0.1530 ICSRec 0.1766 5.43 0.0484 -71.1 0.1675 PRISM 0.2028* 6.01 0.0797* -58.34 0.1913* 
+
+5.3.5 Analysis of Mitigating Similarity Bias . To understand the impact of this mitigation on recommendation outcomes, we present a qualitative and quantitative analysis. 
+
+Qualitative Case Study. To examine this effect using real-user examples, we conduct a qualitative case study on ML-1M (Tab. 4). In these sequences, the target shares a sparse minor genre (e.g., G6, G9) with a multi-category Bridge Item that is semantically distant from the surrounding dominant-genre items (e.g., G1, G2); predict-ing the target thus hinges on recovering the heterogeneous relation that similarity bias suppresses. SASRec’s attention concentrates on dominant-genre items similar to each other, marginalizing the 
+
+Bridge Item , while ICSRec’s sequence-level preference is similarly dominated by these genres. Both rank the minor-genre target poorly and show little confidence drop when the Bridge Item is masked, confirming the signal had been discarded. PRISM, in contrast, ranks the targets highly and shows a substantial drop when the Bridge Item is masked, treating it as causal evidence. Its Perspective Lenses decompose the Bridge Item into its multiple semantic groups, surfac-ing the minor-genre signals (G6, G9) suppressed by similarity bias; the Contrast View then synthesizes these with the dominant-genre context of surrounding items, enabling prediction of targets that span both groups (G1+G6, G1+G9). 
+
+Quantitative Analysis. In Tab. 5, we partition the test set by sequence-target similarity: a Conventional Set (top 50%, high simi-larity), where the target aligns with the user’s surface-level pref-erence and overall sequence modeling suffices for prediction, and a Novel Set (bottom 20%, low similarity), where the target reflects preferences not explicit in the sequence and requires going beyond surface signals. On the Conventional Set , sequence-level intent-based ICSRec benefits from global modeling, but PRISM achieves the highest performance by combining sequence-level preference from LSPCL with homogeneous refinement via the Affinity View .On the Novel Set , where targets require the kind of cross-group (0, 5) [5, 10) [10, 50) [50, )      
+
+> 0.025 0.050 0.075 0.100
+> N@20
+> Beauty (Cold Start Scenario)
+> (0, 50) [50, 150) [150, 300) [300, )
+> 0.05 0.10 0.15 0.20 0.25
+> N@20
+> ML-1M (Long Sequence Scenario)
+> SASRec ICSRec STAR-Rec PRISM
+
+Figure 7: Analysis of performance in cold start and long sequence scenarios on Beauty ♠ and ML-1M datasets. 
+
+recovery the case study illustrates, ICSRec degrades more than even SASRec, as its global intent actively suppresses the non-dominant signals these targets depend on. PRISM remains the most robust through its Contrast View complemented by LSPCL .
+
+5.3.6 Analysis Across Sequence Lengths . We evaluate PRISM’s robustness across two challenging regimes of sequence length on Beauty ♠1 and ML-1M (Fig. 7). These regimes pose complementary challenges: sparse evidence in short sequences and increasingly diverse preferences in long sequences. 
+
+Cold Start Scenario. In the cold start scenario, where each user has only a handful of past interactions, PRISM consistently outperforms all baselines across the entire short-sequence range. The advantage is most pronounced in the extreme regime ( 𝑇 < 5), where PRISM improves over ICSRec by 12.44%, demonstrating its effectiveness with sparse evidence. With so few items, even a single cross-group relation can be decisive for prediction; the Dual-View Analysis ensures that both homogeneous and heterogeneous relations are extracted from every available pair, recovering preference from signals that a single attention pass would overlook. 
+
+Long Sequence Scenario. In the long sequence scenario, PRISM again surpasses all baselines in every setting. As sequence length increases from 𝑇 < 50 to 𝑇 ≥ 300, ICSRec suffers the largest drop ( −50 .02%), confirming that a fixed set of pre-defined intent prototypes lacks the capacity to represent the diverse preferences that accumulate over many interactions. PRISM, in contrast, yields the smallest degradation ( −42 .99%): it synthesizes user preference dynamically from item relations at each step, and its expressivity is bounded not by 𝐾 itself but by the combinatorial space of how lenses combine across the sequence, so representational capacity scales naturally with length. These results confirm PRISM’s robustness across both extremes of sequence length.  
+
+> 1The Beauty ♠dataset is processed using a single 5-core filtering pass, commonly used in cold-start settings [3, 15], unlike the iteratively filtered version used in Tab. 1.
+
+CIKM ’26, November 7-11, 2026, Rome, Italy Kim et al. 
+
+Table 6: Scalability analysis across different 𝐾 values on the Toys dataset. Model Params Train Time Infer. Time Peak VRAM (GB) Perf.                                                       
+
+> (s/epoch) (s) Train Infer N@20 SASRec 866,496 10.20 3.43 1.4 1.2 0.0653 FamouSRec 964,739 103.55 4.47 4.5 1.4 0.0721 STAR-Rec 1,095,948 35.12 8.26 4.5 2.5 0.0717 PRISM ( 𝐾 =2) 908,801 18.38 4.00 2.3 1.8 0.0731 PRISM ( 𝐾 =4) 909,057 20.99 4.13 3.1 2.1 0.0751*
+> PRISM ( 𝐾 =6) 909,313 22.59 4.45 4.1 2.3 0.0728 PRISM ( 𝐾 =8) 909,569 25.27 4.73 5.2 2.6 0.0744
+
+Table 7: Time and space complexity of each component. Component Time Space 
+
+Transformer layer 𝑂 (𝑇 2𝑑 + 𝑇𝑑 2) 𝑂 (( 𝑇 + 𝑑 )2)
+
+PRISM layer 𝑂 (𝑇 2𝐾𝑑 + 𝑇 𝐾𝑑 2) 𝑂 (𝐾 (𝑇 + 𝑑 )2)LSPCL 𝑂 (𝐵𝐾 (𝑇 2𝑑 + 𝑇𝑑 2) + 𝐵 2𝑑 ) 𝑂 (𝐵𝑇 𝐾 + 𝐵 2)LCCL 𝑂 (𝐵𝑇 𝐾𝑁𝑑 ) 𝑂 (𝐵𝑇 𝐾𝑁 + 𝐵𝑇 𝐾 2)
+
+5.3.7 Scalability and Efficiency Analysis . We evaluate PRISM’s scalability and efficiency empirically and theoretically when increas-ing 𝐾 (Tab. 6). 
+
+Additional Parameters. The PRISM layer introduces three com-ponents: 
+
+• Semantic Anchor Router : two matrices in R𝑑 ×𝐾 (W𝑙 
+
+> g
+
+, W𝑙 
+
+> noise
+
+). 
+
+• Perspective Lenses : a learnable scalar 𝛽 𝑙 and a linear layer in 
+
+R𝑑 ×𝑑 .
+
+• Feed-Forward Network : two matrices in R𝑑 ×4𝑑 .By reusing W𝑙 𝑣 and A𝑙 from the previous transformer layer, PRISM increases the parameter count by only 2 𝑑 per lens; increasing 𝐾 
+
+from 2 to 8 adds only 768 parameters in our settings. 
+
+Theoretical Complexity and Empirical Cost. Tab. 7 reports the time and space complexity of each component; the PRISM layer scales linearly with 𝐾 . In practice, weight sharing across lenses substantially mitigates this overhead: training time, inference time, and VRAM usage increase with 𝐾 but remain practical compared with MoE baselines (Tab. 6). PRISM surpasses the strongest baseline FamouSRec across all 𝐾 settings: even the smallest 𝐾 =2 already outperforms FamouSRec, and 𝐾 =4 achieves the best performance while using fewer parameters (909K vs. 965K). Moreover, PRISM trains 5 × faster than FamouSRec and, at 𝐾 =4, uses less training memory than STAR-Rec (3.1 GB vs. 4.5 GB), while maintaining inference latency close to SASRec. Fig. 8 extends this comparison to non-MoE baselines, where PRISM achieves the highest N@20 at competitive cost across all three dimensions. 𝐾 can thus be selected by balancing semantic capacity against computational budget, with overhead remaining acceptable relative to competitive baselines. 
+
+Scaling to Industrial Data. On the industrial-scale Electronics 
+
+dataset, clustering-based intent models (e.g., ICLRec, ICSRec) re-quire substantially more prototypes and longer training, as their clustering must cover a far larger pool of users (192K in Electronics vs. 19K in Toys), while MoE-based baselines incur proportionally heavier overhead from their parallel expert architectures. PRISM achieves the highest accuracy at a lower training cost, confirming that its efficiency advantage widens with data size. 0.90 0.95 1.00 1.05 1.10          
+
+> # of Parameters 1e6
+> 0.066 0.068 0.070 0.072 0.074
+> N@20
+> SASRec IOCRec ICSRec FAME FamouSRec STAR-Rec PRISM
+> Model Size
+> 2500 5000 7500 10000 12500
+> Training Time (sec)
+> 0.066 0.068 0.070 0.072 0.074
+> SASRec IOCRec ICSRec FAME FamouSRec STAR-Rec PRISM
+> Training Time
+> 45678
+> Inference Time (sec)
+> 0.066 0.068 0.070 0.072 0.074
+> SASRec IOCRec ICSRec FAME FamouSRec STAR-Rec PRISM
+> Inference Time
+
+Figure 8: Comparison of performance vs. (a) model size, (b) training time until convergence, and (c) inference time across baseline models and PRISM on the Toys dataset. 2 4 6 8
+
+K           
+
+> 0.050 0.075 0.100 0.125 0.150 0.175
+> N@20
+> 0.01 0.05 0.1 0.3 0.5
+> 0.050 0.075 0.100 0.125 0.150 0.175
+> N@20
+> 0.05 0.1 0.7 1 2
+> 0.050 0.075 0.100 0.125 0.150 0.175
+> N@20
+> ML-1M Beauty Games Toys Sports Yelp Elec.
+
+Figure 9: Impact of hyperparameters 𝐾 , 𝜆 , and 𝜏 .
+
+5.3.8 Hyperparameter Sensitivity . In Fig. 9, we conduct a sen-sitivity analysis for PRISM’s robustness across all seven datasets by varying its three hyperparameters: the number of Perspective Lenses 𝐾 , the auxiliary loss weight 𝜆 , and the temperature 𝜏 of 
+
+LSPCL . Performance remains stable across a wide range of values and consistently exceeds the strongest baseline in nearly all config-urations, indicating that PRISM is robust to hyperparameter choice and requires minimal tuning effort for diverse domains in practice. 
+
+## 6 Conclusion 
+
+In this paper, we empirically reveal that transformer-based sequen-tial recommendation models systematically overlook inter-item relations that carry meaningful evidence for target prediction. To enrich these relations, we propose PRISM , a module placed be-tween transformer layers that complements self-attention through 
+
+𝐾 Perspective Lenses . Each lens operates from one of two comple-mentary views: the Affinity View refines homogeneous relations among semantically related items, while the Contrast View sur-faces heterogeneous relations that similarity bias would otherwise suppress. With LSPCL for sequence-level preference alignment and 
+
+LCCL for cross-lens coherence, PRISM captures user preference from item-level relational signals to sequence-wide behavioral pat-terns. Experiments on seven benchmark datasets demonstrate that PRISM outperforms state-of-the-art baselines across various real-world scenarios. 
+
+## Acknowledgments 
+
+This work was supported by the National Research Foundation of Korea (NRF) grant funded by the Korea government. (MSIT) (No. RS-2024-00335873) This work was also supported by Insti-tute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government. (MSIT) (No.RS-2019-II191906, Artificial Intelligence Graduate School Pro-gram(POSTECH)) From Overlooked to Explored: Recovering Item Relations via Mixture of Perspectives for Sequential Recommendation CIKM ’26, November 7-11, 2026, Rome, Italy 
+
+## 7 GenAI Usage Disclosure 
+
+We used ChatGPT and Claude for grammar correction, language polishing, and code refactoring. Ideation, methodology, and exper-imental design were carried out by the authors without GenAI assistance. 
+
+## References 
+
+[1] Nabiha Asghar. 2016. Yelp dataset challenge: Review rating prediction. arXiv preprint arXiv:1605.05362 (2016). [2] Shuqing Bian, Xingyu Pan, Wayne Xin Zhao, Jinpeng Wang, Chuyuan Wang, and Ji-Rong Wen. 2023. Multi-modal mixture of experts represetation learning for sequential recommendation. In Proceedings of the 32nd ACM international conference on information and knowledge management . 110–119. [3] Shaked Brody and Shoval Lagziel. 2024. SimRec: Mitigating the cold-start problem in sequential recommendation by integrating item similarity. arXiv preprint arXiv:2410.22136 (2024). [4] Yongjun Chen, Zhiwei Liu, Jia Li, Julian McAuley, and Caiming Xiong. 2022. Intent contrastive learning for sequential recommendation. In Proceedings of the ACM web conference 2022 . 2172–2182. [5] Ziwei Fan, Zhiwei Liu, Shen Wang, Lei Zheng, and Philip S Yu. 2021. Modeling sequences as distributions with uncertainty for sequential recommendation. In 
+
+Proceedings of the 30th ACM international conference on information & knowledge management . 3019–3023. [6] Ziwei Fan, Zhiwei Liu, Yu Wang, Alice Wang, Zahra Nazari, Lei Zheng, Hao Peng, and Philip S Yu. 2022. Sequential recommendation via stochastic self-attention. In Proceedings of the ACM web conference 2022 . 2036–2047. [7] William Fedus, Barret Zoph, and Noam Shazeer. 2022. Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity. Journal of Machine Learning Research 23, 120 (2022), 1–39. [8] F Maxwell Harper and Joseph A Konstan. 2015. The movielens datasets: History and context. Acm transactions on interactive intelligent systems (tiis) 5, 4 (2015), 1–19. [9] Balázs Hidasi and Alexandros Karatzoglou. 2018. Recurrent neural networks with top-k gains for session-based recommendations. In Proceedings of the 27th ACM international conference on information and knowledge management . 843–852. [10] Balázs Hidasi, Alexandros Karatzoglou, Linas Baltrunas, and Domonkos Tikk. 2015. Session-based recommendations with recurrent neural networks. arXiv preprint arXiv:1511.06939 (2015). [11] Yupeng Hou, Shanlei Mu, Wayne Xin Zhao, Yaliang Li, Bolin Ding, and Ji-Rong Wen. 2022. Towards universal sequence representation learning for recommender systems. In Proceedings of the 28th ACM SIGKDD conference on knowledge discovery and data mining . 585–593. [12] Hengchang Hu, Wei Guo, Yong Liu, and Min-Yen Kan. 2023. Adaptive multi-modalities fusion in sequential recommendation systems. In Proceedings of the 32nd ACM International Conference on Information and Knowledge Management .843–853. [13] Albert Q Jiang, Alexandre Sablayrolles, Antoine Roux, Arthur Mensch, Blanche Savary, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Emma Bou Hanna, Florian Bressand, et al. 2024. Mixtral of experts. arXiv preprint arXiv:2401.04088 (2024). [14] Wang-Cheng Kang and Julian McAuley. 2018. Self-attentive sequential recom-mendation. In 2018 IEEE international conference on data mining (ICDM) . IEEE, 197–206. [15] Kibum Kim, Dongmin Hyun, Sukwon Yun, and Chanyoung Park. 2023. Melt: Mutual enhancement of long-tailed user and item for sequential recommendation. In Proceedings of the 46th international ACM SIGIR conference on Research and development in information retrieval . 68–77. [16] WooJoo Kim, JunYoung Kim, JaeHyung Lim, SeongJin Choi, SeongKu Kang, and HwanJo Yu. 2026. FLAME: Condensing Ensemble Diversity into a Single Network for Efficient Sequential Recommendation. In Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval 
+
+(Australia) (SIGIR ’26) . Association for Computing Machinery, New York, NY, USA, 823–833. doi:10.1145/3805712.3809560 [17] Diederik P Kingma and Jimmy Ba. 2014. Adam: A method for stochastic opti-mization. arXiv preprint arXiv:1412.6980 (2014). [18] Walid Krichene and Steffen Rendle. 2020. On sampled metrics for item recom-mendation. In Proceedings of the 26th ACM SIGKDD international conference on knowledge discovery & data mining . 1748–1757. [19] Dmitry Lepikhin, HyoukJoong Lee, Yuanzhong Xu, Dehao Chen, Orhan Firat, Yanping Huang, Maxim Krikun, Noam Shazeer, and Zhifeng Chen. 2020. Gshard: Scaling giant models with conditional computation and automatic sharding. arXiv preprint arXiv:2006.16668 (2020). [20] Chengxi Li, Yejing Wang, Qidong Liu, Xiangyu Zhao, Wanyu Wang, Yiqi Wang, Lixin Zou, Wenqi Fan, and Qing Li. 2023. STRec: Sparse transformer for sequential recommendations. In Proceedings of the 17th ACM conference on recommender systems . 101–111. [21] Xuewei Li, Aitong Sun, Mankun Zhao, Jian Yu, Kun Zhu, Di Jin, Mei Yu, and Ruiguo Yu. 2023. Multi-intention oriented contrastive learning for sequential recommendation. In Proceedings of the sixteenth ACM international conference on web search and data mining . 411–419. [22] Mingrui Liu, Sixiao Zhang, and Cheng Long. 2025. Facet-aware multi-head mixture-of-experts model for sequential recommendation. In Proceedings of the Eighteenth ACM International Conference on Web Search and Data Mining . 127– 135. [23] Yue Liu, Shihao Zhu, Jun Xia, Yingwei Ma, Jian Ma, Xinwang Liu, Shengju Yu, Kejun Zhang, and Wenliang Zhong. 2024. End-to-end learnable clustering for intent learning in recommendation. Advances in Neural Information Processing Systems 37 (2024), 5913–5949. [24] Jiaqi Ma, Zhe Zhao, Jilin Chen, Ang Li, Lichan Hong, and Ed H Chi. 2019. Snr: Sub-network routing for flexible parameter sharing in multi-task learning. In 
+
+Proceedings of the AAAI conference on artificial intelligence , Vol. 33. 216–223. [25] Jiaqi Ma, Zhe Zhao, Xinyang Yi, Jilin Chen, Lichan Hong, and Ed H Chi. 2018. Modeling task relationships in multi-task learning with multi-gate mixture-of-experts. In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining . 1930–1939. [26] Xiao Ma, Liqin Zhao, Guan Huang, Zhi Wang, Zelin Hu, Xiaoqiang Zhu, and Kun Gai. 2018. Entire space multi-task model: An effective approach for estimating post-click conversion rate. In The 41st International ACM SIGIR Conference on Research & Development in Information Retrieval . 1137–1140. [27] Julian McAuley, Christopher Targett, Qinfeng Shi, and Anton Van Den Hengel. 2015. Image-based recommendations on styles and substitutes. In Proceedings of the 38th international ACM SIGIR conference on research and development in information retrieval . 43–52. [28] Aleksandr Petrov and Craig Macdonald. 2022. A systematic review and replica-bility study of bert4rec for sequential recommendation. In Proceedings of the 16th ACM Conference on Recommender Systems . 436–447. [29] Xiuyuan Qin, Huanhuan Yuan, Pengpeng Zhao, Guanfeng Liu, Fuzhen Zhuang, and Victor S Sheng. 2024. Intent contrastive learning with cross subsequences for sequential recommendation. In Proceedings of the 17th ACM international conference on web search and data mining . 548–556. [30] Ruihong Qiu, Zi Huang, Hongzhi Yin, and Zijian Wang. 2022. Contrastive learning for representation degeneration problem in sequential recommendation. In Proceedings of the fifteenth ACM international conference on web search and data mining . 813–823. [31] Ruiyang Ren, Zhaoyang Liu, Yaliang Li, Wayne Xin Zhao, Hui Wang, Bolin Ding, and Ji-Rong Wen. 2020. Sequential recommendation with self-attentive multi-adversarial network. In Proceedings of the 43rd international ACM SIGIR conference on research and development in information retrieval . 89–98. [32] Steffen Rendle, Christoph Freudenthaler, and Lars Schmidt-Thieme. 2010. Factor-izing personalized markov chains for next-basket recommendation. In Proceedings of the 19th international conference on World wide web . 811–820. [33] Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. 2017. Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer. In International Conference on Learning Representations .[34] Yikang Shen, Zheyu Zhang, Tianyou Cao, Shawn Tan, Zhenfang Chen, and Chuang Gan. 2023. ModuleFormer: Modularity Emerges from Mixture-of-Experts. 
+
+arXiv preprint arXiv:2306.04640 (2023). [35] Fei Sun, Jun Liu, Jian Wu, Changhua Pei, Xiao Lin, Wenwu Ou, and Peng Jiang. 2019. BERT4Rec: Sequential recommendation with bidirectional encoder rep-resentations from transformer. In Proceedings of the 28th ACM international conference on information and knowledge management . 1441–1450. [36] Jiaxi Tang and Ke Wang. 2018. Personalized top-n sequential recommenda-tion via convolutional sequence embedding. In Proceedings of the eleventh ACM international conference on web search and data mining . 565–573. [37] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. Advances in neural information processing systems 30 (2017). [38] Maolin Wang, Sheng Zhang, Ruocheng Guo, Wanyu Wang, Xuetao Wei, Zitao Liu, Hongzhi Yin, Yi Chang, and Xiangyu Zhao. 2025. STAR-Rec: Making peace with length variance and pattern diversity in sequential recommendation. In Proceed-ings of the 48th international ACM SIGIR conference on research and development in information retrieval . 1530–1540. [39] Xu Xie, Fei Sun, Zhaoyang Liu, Shiwen Wu, Jinyang Gao, Jiandong Zhang, Bolin Ding, and Bin Cui. 2022. Contrastive learning for sequential recommendation. In 
+
+2022 IEEE 38th international conference on data engineering (ICDE) . IEEE, 1259– 1273. [40] Yueqi Xie, Peilin Zhou, and Sunghun Kim. 2022. Decoupled side information fusion for sequential recommendation. In Proceedings of the 45th international ACM SIGIR conference on research and development in information retrieval . 1611– 1621. CIKM ’26, November 7-11, 2026, Rome, Italy Kim et al. 
+
+[41] Junjie Zhang, Ruobing Xie, Hongyu Lu, Wenqi Sun, Wayne Xin Zhao, Yu Chen, and Zhanhui Kang. 2025. Frequency-Augmented Mixture-of-Heterogeneous-Experts Framework for Sequential Recommendation. In Proceedings of the ACM on Web Conference 2025 . 2596–2605. [42] Shengzhe Zhang, Liyi Chen, Dazhong Shen, Chao Wang, and Hui Xiong. 2025. Hierarchical Time-Aware Mixture of Experts for Multi-Modal Sequential Recom-mendation. In Proceedings of the ACM on Web Conference 2025 . 3672–3682. [43] Kun Zhou, Hui Wang, Wayne Xin Zhao, Yutao Zhu, Sirui Wang, Fuzheng Zhang, Zhongyuan Wang, and Ji-Rong Wen. 2020. S3-rec: Self-supervised learning for se-quential recommendation with mutual information maximization. In Proceedings of the 29th ACM international conference on information & knowledge management .1893–1902. [44] Kun Zhou, Hui Yu, Wayne Xin Zhao, and Ji-Rong Wen. 2022. Filter-enhanced MLP is all you need for sequential recommendation. In Proceedings of the ACM web conference 2022 . 2388–2399. [45] Peilin Zhou, Qichen Ye, Yueqi Xie, Jingqi Gao, Shoujin Wang, Jae Boum Kim, Chenyu You, and Sunghun Kim. 2023. Attention calibration for transformer-based sequential recommendation. In Proceedings of the 32nd ACM international conference on information and knowledge management . 3595–3605.
