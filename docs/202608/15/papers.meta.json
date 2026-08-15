@@ -1,0 +1,54 @@
+{
+  "label": "2026-08-15",
+  "date": "2026-08-15",
+  "generated_at": "2026-08-15T20:41:44",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202608/15/2608.11383v1-reoptimization-algorithms-for-contextual-bandits-with-knapsack-constraints",
+      "section": "deep",
+      "title_en": "Reoptimization Algorithms for Contextual Bandits with Knapsack Constraints",
+      "authors": "Zhen Xu",
+      "date": "2026-08-11",
+      "pdf": "https://arxiv.org/pdf/2608.11383v1",
+      "score": "8.0",
+      "evidence": "资源受限下基于未知需求的在线产品分配，直接支持基于需求的库存管理策略",
+      "tldr": "在客户、产品和资源类型有限且资源容量受限的在线决策中，决策者需为每位到达客户分配产品，并获得由客户与产品特征线性决定且含噪声的随机奖励。目标为同时学习未知奖励函数并优化在线分配以最小化期望收益损失。本文提出上置信界算法的自然扩展，并引入重优化技术。算法实现平均遗憾 O((ln T)^3/T)，较现有基于重优化的动态定价方法 O(1/sqrt(T)) 显著降低，证明重优化能有效提升学习效率，为容量受限在线决策提供更紧遗憾界。",
+      "tags": "query:wo",
+      "abstract_en": "We study new algorithms for Contextual Bandits with Knapsack. In these problems, there are finitely many types of customers, products, and resources. Each product is made from a fixed combination of resources, and resources have finite capacity. A decision maker must assign each arriving customer one out of a set of multiple possible products. Every assignment of a customer to a product will generate a random reward, which equals an unknown linear function of customer and product features, plus a noise term. The objective is to jointly learn the mean reward function, and to make online assignments to minimize the expected revenue loss relative to an optimal policy that knows the reward function. We propose a natural and simple extension of the Upper-Confidence-Bound (UCB) family of algorithms and apply re-optimization techniques. We show that by taking advantage of re-optimization, our algorithm achieves an average regret of $O(\\frac{(\\ln T)^3}{T})$ where $T$ is the horizon length. Our bound significantly reduces the $O(\\frac{1}{\\sqrt{T}})$ bound in the literature for closely related dynamic-pricing problems that are based on re-optimization.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/15/2608.12680v1-demand-transfer-estimation-at-scale-via-restricted-logit-modeling",
+      "section": "quick",
+      "title_en": "Demand Transfer Estimation at Scale via Restricted Logit Modeling",
+      "authors": "Lakshya Garg, Deep Narayan Mishra, Swapnil Yadav, Haoan Wang, Sujal Alugubelli, Karthik Kumaran, Anupriya Sharma",
+      "date": "2026-08-13",
+      "pdf": "https://arxiv.org/pdf/2608.12680v1",
+      "score": "7.0",
+      "evidence": "需求转移估计考虑商品需求与其他商品可得性之间的关系，与需求相关性和库存管理相关",
+      "tldr": "大型商品全集下的品类组合优化需要高效需求预测，传统逐方案建模效率低下。本文提出基于受限Logit模型的大规模需求转移估计方法，结合独立预测效率与替代关系调整，通过计算需求转移系数刻画商品移除后的需求再分配。在包含百万级商品、覆盖多个地点的历史交易数据上验证，当合理的替代行为假设满足时，该方法能准确估计底层DT系数并改善需求预测。该研究为大规模零售品类优化提供了可扩展的解决方案。",
+      "tags": "query:wo",
+      "abstract_en": "Item demand forecasting is an integral component of store assortment optimization. Existing literature focuses on learning a suitable customer choice model and using this model to determine the value of an objective function (i.e. expected demand) with respect to an assortment proposal. However, for large item universe with many categories, this approach can prove inefficient, needing a separate demand forecast for every possible item assortment. An alternate approach exists whereby we combine the efficiency of forecasting item demand independently, while at the same time applying adjustments to the independent forecasts that account for the relations between item demand and the availability of other similar items on the shelf.   Central to this approach is the estimation of Demand Transfer (DT) coefficients. These DT coefficients represent the percent of a particular target item's (item that the customer walked in the store to buy) demand that is redirected to each other item in the universe should the target item be removed from the shelf. We introduce an approach that allows us to compute these DT coefficients on large item universes (assortments having 1 million+ items). Experiments on data as well as historical transaction data for multiple locations within categories demonstrate that when certain reasonable assumptions about substitution behavior are satisfied, our procedure is able to accurately estimate underlying DT coefficients and lead to improvements in demand forecasting.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/15/2608.08344v1-prism-a-predictive-protocol-for-permutation-optimization-via-landscape-diagnostics",
+      "section": "quick",
+      "title_en": "PRISM: A Predictive Protocol for Permutation Optimization via Landscape Diagnostics",
+      "authors": "Blessings Mambwe",
+      "date": "2026-08-08",
+      "pdf": "https://arxiv.org/pdf/2608.08344v1",
+      "score": "6.0",
+      "evidence": "通用排列优化协议，适用于存储位置分配",
+      "tldr": "排列优化问题广泛存在于系统组件顺序影响性能的场景，但搜索策略选择缺乏先验指导。PRISM协议使用一步移动自相关和适应度-距离相关性等廉价景观诊断，在优化前预测有效突变算子，并判断结构化搜索是否优于随机采样。在合成排列景观、神经架构基准、科学机器学习管道和LLM指令排序上的实验表明，指令顺序可导致显著性能变化，且有用的排序结构能跨模型家族和任务难度迁移。PRISM定位为确定排列搜索适用性、表示与算子选择的通用框架，而非绝对最优优化器。",
+      "tags": "query:wo",
+      "abstract_en": "Permutation optimization arises whenever the components of a system are fixed but their ordering affects performance. We introduce PRISM, a predictive protocol for permutation optimization that measures a fitness landscape before selecting a search strategy. PRISM uses inexpensive landscape diagnostics, including one-step move autocorrelation and fitness-distance correlation, to predict useful mutation operators, identify when structured search is likely to outperform random sampling, and detect regimes in which search provides little advantage. Across synthetic permutation landscapes, neural architecture benchmarks, scientific machine learning pipelines, and large-language-model instruction ordering, the protocol makes testable predictions about search behavior before optimization begins. Exhaustive instruction-ordering experiments reveal substantial performance variation induced solely by permutation, while cross-model experiments show that useful ordering structure can transfer across model families and task difficulty. Additional experiments demonstrate that instruction ordering remains consequential after prompt wording is optimized, indicating that content optimization and ordering optimization are complementary. The results position PRISM not as a universally superior optimizer, but as a framework for determining when permutation search is useful, which representation and operator should be used, and when simpler alternatives are preferable.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,132 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-15T20:32:17.401586+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2608.11383v1",
+      "source": "arxiv",
+      "title": "Reoptimization Algorithms for Contextual Bandits with Knapsack Constraints",
+      "abstract": "We study new algorithms for Contextual Bandits with Knapsack. In these problems, there are finitely many types of customers, products, and resources. Each product is made from a fixed combination of resources, and resources have finite capacity. A decision maker must assign each arriving customer one out of a set of multiple possible products. Every assignment of a customer to a product will generate a random reward, which equals an unknown linear function of customer and product features, plus a noise term. The objective is to jointly learn the mean reward function, and to make online assignments to minimize the expected revenue loss relative to an optimal policy that knows the reward function. We propose a natural and simple extension of the Upper-Confidence-Bound (UCB) family of algorithms and apply re-optimization techniques. We show that by taking advantage of re-optimization, our algorithm achieves an average regret of $O(\\frac{(\\ln T)^3}{T})$ where $T$ is the horizon length. Our bound significantly reduces the $O(\\frac{1}{\\sqrt{T}})$ bound in the literature for closely related dynamic-pricing problems that are based on re-optimization.",
+      "authors": [
+        "Zhen Xu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC"
+      ],
+      "published": "2026-08-11T19:46:10+00:00",
+      "link": "https://arxiv.org/pdf/2608.11383v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Online product assignment with limited resources and unknown demand, directly supporting inventory management strategies based on demand",
+      "llm_evidence_cn": "资源受限下基于未知需求的在线产品分配，直接支持基于需求的库存管理策略",
+      "llm_evidence": "资源受限下基于未知需求的在线产品分配，直接支持基于需求的库存管理策略",
+      "canonical_evidence": "资源受限下基于未知需求的在线产品分配，直接支持基于需求的库存管理策略",
+      "llm_tldr_en": "Studies contextual bandits with knapsack constraints for online product-customer assignment under resource capacity and unknown reward, proposing reoptimization algorithms that learn demand and improve regret compared to prior methods.",
+      "llm_tldr_cn": "针对资源容量有限且顾客-产品需求未知的在线分配问题，提出基于情境Bandit的重新优化算法，通过联合学习奖励函数并进行在线分配以最小化期望收益损失；实验表明该算法优于已有方法，为基于需求的库存管理提供有效决策支持。",
+      "llm_tldr": "针对资源容量有限且顾客-产品需求未知的在线分配问题，提出基于情境Bandit的重新优化算法，通过联合学习奖励函数并进行在线分配以最小化期望收益损失；实验表明该算法优于已有方法，为基于需求的库存管理提供有效决策支持。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.12680v1",
+      "source": "arxiv",
+      "title": "Demand Transfer Estimation at Scale via Restricted Logit Modeling",
+      "abstract": "Item demand forecasting is an integral component of store assortment optimization. Existing literature focuses on learning a suitable customer choice model and using this model to determine the value of an objective function (i.e. expected demand) with respect to an assortment proposal. However, for large item universe with many categories, this approach can prove inefficient, needing a separate demand forecast for every possible item assortment. An alternate approach exists whereby we combine the efficiency of forecasting item demand independently, while at the same time applying adjustments to the independent forecasts that account for the relations between item demand and the availability of other similar items on the shelf.   Central to this approach is the estimation of Demand Transfer (DT) coefficients. These DT coefficients represent the percent of a particular target item's (item that the customer walked in the store to buy) demand that is redirected to each other item in the universe should the target item be removed from the shelf. We introduce an approach that allows us to compute these DT coefficients on large item universes (assortments having 1 million+ items). Experiments on data as well as historical transaction data for multiple locations within categories demonstrate that when certain reasonable assumptions about substitution behavior are satisfied, our procedure is able to accurately estimate underlying DT coefficients and lead to improvements in demand forecasting.",
+      "authors": [
+        "Lakshya Garg",
+        "Deep Narayan Mishra",
+        "Swapnil Yadav",
+        "Haoan Wang",
+        "Sujal Alugubelli",
+        "Karthik Kumaran",
+        "Anupriya Sharma"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-08-13T00:37:13+00:00",
+      "link": "https://arxiv.org/pdf/2608.12680v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Demand transfer estimation accounts for relations between item demand and availability of other items, relevant to demand correlation and inventory management.",
+      "llm_evidence_cn": "需求转移估计考虑商品需求与其他商品可得性之间的关系，与需求相关性和库存管理相关",
+      "llm_evidence": "需求转移估计考虑商品需求与其他商品可得性之间的关系，与需求相关性和库存管理相关",
+      "canonical_evidence": "需求转移估计考虑商品需求与其他商品可得性之间的关系，与需求相关性和库存管理相关",
+      "llm_tldr_en": "The paper proposes a scalable demand transfer estimation method using restricted logit modeling to adjust independent item demand forecasts for cross-item availability effects, improving store assortment optimization.",
+      "llm_tldr_cn": "针对大规模商品品类下逐品项需求预测效率低的问题，本文提出一种基于受限Logit建模的需求转移估计方法，在独立需求预测基础上调整商品间可得性关系。实验表明该方法能高效估计商品需求转移，为门店品类优化提供可扩展的决策支持。该方法可用于产品需求相关性分析和基于需求的库存管理策略。",
+      "llm_tldr": "针对大规模商品品类下逐品项需求预测效率低的问题，本文提出一种基于受限Logit建模的需求转移估计方法，在独立需求预测基础上调整商品间可得性关系。实验表明该方法能高效估计商品需求转移，为门店品类优化提供可扩展的决策支持。该方法可用于产品需求相关性分析和基于需求的库存管理策略。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "correlation between product demands for storage",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.08344v1",
+      "source": "arxiv",
+      "title": "PRISM: A Predictive Protocol for Permutation Optimization via Landscape Diagnostics",
+      "abstract": "Permutation optimization arises whenever the components of a system are fixed but their ordering affects performance. We introduce PRISM, a predictive protocol for permutation optimization that measures a fitness landscape before selecting a search strategy. PRISM uses inexpensive landscape diagnostics, including one-step move autocorrelation and fitness-distance correlation, to predict useful mutation operators, identify when structured search is likely to outperform random sampling, and detect regimes in which search provides little advantage. Across synthetic permutation landscapes, neural architecture benchmarks, scientific machine learning pipelines, and large-language-model instruction ordering, the protocol makes testable predictions about search behavior before optimization begins. Exhaustive instruction-ordering experiments reveal substantial performance variation induced solely by permutation, while cross-model experiments show that useful ordering structure can transfer across model families and task difficulty. Additional experiments demonstrate that instruction ordering remains consequential after prompt wording is optimized, indicating that content optimization and ordering optimization are complementary. The results position PRISM not as a universally superior optimizer, but as a framework for determining when permutation search is useful, which representation and operator should be used, and when simpler alternatives are preferable.",
+      "authors": [
+        "Blessings Mambwe"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "math.OC"
+      ],
+      "published": "2026-08-08T21:52:04+00:00",
+      "link": "https://arxiv.org/pdf/2608.08344v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "permutation optimization for ordering components; applicable to storage location assignment",
+      "llm_evidence_cn": "通用排列优化协议，适用于存储位置分配",
+      "llm_evidence": "通用排列优化协议，适用于存储位置分配",
+      "canonical_evidence": "通用排列优化协议，适用于存储位置分配",
+      "llm_tldr_en": "PRISM introduces a predictive protocol for permutation optimization using landscape diagnostics to select search strategies. It addresses ordering problems where component order affects performance, analogous to storage location assignment. The method predicts useful operators and when structured search helps, improving efficiency on multiple benchmarks.",
+      "llm_tldr_cn": "针对组件顺序影响系统性能的排列优化问题，PRISM提出一种基于景观诊断的预测性协议。该方法通过一步移动自相关和适应度-距离相关性等低成本诊断指标，在搜索前预测有效的变异算子并判断结构化搜索是否优于随机采样。在合成排列景观、神经架构基准、科学机器学习管道和大语言模型指令排序等任务上的实验表明，该协议能够做出可检验的预测。该通用方法可迁移至仓库存储位置分配等排序优化场景。",
+      "llm_tldr": "针对组件顺序影响系统性能的排列优化问题，PRISM提出一种基于景观诊断的预测性协议。该方法通过一步移动自相关和适应度-距离相关性等低成本诊断指标，在搜索前预测有效的变异算子并判断结构化搜索是否优于随机采样。在合成排列景观、神经架构基准、科学机器学习管道和大语言模型指令排序等任务上的实验表明，该协议能够做出可检验的预测。该通用方法可迁移至仓库存储位置分配等排序优化场景。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "assigning storage locations considering product relationships",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
