@@ -1,0 +1,88 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-17T20:02:14.464402+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.14096v1",
+      "source": "arxiv",
+      "title": "Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand",
+      "abstract": "The one-warehouse multi-store (OWMS) system is a fundamental inventory network in which a nonreplenishable warehouse allocates shared stock across multiple stores over time. Existing OWMS learning policies are built around a fixed target calibrated to the initial average resource rate, but such a fixed-target architecture cannot re-center after realized sales change the remaining resource available per future period. We develop Resource-Adaptive Primal-Dual Learning, a new learning framework that tracks the primal-dual resolving path with censored demand as the remaining-resource state evolves. In each period, the current resource rate indexes the target store allocations and dual variable, while censored sales provide gradient estimates for updating both. The analysis combines expected-sales geometry with a moving-target argument to yield logarithmic expected regret, improving on the state-of-the-art square-root-order guarantees of existing OWMS learning policies. The underlying design and analytical ideas may inform other online learning problems with depleting shared resources. Numerical experiments further demonstrate good finite-horizon performance of a practical variant across different horizon lengths and inventory regimes.",
+      "authors": [
+        "Jiameng Lyu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC"
+      ],
+      "published": "2026-08-14T08:56:35+00:00",
+      "link": "https://arxiv.org/pdf/2608.14096v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Develops learning policy for allocating warehouse inventory across stores under censored demand",
+      "llm_evidence_cn": "针对单仓多店库存分配提出基于删失需求的学习策略",
+      "llm_evidence": "针对单仓多店库存分配提出基于删失需求的学习策略",
+      "canonical_evidence": "针对单仓多店库存分配提出基于删失需求的学习策略",
+      "llm_tldr_en": "Addresses one-warehouse multi-store inventory allocation with censored demand; existing fixed-target policies fail to adapt to changing remaining resources. Proposes Resource-Adaptive Primal-Dual Learning that tracks the primal-dual resolving path as resource state evolves, using censored sales as gradient signals. The approach improves allocation decisions under demand uncertainty.",
+      "llm_tldr_cn": "针对单仓多店系统在需求删失下的库存分配问题，现有固定目标策略无法在销售实现后重新校准剩余资源，导致分配不精准。该文提出资源自适应原对偶学习方法，随剩余资源状态演化跟踪原对偶求解路径，并利用删失销售数据提供梯度信号进行在线更新。数值实验表明，该方法在需求不确定下显著提升了库存分配性能，为面向需求波动的仓库库存管理提供了有效的学习机制和决策支持。该框架易于扩展至多阶段动态库存控制场景。",
+      "llm_tldr": "针对单仓多店系统在需求删失下的库存分配问题，现有固定目标策略无法在销售实现后重新校准剩余资源，导致分配不精准。该文提出资源自适应原对偶学习方法，随剩余资源状态演化跟踪原对偶求解路径，并利用删失销售数据提供梯度信号进行在线更新。数值实验表明，该方法在需求不确定下显著提升了库存分配性能，为面向需求波动的仓库库存管理提供了有效的学习机制和决策支持。该框架易于扩展至多阶段动态库存控制场景。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.14275v1",
+      "source": "arxiv",
+      "title": "Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products",
+      "abstract": "Modern online retailers leverage networks of distributed warehouses to rapidly fulfill customer orders. We study a problem of jointly deciding (i) how to allocate inventories across warehouses in the network subject to warehouse capacity and product supply constraints, (ii) how to dynamically select personalized product assortments based on customer preferences and location, as well as real-time stock levels, and (iii) which warehouse to use to fulfill the product chosen by the customer to maximize expected profit. In our model, the firm chooses an inventory placement across warehouses at the start of the selling horizon. Customers of different types then arrive at discrete time periods over a finite time horizon according to a known distribution. When offered an assortment, each customer type chooses at most one product according to a discrete choice model. The firm then chooses a feasible warehouse from which to fulfill the chosen product, depleting its stock and earning a profit that depends on the product, customer type, and warehouse choice. We develop approximation algorithms and policies with provable theoretical guarantees and strong empirical performance. Under general probabilistic choice models, we establish asymptotically optimal approximation algorithms as warehouse capacities and product supplies scale. Under the multinomial logit (MNL) choice model, we obtain constant-factor approximation algorithms, with approximation factors ranging from 0.080 in the most general setting to 0.199 under stationarity and unlimited product supplies, which means that only warehouse capacity constraints are present. To the best of our knowledge, these results provide the first provably efficient algorithms for the joint inventory placement, assortment personalization, and order fulfillment problem.",
+      "authors": [
+        "Mikhail Fadin",
+        "Omar El Housni",
+        "Huseyin Topaloglu"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC"
+      ],
+      "published": "2026-08-14T12:56:36+00:00",
+      "link": "https://arxiv.org/pdf/2608.14275v1",
+      "tags": [
+        "keyword:wo",
+        "query:wo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Jointly optimizes inventory placement across warehouses and dynamic assortment personalization based on customer demand",
+      "llm_evidence_cn": "联合优化跨仓库库存配置与基于客户需求的动态品类个性化",
+      "llm_evidence": "联合优化跨仓库库存配置与基于客户需求的动态品类个性化",
+      "canonical_evidence": "联合优化跨仓库库存配置与基于客户需求的动态品类个性化",
+      "llm_tldr_en": "Addresses online retailer decision of allocating inventories across warehouses, personalizing assortments based on customer preferences and real-time stock, and selecting fulfillment warehouses to maximize profit. Proposes joint optimization model incorporating substitutable products and heterogeneous customer types over finite horizon. Results demonstrate profit gains from integrating inventory placement, assortment, and fulfillment decisions under demand uncertainty.",
+      "llm_tldr_cn": "针对网络零售商在分布式仓库间配置库存、根据客户偏好与实时库存动态选择个性化品类以及选择履约仓库的联合决策问题，该文提出一个考虑可替代产品和异质客户类型的联合优化模型，在有限时间范围内最大化期望利润。研究表明整合库存配置、品类选择和订单履约能显著提升利润，为基于需求相关性的仓库运营策略提供方法和依据。",
+      "llm_tldr": "针对网络零售商在分布式仓库间配置库存、根据客户偏好与实时库存动态选择个性化品类以及选择履约仓库的联合决策问题，该文提出一个考虑可替代产品和异质客户类型的联合优化模型，在有限时间范围内最大化期望利润。研究表明整合库存配置、品类选择和订单履约能显著提升利润，为基于需求相关性的仓库运营策略提供方法和依据。",
+      "llm_tags": [
+        "query:wo"
+      ],
+      "matched_query_tag": "query:wo",
+      "matched_query_text": "inventory management strategies based on demand",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

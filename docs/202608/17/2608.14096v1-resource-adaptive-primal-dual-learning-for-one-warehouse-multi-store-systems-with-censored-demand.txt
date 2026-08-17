@@ -1,0 +1,5541 @@
+Title: Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand
+
+URL Source: https://arxiv.org/pdf/2608.14096v1
+
+Published Time: Mon, 17 Aug 2026 00:36:07 GMT
+
+Number of Pages: 50
+
+Markdown Content:
+# Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand 
+
+Jiameng Lyu 
+
+Department of Management Science, School of Management, Fudan University, Shanghai 200433, China, jiamenglyu@fudan.edu.cn 
+
+Abstract. The one-warehouse multi-store (OWMS) system is a fundamental inventory network in which a nonreplenishable warehouse allocates shared stock across multiple stores over time. Existing OWMS learning policies are built around a fixed target calibrated to the initial average resource rate, but such a fixed-target architecture cannot re-center after realized sales change the remaining resource available per future period. We develop Resource-Adaptive Primal-Dual Learning, a new learning framework that tracks the Primal-Dual re-solving path with censored demand as the remaining-resource state evolves. In each period, the current resource rate indexes the target store allocations and dual variable, while censored sales provide gradient estimates for updating both. The analysis combines expected-sales geometry with a moving-target argument to yield logarithmic expected regret, improving on the state-of-the-art square-root-order guarantees of existing OWMS learning policies. The underlying design and analytical ideas may inform other online learning problems with depleting shared resources. Numerical experiments further demonstrate good finite-horizon performance of a practical variant across different horizon lengths and inventory regimes. 
+
+Key words: one-warehouse multi-store systems; inventory learning; censored demand; Primal-Dual methods; resource-adaptive learning; logarithmic regret 
+
+1. Introduction 
+
+The one-warehouse multi-store (OWMS) system is a basic architecture of inventory distribution, which pools finite inventory at a central warehouse and allocates it across stores and time. Each shipment trades current service at one location against the option of serving another later, creating a systemwide dynamic allocation problem (Jackson 1988, Chen and Zheng 1997). Applications include general-merchandise distribution, perishable-product distribution (Huang et al. 2025), fast-fashion distribution (Caro and Gallien 2010, Bekci et al. 2023), service-parts logistics (Kutanoglu and Mahajan 2009), emergency-medical supply allocation (Mehrotra et al. 2020). This paper focuses on a finite-horizon version in which the warehouse receives an initial stock and ships it to stores with different demand distributions and economic margins. Each allocation changes both tomorrow’s inventory state and the opportunity cost of every future unit. Even with known demand laws, the exact dynamic program is high dimensional and strongly state dependent. With unknown distributions and censored feedback, the manager must learn demand responses while preserving the same inventory needed to earn future reward. 
+
+1arXiv:2608.14096v1 [cs.LG] 14 Aug 2026 2 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+For newsvendor and related inventory problems, a positive density lower bound supplies the strong convexity that converts stochastic first-order learning into logarithmic regret (Huh and Rusmevichientong 2009, Shi et al. 2016, Zhang et al. 2018, Lyu et al. 2025). These models effectively draw replenishment from an unconstrained upstream source. With a nonreplenishable warehouse, by contrast, all stores and periods compete for the same finite inventory pool. A sale at one store irreversibly reduces the resource available to every store in subsequent periods. The best existing finite-stock censored-demand guarantees are square-root order for OWMS and its multiwarehouse extension (Bekci et al. 2023, Miao et al. 2023). Re-solving is a powerful and well-received organizing principle for dynamic resource allocation in both academia and industries. It reveals how allocations and scarcity prices should adapt to an evolving resource state, but learning work rarely treats the resulting Primal-Dual path itself as the object to be tracked. We develop a new resource-adaptive Primal-Dual learning framework that replaces fixed-target learning with online tracking of the endogenous Primal-Dual re-solving path using censored demand. This framework yields a logarithmic regret guarantee for the OWMS learning problem, and its design and analytical tools may inform other online learning-and-control problems with censored feedback and depleting shared resources. 
+
+1.1. Contributions 
+
+Our contributions are summarized as follows. 1. Resource-adaptive Primal-Dual learning framework. We introduce Resource-Adaptive Primal-Dual Learning ( RAPDL ), a new framework that replaces the fixed target calibrated to the initial average resource rate with online tracking of the endogenous Primal-Dual path generated by resource-state re-solving. RAPDL uses remaining system inventory per remaining period to re-index the fluid KKT target—the preferred store allocations and their common scarcity price. Censored sales provide observable stochastic Primal-Dual directions for updating this target and simultaneously update the resource state that re-centers the next target. In this way, RAPDL tracks the allocation-and-price path that known-distribution fluid re-solving would produce, without estimating the demand distributions or repeatedly solving a fluid program. 2. Analysis of endogenous moving targets. Our analysis separates regret into three components. Value-function smoothness controls the intrinsic gap of the resource-indexed re-solving path. Expected-sales geometry and a moving-target argument control the gap from learning that path. The inventory dynamics control the gap from implementing the learned state as a feasible physical action. Each component is logarithmic, yielding an O(log T ) regret guarantee for RAPDL and improving on the state-of-the-art square-root-order guarantees in the finite-stock censored-demand OWMS literature. 3. Numerical evaluation. We compare our resource-adaptive learning method RAPDL with the Double Binary Search policy of Bekci et al. (2023), a state-of-the-art benchmark across different inventory regimes. Across both homogeneous and heterogeneous experiments, RAPDL has lower mean total cost in all 24 paired comparisons, providing short-horizon evidence for our algorithm. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 3
+
+1.2. Related Literature 
+
+Re-solving and Primal-Dual learning with unreplenishable resources. A broad revenue-management and online-allocation literature feeds observed resource consumption back into future decisions. Re-solving policies recompute a fluid program with the remaining capacity and horizon and achieve sublinear guarantees under suitable structural conditions (Jasin and Kumar 2012, Jasin 2014). These models assume known demand distributions and thus involve no learning. Related online-LP work combines learning with repeated LP optimization under fully observed requests (Agrawal et al. 2014, Li and Ye 2022, Li et al. 2024). These methods learn dual prices from observed arrivals through empirical LP solves. Primal-Dual demand learning treats the fluid primal and dual solutions themselves as unknown. Related approaches include explicit learning of an inventory shadow price in personalized pricing (Chen and Gallego 2022), and nonparametric or large-action-space network revenue management (Chen et al. 2024, Miao and Wang 2024, 2025, Miao et al. 2026). These approaches combine demand learning, dual-price learning, and resource feedback through different architectures. In the finite-stock OWMS setting, RAPDL instead uses censored sales to jointly track store-level allocation targets and their common scarcity price along the KKT path indexed by remaining system inventory per remaining period. 
+
+OWMS control and learning. The finite-stock OWMS problem originates in the two-echelon allocation setting of Jackson (1988). With known demand laws, the literature develops tractable decomposition and Lagrangian policies for OWMS problem (Marklund and Rosling 2012, Miao et al. 2022). Within this known-demand control literature, the policy of Chao et al. (2025) adaptively readjusts its Lagrangian parameters using realized demand history. The closest learning papers retain that finite shared stock and explicitly learn its scarcity price. Bekci et al. (2023) proposes Double Binary Search for OWMS, and Miao et al. (2023) combines dual cutting planes with primal learning in a multiwarehouse extension. Both learn a fixed Lagrangian target and obtain the best available square-root-order regret guarantees for this class. By contrast, RAPDL learns a resource-indexed Primal-Dual path and re-centers that path after realized sales change the remaining resource state. 
+
+Gradient-based inventory learning. For basic censored-demand inventory models, sales and stockout observations can provide first-order information for gradient-based learning (Huh and Rusmevichientong 2009, Shi et al. 2016, Lyu et al. 2025, Guo et al. 2026). Extensions cover positive lead times, perishable inventory, random capacities, and multi-retailer systems (Huh et al. 2009, Zhang et al. 2018, 2020, Chen et al. 2020, Fan et al. 2023). Lyu et al. (2025) applies a minibatch-SGD metapolicy to a two-echelon system in which the warehouse itself can replenish, whereas Huang et al. (2025) develops an offline, feature-based approximation for a perishable network in which both the warehouse and retailers replenish. 
+
+Organization. Section 2 presents the physical system, exact comparator, fluid benchmark. Section 3 derives and states RAPDL . Section 4 gives the main guarantee and develops its regret analysis, including the 4 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+expected-sales geometry used only in the analysis. Section 5 reports the computational study, and Section 6 concludes the paper. The appendices collect the proofs of all propositions and lemmas stated in the main text, the supporting technical verifications, and the extension sketches. 
+
+Notation. Throughout, T ≥ 2, log denotes the natural logarithm, and C < ∞ denotes a constant indepen-dent of T that may change from line to line. Let x+ := max {x, 0}.
+
+2. Problem Formulation 
+
+There are stores i ∈ [N ] := {1, . . . , N } and periods t ∈ [T ] := {1, . . . , T }. Immediately before the period-t
+
+shipment, Bt is the stock physically remaining at the warehouse and Ii,t is the on-hand stock already located at store i. The decision Yi,t is store i’s stock after that shipment. The warehouse begins with a nonreplenishable stock B1 = W = γT , and every store begins empty, Ii, 1 = 0 . Unless stated otherwise, vector norms are Euclidean. At the beginning of period t, a feasible post-shipment vector satisfies 
+
+Yi,t ≥ Ii,t ,
+
+> N
+
+X
+
+> i=1
+
+(Yi,t − Ii,t ) ≤ Bt. (2.1) Demands, sales, and states obey 
+
+Si,t = Di,t ∧ Yi,t , Ii,t +1 = Yi,t − Si,t , Bt+1 = Bt −
+
+> N
+
+X
+
+> i=1
+
+(Yi,t − Ii,t ). (2.2) In each period, the manager observes the state (Bt, It) and past sales, chooses Yt before demand, observes only censored sales St, and then updates the state by (2.2). Unmet demand is lost. We impose the following conditions on the primitive uncertainty. 
+
+Assumption 2.1 (i) The demand vectors {Dt}t≥1 are i.i.d. over time. Within each period, their coordi-nates may be arbitrarily dependent, and the marginal distribution of Di,t is Fi.
+
+(ii) The law Fi is absolutely continuous on its support [0 , ¯di], satisfies Fi(x) = 1 for x ≥ ¯di, and has a continuous density obeying the known bounds 
+
+0 < κ i ≤ fi(x) ≤ Ki < ∞, 0 ≤ x ≤ ¯di. (2.3) Write D := PNi=1 ¯di and suppose that the initial resource rate satisfies 0 ≤ γ ≤ D.
+
+Remark 2.2 For the directly clipped formulation, the endpoint ¯di and valid density bounds (κi, K i) are known problem data. This does not mean that the demand law is known: the policy does not know the complete function Fi, and the density bounds need not equal its exact extrema. Appendix B.4 describes a fixed-support-envelope implementation and sketches a localization route that avoids using the exact endpoint values. Using such envelopes to certify theoretical parameter tuning is standard in inventory-learning Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 5
+
+analyses (Huh and Rusmevichientong 2009, Shi et al. 2016, Zhang et al. 2018, Bekci et al. 2023, Lyu et al. 2025). 1 Looser valid envelopes enter the associated safeguards and primitive-dependent bounds. 
+
+For a policy π, let Uπ denote any exogenous policy randomization, independent of demand, and define the pre-demand history by 
+
+Hπt := σ(Uπ , B 1, I1, (Yτ , Sτ , B τ +1 , Iτ +1 )τ <t ) .
+
+Under Assumption 2.1, Dt is independent of Hπt . Let Πad denote the class of policies that, from the stated initial state, choose Yt measurably with respect to Hπt , satisfy (2.1), and evolve according to (2.2) in every period. For any π ∈ Πad , define its expected cost by 
+
+JπT := Eπ
+
+" TX
+
+> t=1
+> N
+
+X
+
+> i=1
+
+
+
+ki(Yi,t − Ii,t )
+
+| {z }
+
+> shipment cost
+
++ hiIi,t +1 
+
+| {z }
+
+> store holding cost
+
++ bi(Di,t − Yi,t )+
+
+| {z }
+
+> lost-sales penalty
+
+
+
++ wB T +1 
+
+| {z } 
+
+> terminal warehouse cost
+
+−
+
+> N
+
+X
+
+> i=1
+
+ciIi,T +1 
+
+| {z }
+
+> sell-back credit
+
+#
+
+.
+
+Here ki, h i, b i are per unit shipment, store-holding, and lost-sales costs, respectively, and w is terminal warehouse holding cost. Terminal store inventory is credited at ci = ki − w as convention. Throughout, 
+
+ci ≥ 0, hi > 0, and bi − ci > 0.For the fluid comparison, let μi := EDi, and, for a stock threshold y ≥ 0, define the expected sales 
+
+mi(y) := E[Di ∧ y] = 
+
+Z y
+
+> 0
+
+(1 − Fi(u)) d u (2.4) and the expected adjusted operating loss 
+
+ℓi(y) := Eci(Di ∧ y) + hi(y − Di)+ + bi(Di − y)+
+
+= hiy + biμi − (hi + bi − ci)mi(y). (2.5) Here mi(y) is the expected depletion of the shared system inventory, whereas ℓi(y) is the corresponding expected decision-dependent cost after the terminal warehouse charge is accounted for. Through direct inventory-accounting calculations, for every admissible policy π,
+
+JπT = wW +
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+Eπ ℓi(Yi,t ), (2.6) 
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+Eπ mi(Yi,t ) = W − Eπ
+
+"
+
+BT +1 +
+
+> N
+
+X
+
+> i=1
+
+Ii,T +1 
+
+#
+
+≤ W = γT. (2.7) The exact known-distribution dynamic benchmark is the optimal value over the same admissible policy class: 
+
+J∗ 
+
+> T
+
+:= inf 
+
+> π∈Πad
+
+JπT .
+
+The identities (2.6) and (2.7) motivate a one-period fluid relaxation that retains only the expected-sales budget. The following proposition defines its value and shows that it lower-bounds the exact dynamic benchmark.  
+
+> 1
+
+For example, in Huh and Rusmevichientong (2009), Shi et al. (2016), the density lower bound enters the stepsize explicitly. In the closest OWMS/MWMS work, Bekci et al. (2023), Miao et al. (2023) assumes known support and lower/upper density bounds, which also enter the theoretical parameter-tuning of their algorithms. 6 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Proposition 2.3 For r ≥ 0, define 
+
+v(r) := min  
+
+> 0≤yi≤¯di
+
+( NX
+
+> i=1
+
+ℓi(yi) : 
+
+> N
+
+X
+
+> i=1
+
+mi(yi) ≤ r
+
+)
+
+. (2.8) 
+
+Then we have J∗ 
+
+> T
+
+≥ wW + T v (γ).
+
+By Proposition 2.3, the fluid-benchmark gap is nonnegative and upper-bounds the performance gap relative to the exact dynamic oracle: 
+
+0 ≤ JπT − J∗ 
+
+> T
+
+≤ JπT −  wW + T v (γ).
+
+We therefore define the paper’s regret directly relative to the constrained fluid benchmark: 
+
+RT (π) := JπT −  wW + T v (γ). (2.9) For each resource rate r, let y∗(r) denote the unique optimizer of the one-period fluid program (2.8), and let λ∗(r) be its selected smallest resource multiplier. Their existence and regularity are established in Lemma 4.3. 
+
+3. Resource-Adaptive Primal-Dual Learning 
+
+The state driving our resource-adaptive framework is the remaining-resource rate. At period t, define 
+
+Ct := Bt +
+
+> N
+
+X
+
+> i=1
+
+Ii,t , nt := T − t + 1 , rt := Ct
+
+nt
+
+.
+
+Here Ct includes inventory at both the warehouse and the stores, and rt is the inventory available per remaining period. In particular, r1 = W/T = γ. Because shipments only relocate inventory while sales deplete it, 
+
+Ct+1 = Ct −
+
+> N
+
+X
+
+> i=1
+
+Si,t , rt+1 = rt + rt − PNi=1 Si,t 
+
+nt − 1 (nt ≥ 2) .
+
+Thus each sales observation both provides censored feedback and changes the next resource index. RAPDL 
+
+maintains preferred thresholds Xt and a common shadow price λt to track the moving target (y∗(rt), λ ∗(rt)) ,rather than the fixed target indexed by γ.At a high level, each period has four operations: project the preferred thresholds onto the physically feasible inventory set, observe censored sales and form a Primal-Dual sample, update the remaining-resource rate, and take a projected stochastic step. The rate rt moves the fluid target after every sales realization. Section 3.1 specifies the complete executable recursion, while Sections 3.2 and 3.3 explain its gradient construction, safeguards, and step-size design. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 7
+
+3.1. The Executable RAPDL Recursion 
+
+Algorithm 1 gives the complete executable RAPDL pseudocode. We first define the action projection and the quantities appearing in its updates. The preferred threshold Xt is a learning state and need not be a feasible post-shipment inventory. Given the current physical state, the feasible action set is 
+
+Ft := 
+
+(
+
+y : yi ≥ Ii,t ,
+
+> N
+
+X
+
+> i=1
+
+(yi − Ii,t ) ≤ Bt
+
+)
+
+=
+
+(
+
+y : yi ≥ Ii,t ,
+
+> N
+
+X
+
+> i=1
+
+yi ≤ Ct
+
+)
+
+.
+
+The right-hand side uses Ct, rather than Bt, because store carryover is already part of the available system inventory. We implement the Euclidean projection of Xt onto Ft,
+
+Yt = arg min 
+
+> y∈F t
+
+12 ∥y − Xt∥2,
+
+which has the water-filling representation (Duchi et al. 2008, Lemma 2) 
+
+νt := inf 
+
+(
+
+ν ≥ 0 : 
+
+> N
+
+X
+
+> i=1
+
+max {Ii,t , X i,t − ν} ≤ Ct
+
+)
+
+, Yi,t = max {Ii,t , X i,t − νt}, i ∈ [N ].
+
+To specify the projected update, define the cost-based survival ratio 
+
+pi := hi
+
+hi + bi − ci
+
+, i ∈ [N ]. (3.1) Define the capped aggregate resource rate by rc := min {r, D }. Independently of r, for each store define the fixed safe threshold cap 
+
+¯Xi := ¯di − pi
+
+2Ki
+
+, i ∈ [N ]. (3.2) The algorithm combines ¯Xi with the resource-dependent bound through Ui(r). With the dual cap λmax := max i∈[N ](bi − ci), the moving Primal-Dual projection set is 
+
+Ui(r) := min 
+
+
+
+¯Xi, rc
+
+pi
+
+
+
+, i ∈ [N ], K(r) := 
+
+> N
+
+Y
+
+> i=1
+
+[0 , U i(r)] × [0 , λ max ]. (3.3) Let j := min arg max i∈[N ](bi − ci) be the maximum-margin anchor, with ties broken by the smallest index. After implementing Yt and observing Si,t := Di,t ∧ Yi,t , form 
+
+bGi,t := ( hi + bi − ci)1{Si,t < Y i,t } − (bi − ci) + λt1{Si,t = Yi,t }, i ∈ [N ], (3.4) and 
+
+bG0,t := rc 
+
+> t
+
+−
+
+> N
+
+X
+
+> i=1
+
+Si,t + θ bGj,t , bGt := ( bG1,t , . . . , bGN,t , bG0,t ). (3.5) Here θ > 0 is the weight assigned to the anchor correction in the dual update. Its stabilizing role is discussed in Section 3.2. Finally, use the two-sided harmonic step 
+
+αt := χτ0 + min {t, n t} = χτ0 + min {t, T − t + 1 } . (3.6) 
+
+Remark 3.1 If Ct = 0 , then It = Xt = Yt = St = 0, while the dual update continues for t < T . At t = T ,only the terminal physical state is updated, and no next-period learning state is defined. 8 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Algorithm 1 Resource-Adaptive Primal-Dual Learning (RAPDL) for OWMS 
+
+1: Initialize B1 = C1 := γT , n1 := T , r1 := γ, rc1 := min {γ, D } and Ii, 1 = Xi, 1 := 0 for all i, and λ1 := 0 .
+
+2: for t = 1 , . . . , T do 
+
+3: Inventory decision: compute νt := inf {ν ≥ 0 : PNi=1 max {Ii,t , X i,t − ν} ≤ Ct} and set Yi,t := max {Ii,t , X i,t − νt} for all i.
+
+4: Gradient estimation: observe Si,t = Di,t ∧ Yi,t and compute, for all i ∈ [N ],
+
+bGi,t := ( hi + bi − ci)1{Si,t < Y i,t } − (bi − ci) + λt1{Si,t = Yi,t },
+
+bG0,t := rc 
+
+> t
+
+−
+
+> N
+
+X
+
+> i=1
+
+Si,t + θ bGj,t .
+
+5: Physical-state update: Ii,t +1 := Yi,t − Si,t , Ct+1 := Ct − PNi=1 Si,t , and Bt+1 := Ct+1 − PNi=1 Ii,t +1 .
+
+6: if t < T then 
+
+7: Resource update: nt+1 := nt − 1, rt+1 := Ct+1 /n t+1 , and rc 
+
+> t+1
+
+:= min {rt+1 , D }.
+
+8: Primal-Dual update: 
+
+Xi,t +1 := Proj [0 ,U i(rt+1 )] (Xi,t − αt bGi,t ), i ∈ [N ],λt+1 := Proj [0 ,λ max ](λt − αt bG0,t ).
+
+The projection endpoints are given in (3.3), and αt is given in (3.6). 
+
+3.2. Gradient Estimation and Dual Stabilization 
+
+The recursion above uses censored sales to construct bGt. We first identify the fluid direction estimated at the implemented action Yt, and then explain the anchor correction that stabilizes its dual coordinate. Write m(y) := ( mi(yi)) Ni=1 . At resource rate rt, define the threshold-space fluid Lagrangian and its derivatives by 
+
+eLrt (y, λ ) := 
+
+> N
+
+X
+
+> i=1
+
+ℓi(yi) + λ
+
+> N
+
+X
+
+> i=1
+
+mi(yi) − rt
+
+!
+
+,∂yi eLrt (y, λ ) = ( hi + bi − ci)Fi(yi) − (bi − ci) + λ 1 − Fi(yi), i ∈ [N ],∂λ eLrt (y, λ ) = 
+
+> N
+
+X
+
+> i=1
+
+mi(yi) − rt.
+
+(3.7) Although this field is not computable because Fi and mi are unknown, the algorithm samples it at the implemented action as follows. Because Di,t < Y i,t iff Si,t < Y i,t , censored sales make (3.4) observable and satisfy 2
+
+E[ bGi,t | H t] = ∂yi eLrt (Yt, λ t), E
+
+"
+
+rt − X
+
+> i
+
+Si,t | H t
+
+#
+
+= −∂λ eLrt (Yt, λ t).
+
+These identities establish the gradient-estimation component, but the uncorrected joint direction still lacks a restoring force in the dual coordinate. This motivates the following stabilization.  
+
+> 2
+
+Throughout this section and the regret analysis, write Ht := HRAPDL  
+
+> t
+
+.Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 9
+
+The anchor correction. The sales-space primal Hessian is uniformly positive on the safe region, but the joint Lagrangian has zero curvature in the dual coordinate. Without an additional restoring term, the usual 
+
+O(1 /t ) mean-square contraction is unavailable. The generic O(t−1/2) tracking scale would accumulate to 
+
+O(√T ), rather than O(log T ). The anchor borrows curvature from one primal coordinate (Benzi et al. 2005, Latafat et al. 2019). For the maximum-margin anchor j, its KKT residual vanishes along the selected target path, including at zero resource, so the correction stabilizes the dual direction without moving the target. Specifically, use 
+
+Gθ (y, λ ; r) := 
+
+
+
+∇y eLr (y, λ )
+
+rc −
+
+> N
+
+X
+
+> i=1
+
+mi(yi) + θ ∂ yj eLr (y, λ )
+
+ .
+
+Its observable version is exactly (3.5), so the anchor requires no additional sample. In particular, 
+
+E[ bGt | H t] = Gθ (Yt, λ t; rt).
+
+Thus feedback estimates the stabilized field at the implemented action Yt, while the preferred-state direction is Gθ (Xt, λ t; rt). Their difference is the implementation bias bounded in (A.20). 
+
+3.3. Safeguards and Step-Size Design 
+
+This subsection turns to the remaining safeguards and step-size design. Resource capping controls sample magnitude, safe state clipping preserves curvature, and the two-sided step-size schedule balances learning across the horizon. 
+
+Resource capping and a safe clipping box. Near the horizon, rt = Ct/n t can be of order T , making both the uncapped dual sample rt − PNi=1 Si,t and the resulting quadratic term in the one-step analysis unbounded in T .The cap rc = min {r, D } removes this endpoint explosion. By construction, 0 ≤ rc ≤ D, and r 7 → rc
+
+is one-Lipschitz. Since total one-period sales also lies in [0 , D ], the capped dual sample is bounded in absolute value by D. It leaves the fluid target unchanged because it truncates only the nonbinding region. See Lemma A.2. The fixed caps in (3.2) keep every preferred threshold in a region of uniformly positive survival probability without excluding the fluid target. Indeed, because λ∗(r) ≥ 0,
+
+y∗ 
+
+> i
+
+(r) ≤ F −1 
+
+> i
+
+(1 − pi) ≤ ¯di − pi
+
+Ki
+
+< ¯Xi.
+
+For later use, define the associated survival-probability floor βi := κipi/(2 Ki), i ∈ [N ]. Then, for every 
+
+0 ≤ x ≤ ¯Xi,
+
+1 − Fi(x) ≥ κi( ¯di − x) ≥ βi.10 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+The second clipping bound responds to the remaining resource. Recall from (3.1) that pi = hi/(hi + bi − ci)
+
+is the survival probability at the zero-price newsvendor threshold. At an active fluid target, survival is therefore at least pi, so 
+
+piy∗ 
+
+> i
+
+(r) ≤ mi(y∗ 
+
+> i
+
+(r)) ≤ rc, and therefore y∗ 
+
+> i
+
+(r) ≤ rc
+
+pi
+
+.
+
+If the store is inactive, y∗ 
+
+> i
+
+(r) = 0 , so the same bound holds. This gives precisely the cap Ui(r) and projection box K(r) defined in (3.3). The endpoint ¯Xi protects the survival and curvature geometry, whereas rc/p i
+
+makes the box contract with the remaining resource. Taking their minimum enforces both requirements. Finally, λmax is sufficient because every store’s fluid best response is zero at any resource price at least λmax .
+
+Step-size choice. The scale χ in (3.6) controls responsiveness, while τ0 prevents the larger endpoint updates from being too aggressive. Thus the two-sided schedule permits faster learning initially and faster resource adjustment near the end, with smaller updates in the middle. The constructive choice in Remark 4.2 is horizon independent and certifies the regret guarantee. In practice, (θ, χ, τ 0) can instead be selected offline by a coarse grid search or rolling-origin validation for the intended operating instance. Appendix B.4 describes how fixed support envelopes can be used in the caps and outlines the associated localization argument. 
+
+Remark 3.2 We also consider a two-rate stepsize variant 
+
+αxt = χx
+
+τ0 + min {t, n t} , αλt = χλ
+
+τ0 + min {t, n t} .
+
+Appendix B.5 discusses this two-rate variant and sketches its theoretical guarantee. 
+
+4. Main Result and Regret Analysis 
+
+The following theorem quantifies the performance of the resource-adaptive learning framework. 
+
+Theorem 4.1 Under Assumption 2.1, RAPDL with the initialization in Algorithm 1 admits horizon-independent tuning based only on the known primitives such that, for every T ≥ 2, every 0 ≤ γ ≤ D, and every admissible within-period joint demand law, 
+
+0 ≤ JRAPDL  
+
+> T
+
+− J∗ 
+
+> T
+
+≤ RT (RAPDL ) ≤ C log T, 
+
+where C < ∞ depends only on the fixed model primitives and the selected horizon-independent tuning, and not on T , γ.
+
+Theorem 4.1 concerns the direct safe-box formulation. As a separate extension, Appendix B.4 sketches how the analysis can be adapted when exact endpoints are replaced by fixed deterministic support envelopes. 
+
+Remark 4.2 The tuning in Theorem 4.1 can be fixed offline by a finite deterministic construction using only N , the costs, and the known support and density bounds. It does not require the horizon, the demand distributions, unknown quantiles, or any Primal-Dual optimizer. The construction is given in Section B.3. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 11 
+
+4.1. High-Level Idea of Regret Analysis 
+
+At a high level, regret consists of three distinct logarithmic components. 
+
+First, the re-solving gap. This is the intrinsic gap between the resource-indexed fluid re-solving path and the fluid benchmark: even if the policy could follow this path exactly, movements in the remaining-resource rate would generate an O(log T ) cumulative gap. 
+
+Second, the learning gap. Because the demand laws are unknown, the Primal-Dual re-solving path cannot be computed directly. RAPDL instead learns the path by tracking it from censored sales, and the learning analysis shows that the resulting cumulative tracking gap is O(log T ).
+
+Third, the implementation gap. The preferred actions produced by the learning recursion may differ from the actions that can be implemented under the current warehouse and store inventories. The physical implementation analysis shows that this cumulative discrepancy is also O(log T ). Adding the re-solving, learning, and implementation gaps yields the overall O(log T ) regret bound. 
+
+4.2. Analytical Setup in Expected-Sales Space 
+
+Direct analysis in threshold space does not provide the uniform primal curvature required by the tracking argument. Although ℓi is strongly convex, the nonlinear resource term changes the curvature of the threshold-space Lagrangian to 
+
+∂2
+
+∂y 2
+
+> i
+
+ ℓi(yi) + λm i(yi) = ( hi + bi − ci − λ)fi(yi),
+
+which need not be uniformly positive. Setting si = mi(yi) makes the resource term affine, so the shadow price no longer erodes the primal curvature. This change of variables is purely analytical. The executable policy remains in threshold space. Since mi is strictly increasing on [0 , ¯di), define 
+
+si := mi(yi), gi(s) := ℓi(m−1 
+
+> i
+
+(s)) , 0 ≤ s < μ i,
+
+and set gi(μi) := ℓi( ¯di) by continuity. Direct differentiation gives g′
+
+> i
+
+(0) = −(bi − ci) and, whenever 1 −
+
+Fi(m−1 
+
+> i
+
+(s)) ≥ β > 0,
+
+hiκi ≤ g′′  
+
+> i
+
+(s) ≤ hiKi/β 3. (4.1) Thus gi is strongly convex, and the fluid program becomes 
+
+v(r) = min 
+
+> 0≤si≤μi
+
+( NX
+
+> i=1
+
+gi(si) : 
+
+> N
+
+X
+
+> i=1
+
+si ≤ r
+
+)
+
+.
+
+Its resource-indexed Lagrangian is 
+
+Lr (s, λ ) := 
+
+> N
+
+X
+
+> i=1
+
+gi(si) + λ
+
+> N
+
+X
+
+> i=1
+
+si − r
+
+!
+
+.12 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Let 
+
+r0 := 
+
+> N
+
+X
+
+> i=1
+
+mi
+
+ F −1 
+
+> i
+
+(1 − pi)
+
+be the expected sales of the unconstrained zero-price solution. The next lemma collects exactly the path properties used in the regret analysis. 
+
+Lemma 4.3 For every r ≥ 0, the transformed fluid program has a unique primal optimizer s∗(r), with 
+
+s∗ 
+
+> i
+
+(r) < μ i, and a selected smallest optimal multiplier λ∗(r). The following properties hold, including when several stores have identical margins. 
+
+(i) The KKT residuals are 
+
+g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) ≥ 0, s∗ 
+
+> i
+
+(r) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) = 0 , i ∈ [N ],r −
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r) ≥ 0, λ∗(r) r −
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r)
+
+!
+
+= 0 . (4.2) 
+
+In particular, store i is active if and only if λ∗(r) < b i − ci. On an active coordinate, −g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) = 
+
+λ∗(r).
+
+(ii) The resource-clearing branches satisfy 
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r) = min {r, r 0}, (s∗(0) , λ ∗(0)) = ( 0, λ max ), λ∗(r) = 0 (r ≥ r0).
+
+(iii) There is a primitive-computable constant Lv < ∞ such that 
+
+|λ∗(r′) − λ∗(r)| ≤ Lv |r′ − r|, r, r ′ ≥ 0.
+
+Moreover, q∗(r) := ( s∗(r), λ ∗(r)) is globally Lipschitz. Each s∗ 
+
+> i
+
+(r) is nondecreasing, whereas λ∗(r)
+
+is nonincreasing. The value function is continuously differentiable, with 
+
+v′(r) = −λ∗(r), |v′(r′) − v′(r)| ≤ Lv |r′ − r|,
+
+where the derivative at zero is the right derivative. 
+
+The threshold target introduced in Section 2 is the inverse representation 
+
+y∗ 
+
+> i
+
+(r) = m−1 
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) , i ∈ [N ].
+
+Thus (y∗(r), λ ∗(r)) describes the target tracked by the policy, whereas s∗(r) and gi are used only in the analysis. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 13 
+
+4.3. Step 1: Bounding the Re-Solving Gap 
+
+The first component compares the resource-indexed fluid re-solving path with the fluid benchmark. To make this comparison, we work in expected-sales space, where three vectors play different roles: m(Yt) is conditional expected sales under the implemented action, m(Xt) is the expected-sales image of the preferred learning state, and s∗(rt) is the unobserved fluid target. Throughout the regret analysis, we use the pathwise safe-box invariant 0 ≤ Xi,t , I i,t , Y i,t ≤ ¯Xi, i ∈ [N ], t ∈ [T ], established from the algorithmic recursion in (B.5). We collect the learning and implementation gaps, respectively, as 
+
+PD T := 
+
+> T
+
+X
+
+> t=1
+
+E∥m(Xt) − s∗(rt)∥2 + ⟨m(Xt) − s∗(rt), ∇sLrt (s∗(rt), λ ∗(rt)) ⟩ , (4.3) 
+
+IMP T := 
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥1 +
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2. (4.4) Here PD T contains the squared tracking error and the first-order KKT residual that enter the operational gap, whereas IMP T contains the two implementation norms needed by the tracking and regret arguments. The following gap bound is the deterministic bridge from fluid geometry to regret. Set 
+
+Lg := max 
+
+> 1≤i≤N
+
+hiKi
+
+β3
+
+> i
+
+.
+
+For r ≥ 0 and any s satisfying 0 ≤ m−1 
+
+> i
+
+(si) ≤ ¯Xi, define 
+
+∆( s; r) := Lr (s, λ ∗(r)) − L r (s∗(r), λ ∗(r)) = 
+
+> N
+
+X
+
+> i=1
+
+gi(si) − v(r) + λ∗(r)
+
+> N
+
+X
+
+> i=1
+
+si − r
+
+!
+
+. (4.5) Because s∗(r) minimizes Lr (·, λ ∗(r)) , this gap is nonnegative. Moreover, (4.1) and the bound 1 − Fi(x) ≥ βi
+
+on [0 , ¯Xi] make the Lagrangian Lg -smooth on the segment from s∗(r) to s. Thus the descent lemma, followed by the KKT complementarity identities in (4.2), gives directly 
+
+0 ≤ ∆( s; r) ≤ Lg
+
+2 ∥s − s∗(r)∥2 + ⟨s − s∗(r), ∇sLr (s∗(r), λ ∗(r)) ⟩
+
+= Lg
+
+2 ∥s − s∗(r)∥2 +
+
+> N
+
+X
+
+> i=1
+
+si
+
+ g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r). (4.6) For a threshold vector y, writing m(y) := ( mi(yi)) Ni=1 , substitution of si = mi(yi) and gi(mi(yi)) = ℓi(yi)
+
+into (4.5) gives 
+
+∆( m(y); r) = 
+
+> N
+
+X
+
+> i=1
+
+ℓi(yi) − v(r) + λ∗(r)
+
+> N
+
+X
+
+> i=1
+
+mi(yi) − r
+
+!
+
+. (4.7) Fix t < T . The aggregate inventory recursion gives 
+
+rt+1 − rt = rt − PNi=1 Si,t 
+
+nt − 1 , E[rt+1 − rt | H t] = rt − PNi=1 mi(Yi,t )
+
+nt − 1 . (4.8) 14 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+The second identity uses that Yt is chosen before current demand and E[Si,t | H t] = mi(Yi,t ).By Lemma 4.3(iii), the fluid value is differentiable and its derivative is Lipschitz: 
+
+v′(r) = −λ∗(r), |v′(r′) − v′(r)| ≤ Lv |r′ − r|,
+
+with the right derivative understood at r = 0 .Suppose first that rt ≤ D. Since both rt and total realized sales belong to [0 , D ],
+
+|rt+1 − rt| ≤ Dnt − 1 .
+
+By Lv -smoothness, with r = rt and r′ = rt+1 , and then using v′(rt) = −λ∗(rt), gives 
+
+v(rt+1 ) ≤ v(rt) − λ∗(rt)( rt+1 − rt) + Lv
+
+2 (rt+1 − rt)2.
+
+Taking the conditional expectation, multiplying by nt − 1, and using (4.8) and |rt+1 − rt| ≤ D/ (nt − 1) give 
+
+(nt − 1) E[v(rt+1 ) | H t] ≤ (nt − 1) v(rt) + λ∗(rt)
+
+> N
+
+X
+
+> i=1
+
+mi(Yi,t ) − rt
+
+!
+
++ Lv D2
+
+2( nt − 1) .
+
+Adding PNi=1 ℓi(Yi,t ) − ntv(rt) to both sides and using (4.7) with y = Yt gives 
+
+> N
+
+X
+
+> i=1
+
+ℓi(Yi,t ) + ( nt − 1) E[v(rt+1 ) | H t] − ntv(rt)
+
+≤
+
+> N
+
+X
+
+> i=1
+
+ℓi(Yi,t ) − v(rt) + λ∗(rt)
+
+> N
+
+X
+
+> i=1
+
+mi(Yi,t ) − rt
+
+!
+
++ Lv D2
+
+2( nt − 1) = ∆( m(Yt); rt) + Lv D2
+
+2( nt − 1) . (4.9) If rt > D , then PNi=1 Si,t ≤ D < r t, hence rt+1 > r t. Both rt and rt+1 lie in the slack-resource region, where 
+
+v is constant and λ∗ = 0 . Thus (4.9) remains valid, in fact with zero remainder. Taking expectations and summing (4.9) from t = 1 to T − 1 telescopes the continuation values: 
+
+E 
+
+> T−1
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+ℓi(Yi,t ) + Ev(rT ) − T v (γ) ≤ E 
+
+> T−1
+
+X
+
+> t=1
+
+∆( m(Yt); rt) + Lv D2
+
+2 
+
+> T−1
+
+X
+
+> t=1
+
+1
+
+nt − 1 .
+
+Because nt − 1 = T − t, the last sum—the cumulative discrepancy generated by movements along the re-solving path—is at most C log T . Moreover, v(rT ) ≥ 0, and the safe box 0 ≤ Yi,T ≤ ¯Xi gives a primitive upper bound on PNi=1 ℓi(Yi,T ) − v(rT ). Adding the last period and using ∆( m(Yt); rt) ≥ 0 therefore yields 
+
+E
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+ℓi(Yi,t ) − T v (γ) ≤ E
+
+> T
+
+X
+
+> t=1
+
+∆( m(Yt); rt) + C log T. (4.10) By the exact cost reduction (2.6) and the regret definition (2.9), the left side of (4.10) is RT (RAPDL ).Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 15 
+
+Separating the learning and implementation gaps. The function mi is 1-Lipschitz, and 
+
+|ℓ′
+
+> i
+
+(y)| ≤ max {hi, b i − ci} (0 ≤ y ≤ ¯Xi).
+
+Together with 0 ≤ λ∗(rt) ≤ λmax , these Lipschitz bounds give 
+
+∆( m(Yt); rt) ≤ ∆( m(Xt); rt) + C∥Yt − Xt∥1.
+
+Applying (4.6) to the preferred action then yields 
+
+∆( m(Yt); rt) ≤ C
+
+
+
+∥m(Xt) − s∗(rt)∥2 + ⟨m(Xt) − s∗(rt), ∇sLrt (s∗(rt), λ ∗(rt)) ⟩ + ∥Yt − Xt∥1
+
+
+
+.
+
+(4.11) Taking expectations in (4.11), summing, and using (4.3)–(4.4) gives 
+
+E
+
+> T
+
+X
+
+> t=1
+
+∆( m(Yt); rt) ≤ C(PD T + IMP T ). (4.12) Substituting (4.12) into (4.10) and absorbing fixed constants into C yields the three-component regret reduction 
+
+RT (RAPDL ) ≤ C (log T + PD T + IMP T ) . (4.13) 
+
+4.4. Step 2: Bounding the Learning Gap 
+
+Under (A.25), we start from the definition in (4.3). Since 
+
+∇sLrt (s∗(rt), λ ∗(rt)) =  g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt)Ni=1 ,
+
+the storewise complementarity conditions (4.2) give 
+
+PD T =
+
+> T
+
+X
+
+> t=1
+
+E∥m(Xt) − s∗(rt)∥2 +
+
+> T
+
+X
+
+> t=1
+
+E
+
+> N
+
+X
+
+> i=1
+
+ mi(Xi,t ) − s∗ 
+
+> i
+
+(rt)  g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt)
+
+=
+
+> T
+
+X
+
+> t=1
+
+E∥m(Xt) − s∗(rt)∥2 +
+
+> T
+
+X
+
+> t=1
+
+E
+
+> N
+
+X
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt). (4.14) We now invoke Lemma A.1. Its tracking conclusion (A.1), after dropping the nonnegative squared dual error, gives TX
+
+> t=1
+
+E∥m(Xt) − s∗(rt)∥2 ≤ C log T + C
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2. (4.15) Its residual conclusion (A.2) gives 
+
+> T
+
+X
+
+> t=1
+
+E
+
+" NX
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt)#
+
+≤ C log T + C
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2. (4.16) Thus (4.16) directly bounds the second sum in (4.14). Adding it to (4.15), and using 
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2 ≤ IMP T ,
+
+we obtain the learning-gap bound 
+
+PD T ≤ C (log T + IMP T ) . (4.17) 16 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+4.5. Step 3: Bounding the Implementation Gap 
+
+The implementation gap arises solely from physical feasibility: the implemented action must satisfy Yi,t ≥ Ii,t 
+
+for every store and P 
+
+> i
+
+Yi,t ≤ Ct, whereas the preferred action Xt need not satisfy these two restrictions. The following physical bound controls this component. 
+
+Lemma 4.4 Under the conditions of Theorem 4.1, RAPDL satisfies 
+
+IMP T ≤ C log T. (4.18) Combining the re-solving reduction (4.13), the learning bound (4.17), and the implementation bound (4.18) gives directly 
+
+IMP T ≤ C log T, PD T ≤ C log T + IMP T
+
+ ≤ C log T, RT (RAPDL ) ≤ C log T + PD T + IMP T
+
+ ≤ C log T. 
+
+This completes the proof of Theorem 4.1. □
+
+5. Numerical Experiments 
+
+Experimental design. The numerical study evaluates the finite-horizon performance of RAPDL across horizon lengths and inventory regimes and compares it with the Double Binary Search (DBS) algorithm of Bekci et al. (2023), the closest directly comparable learning benchmark. We use matched demand paths, initialization, tuning budgets, and feasibility constraints. We use 
+
+ρ ∈ { 0.30 , 0.60 , 0.90 , 1.20 }, W = T ργ ⋆,
+
+where γ⋆ is unconstrained optimal expected sales. These values represent four distinct operating regimes— severe scarcity, moderate scarcity, near sufficiency, and abundant inventory. In S2 they also cross fluid active-set sizes three, five, and all six stores. Total Cost is reported for T ∈ { 100 , 200 , 300 }, while the figures use T = 20 , 40 , . . . , 200 , each with newly initialized inventory. In both settings the demand vectors are independent and identically distributed over time. Stores are independent within a period in S1, whereas S2 introduces the contemporaneous dependence specified below. All calculations use full precision. The experimental label RAPDL denotes the two-rate variant in Remark 3.2. The label DBS denotes Double Binary Search in Bekci et al. (2023). Because S1 is homogeneous and satisfies their Assumption 2 by symmetry, its benchmark is precisely their DBS policy in Algorithm 2. S2 is heterogeneous and may have stores outside the fluid active set. Its benchmark is therefore their heterogeneous active-set implementation: Algorithm 2 equipped with the relaxed-Assumption 2 extension described in their online appendix. For a fair comparison, both policies use the same midpoint initialization, λ1 = 0 , demand paths, and feasibility Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 17 
+
+constraints. For RAPDL , Xi, 1 = ¯di/2. Each policy is calibrated offline on independent demand paths for every (setting , ρ, T ) cell under the same tuning budget. The selected parameters are then locked and evaluated on untouched paired paths. 
+
+S1: homogeneous setting. There are N = 2 identical stores, with 
+
+h = (6 .00 , 6.00) , b = (60 .00 , 60 .00) , c = (0 .50 , 0.50) .
+
+For every store and period, demand is a N (50 .00 , 50 .00 2) random variable conditioned to lie in [0 , 175 .00] .With Φ denoting the standard-normal distribution function, its common distribution function is 
+
+FS1 (d) = 
+
+
+
+0, d < 0,
+
+Φ(( d − 50 .00) /50 .00) − Φ( −1.00) Φ(2 .50) − Φ( −1.00) , 0 ≤ d ≤ 175 .00 ,
+
+1, d > 175 .00 .
+
+This is the homogeneous synthetic specification used by Bekci et al. (2023). Its unconstrained expected-sales normalizer is γ⋆ = 123 .43 .
+
+S2: heterogeneous setting. There are N = 6 stores, with store-specific holding, net shipment, and lost-sales coefficients: h = (2 .28 , 2.46 , 2.52 , 2.42 , 2.34 , 2.38) ,
+
+c = (0 .195 , 0.190 , 0.205 , 0.220 , 0.210 , 0.180) ,
+
+b = (38 .40 , 40 .00 , 41 .60 , 43 .20 , 44 .80 , 46 .40) .
+
+For store i and each period, demand is Uniform[0 , ¯di], where 
+
+¯d = (1 .18 , 1.26 , 1.08 , 1.32 , 1.14 , 1.22) .
+
+Its distribution function is 
+
+FS2 ,i (d) = 
+
+
+
+0, d < 0,d/ ¯di, 0 ≤ d ≤ ¯di,
+
+1, d > ¯di.
+
+Thus both the cost coefficients and demand laws are store-specific. The six Uniform marginals are positively correlated within each period through a Gaussian copula. Specifically, let Ut and εi,t be independent standard-normal variables and set 
+
+Zi,t = √0.60 Ut + √0.40 εi,t , Di,t = ¯diΦ( Zi,t ).
+
+A fresh Ut and fresh idiosyncratic shocks are drawn every period. Hence the demand vectors remain indepen-dent and identically distributed over time, while the stores experience a positive common within-period shock. The resulting unconstrained expected-sales normalizer is γ⋆ = 3 .59 . This correlated-demand specification is admissible under Assumption 2.1 and shows that our framework handles cross-store dependence. It is also more practical because retail stores may share weather, holiday, and market shocks. 18 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Performance metrics and results. For policy π, define the realized store–period cost by 
+
+Cπi,t := ciSπi,t + hi(Y πi,t − Di,t )+ + bi(Di,t − Y πi,t )+, Sπi,t := Di,t ∧ Y πi,t .
+
+The terms are net shipment, holding, and lost-sales costs. Here w = 0 , so ci = ki. Equation (2.6) makes this sales-based accounting equivalent to physical shipment cost net of terminal store credit. The realized Total Cost of one complete T -period path is 
+
+TC πT := 
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+Cπi,t .
+
+For each cell, Table 1 reports mean Total Cost over M = 2 ,000 post-tuning paths and the paired RAPDL -minus-DBS difference. The horizon-by-horizon Relative Regret results for S1 and S2 are shown in Figures 1 and 2, respectively. For these figures, set γ := W/T = ργ ⋆. The quantity v(γ) is the one-period constrained fluid lower-bound value, so T v (γ) is the corresponding T -period benchmark. We define the estimated Relative Regret by 
+
+dRR πT := 100 × bE[TC πT ] − T v (γ)
+
+T v (γ) .
+
+Thus a plotted value of 2.00 denotes a mean cost 2.00% above the fluid benchmark. For each (setting , ρ, T, π ) cell, the figures show 1,000 bootstrap resamples of the mean Relative Regret: boxes span the 25th–75th percentiles and whiskers the 5th–95th. These intervals concern the mean estimator, and each horizon is a newly initialized problem rather than a prefix of a longer simulation. 
+
+Table 1 Mean Total Cost over 2,000 paired production paths. S1 S2 
+
+T ρ RAPDL DBS RAPDL–DBS RAPDL DBS RAPDL–DBS 100 0.30 544,099.04 549,055.18 -4,956.15 10,565.88 10,603.04 -37.17 100 0.60 333,446.00 338,801.06 -5,355.06 6,190.46 6,249.52 -59.05 100 0.90 140,755.01 141,484.92 -729.91 2,136.95 2,215.54 -78.59 100 1.20 101,075.81 102,271.96 -1,196.15 999.33 1,007.25 -7.92 200 0.30 1,086,641.01 1,094,896.22 -8,255.21 21,069.98 21,146.08 -76.09 200 0.60 664,709.73 677,088.42 -12,378.68 12,300.85 12,462.86 -162.01 200 0.90 277,786.27 278,650.01 -863.74 4,176.88 4,341.13 -164.24 200 1.20 198,100.89 201,156.71 -3,055.82 1,895.43 1,906.57 -11.14 300 0.30 1,629,585.18 1,638,005.07 -8,419.89 31,545.71 31,652.20 -106.49 300 0.60 991,727.32 1,014,562.07 -22,834.75 18,376.37 18,686.17 -309.80 300 0.90 414,885.00 415,403.95 -518.95 6,186.55 6,411.03 -224.48 300 1.20 295,226.20 299,404.12 -4,177.92 2,790.04 2,802.44 -12.40 
+
+As shown in Table 1, RAPDL has lower mean Total Cost in all 24 paired finite-horizon comparisons. The figures place both methods close to the fluid benchmark at practical horizons. At T = 100 , the bootstrap median Relative Regret of RAPDL ranges from 0.30% to 12 .38% . By T = 200 , the range narrows Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 19 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+0.0 0.5 1.0 1.5 2.0 Relative Regret 
+
+S1: homogeneous setting, = 0.30 
+
+RAPDL DBS 
+
+(a) ρ = 0 .30 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+012345Relative Regret 
+
+S1: homogeneous setting, = 0.60 
+
+RAPDL DBS (b) ρ = 0 .60 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+0246810 12 14 Relative Regret 
+
+S1: homogeneous setting, = 0.90 
+
+RAPDL DBS 
+
+(c) ρ = 0 .90 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+0246810 12 14 16 Relative Regret 
+
+S1: homogeneous setting, = 1.20 
+
+RAPDL DBS (d) ρ = 1 .20 
+
+Figure 1 Relative Regret across complete horizons in S1. 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+0.0 0.5 1.0 1.5 2.0 2.5 3.0 Relative Regret 
+
+S2: heterogeneous setting, = 0.30 
+
+RAPDL DBS 
+
+(a) ρ = 0 .30 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+012345Relative Regret 
+
+S2: heterogeneous setting, = 0.60 
+
+RAPDL DBS (b) ρ = 0 .60 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+0510 15 20 25 Relative Regret 
+
+S2: heterogeneous setting, = 0.90 
+
+RAPDL DBS 
+
+(c) ρ = 0 .90 20 40 60 80 100 120 140 160 180 200 
+
+T
+
+010 20 30 40 50 Relative Regret 
+
+S2: heterogeneous setting, = 1.20 
+
+RAPDL DBS (d) ρ = 1 .20 
+
+Figure 2 Relative Regret across complete horizons in S2. 20 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+to 0.15% –6.58% . At the short horizons T = 60 and T = 100 , the bootstrap median for RAPDL is below that for DBS in all eight panels. The very earliest T = 20 and T = 40 comparisons are mixed, and these outcomes are retained in the plots. In the T ∈ { 100 , 200 , 300 } cells reported in Table 1, RAPDL has lower mean Total Cost in all 24 paired comparisons. 
+
+Sensitivity to endpoint information. We test the endpoint-envelope implementation in S1 at T = 200 .The true demand support remains [0 , 175] . The exact implementation uses ¯Xi = 170 .21 , D = 350 , and 
+
+Xi, 1 = 87 .5, whereas the envelope implementation uses Dup  
+
+> i
+
+= 200 , Dup = 400 , and Xi, 1 = 100 . For each ρ,both information regimes use the same tuning budget and 2,000 paired production demands. This comparison evaluates two separately calibrated end-to-end implementations with regime-specific midpoint initializations, rather than isolating the endpoint input under fixed parameters. The results are reported in Table 2. Its last column gives the percentage difference 100 ×  bE[TC Envelope 200 ] − bE[TC Exact 200 ]/bE[TC Exact 200 ].                  
+
+> Table 2 Sensitivity of S1 Total Cost to endpoint information at T= 200 .
+> ρExact endpoint Envelope Envelope–Exact, % 0.30 1,087,811.49 1,088,103.80 0.03 0.60 666,128.51 667,172.93 0.16 0.90 279,716.69 283,190.98 1.24 1.20 198,172.87 197,300.71 -0.44
+
+Across the four resource levels, the absolute Total Cost difference between the exact endpoint and the rough envelope is at most 1.24% . Thus, in these finite-horizon comparisons, replacing the exact endpoint by a conservative upper bound has only a small numerical effect. 
+
+6. Conclusion 
+
+This paper studies learning in a finite-horizon OWMS system with nonreplenishable shared inventory, unknown demand, and censored sales. We propose RAPDL , a resource-adaptive Primal-Dual framework that replaces fixed-target learning with online tracking of the endogenous Primal-Dual re-solving path. Censored sales update the preferred store thresholds and warehouse scarcity price, while water-filling maps the learned state to feasible physical actions. The regret analysis separates the re-solving, learning, and implementation gaps and bounds each at logarithmic order. Numerical experiments on a practical variant show strong finite-horizon performance across inventory regimes. More broadly, the framework turns re-solving from repeated full-information optimization into a path that can be tracked incrementally under unknown and censored feedback. This resource-adaptive perspective may inform the design of learning-and-control methods for other systems with depleting shared resources. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 21 
+
+References 
+
+Agrawal S, Wang Z, Ye Y (2014) A dynamic near-optimal algorithm for online linear programming. Operations Research 62(4):876– 890. Bekci RY, G¨ um¨ us ¸ M, Miao S (2023) Inventory control and learning for one-warehouse multistore system with censored demand. 
+
+Operations Research 71(6):2092–2110. Benzi M, Golub GH, Liesen J (2005) Numerical solution of saddle point problems. Acta Numerica 14:1–137. Caro F, Gallien J (2010) Inventory management of a fast-fashion retail network. Operations Research 58(2):257–273. Chao X, Jasin S, Miao S (2025) Adaptive lagrangian policies for a multiwarehouse, multistore inventory system with lost sales. 
+
+Operations Research 73(3):1615–1636. Chen F, Zheng YS (1997) One-warehouse multiretailer systems with centralized stock information. Operations Research 45(2):275– 287. Chen N, Gallego G (2022) A primal–dual learning algorithm for personalized dynamic pricing with an inventory constraint. 
+
+Mathematics of Operations Research 47(4):2585–2613. Chen W, Shi C, Duenyas I (2020) Optimal learning algorithms for stochastic inventory systems with random capacities. Production and Operations Management 29(7):1624–1649. Chen X, Lyu J, Wang Y, Zhou Y (2024) Network revenue management with demand learning and fair resource-consumption balancing. Production and Operations Management 33(2):494–511. Duchi J, Shalev-Shwartz S, Singer Y, Chandra T (2008) Efficient projections onto the ℓ1-ball for learning in high dimensions. 
+
+Proceedings of the 25th International Conference on Machine Learning , 272–279. Fan X, Chen B, Xiao W, Zhou Z (2023) No-regret learning in multi-retailer inventory control. Technical Report 4626023, SSRN. Guo S, Shi C, Yang C, Zacharias C (2026) An online mirror descent learning algorithm for multiproduct inventory systems. 
+
+Operations Research Articles in Advance. Huang J, Shang K, Yang Y, Zhou W, Li Y (2025) Taylor approximation of inventory policies for one-warehouse, multi-retailer systems with demand feature information. Management Science 71(1):879–897. Huh WT, Janakiraman G, Muckstadt JA, Rusmevichientong P (2009) An adaptive algorithm for finding the optimal base-stock policy in lost sales inventory systems with censored demand. Mathematics of Operations Research 34(2):397–416. Huh WT, Rusmevichientong P (2009) A nonparametric asymptotic analysis of inventory planning with censored demand. Mathematics of Operations Research 34(1):103–123. Jackson PL (1988) Stock allocation in a two-echelon distribution system or “what to do until your ship comes in”. Management Science 34(7):880–895. Jasin S (2014) Reoptimization and self-adjusting price control for network revenue management. Operations Research 62(5):1168– 1178. Jasin S, Kumar S (2012) A re-solving heuristic with bounded revenue loss for network revenue management with customer choice. 
+
+Mathematics of Operations Research 37(2):313–345. Kutanoglu E, Mahajan M (2009) An inventory sharing and allocation method for a multi-location service parts logistics network with time-based service levels. European Journal of Operational Research 194(3):728–742. Latafat P, Freris NM, Patrinos P (2019) A new randomized block-coordinate primal–dual proximal algorithm for distributed optimization. IEEE Transactions on Automatic Control 64(10):4050–4065. Li G, Wang Z, Zhang J (2024) Infrequent resolving algorithm for online linear programming. arXiv preprint arXiv:2408.00465. Li X, Ye Y (2022) Online linear programming: Dual convergence, new algorithms, and regret bounds. Operations Research 
+
+70(5):2948–2966. Lyu J, Xie J, Yuan S, Zhou Y (2025) A minibatch stochastic gradient descent-based learning metapolicy for inventory systems with myopic optimal policy. Management Science 71(7):5572–5588. Marklund J, Rosling K (2012) Lower bounds and heuristics for supply chain stock allocation. Operations Research 60(1):92–105. Mehrotra S, Rahimian H, Barah M, Luo F, Schantz K (2020) A model of supply-chain decisions for resource sharing with an application to ventilator allocation to combat COVID-19. Naval Research Logistics 67(5):303–320. Miao S, Jasin S, Chao X (2022) Asymptotically optimal lagrangian policies for multi-warehouse, multi-store systems with lost sales. 
+
+Operations Research 70(1):141–159. 22 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Miao S, Wang Y (2024) Demand balancing in primal–dual optimization for blind network revenue management. arXiv preprint arXiv:2404.04467. Miao S, Wang Y (2025) Network revenue management with nonparametric demand learning: √T -regret and polynomial dimension dependency. Mathematics of Operations Research Articles in Advance. Miao S, Wang Y, Zhang J (2026) A primal–dual approach toward resource-constrained revenue management with demand learning and large action space. Operations Research 74(2):825–839. Miao S, Wang Y, Zhao R (2023) Dynamic learning policy for multi-warehouse multi-store systems with censored demands. Technical Report 4617620, SSRN. Shi C, Chen W, Duenyas I (2016) Technical note—nonparametric data-driven algorithms for multiproduct inventory systems with censored demand. Operations Research 64(2):362–370. Zhang H, Chao X, Shi C (2018) Technical note—perishable inventory systems: Convexity results for base-stock policies and learning algorithms under censored demand. Operations Research 66(5):1276–1286. Zhang H, Chao X, Shi C (2020) Closing the gap: A learning algorithm for lost-sales inventory systems with lead times. Management Science 66(5):1962–1980. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 23 
+
+# Online Appendix for “Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand” 
+
+Appendix A: Technical Bound for the Learning Gap 
+
+The following estimate supplies the squared-tracking and first-order residual bounds used to control the learning gap. Both follow from the same one-step mirror recursion developed below. 
+
+Lemma A.1 Choose χ, τ 0 as in (A.25) . Then there is a primitive constant Cmd such that 
+
+(i) Cumulative Primal-Dual tracking. 
+
+> T
+
+X
+
+> t=1
+
+E ∥m(Xt) − s∗(rt)∥2 + |λt − λ∗(rt)|2 ≤ Cmd log T + Cmd 
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2, (A.1) (ii) Unweighted first-order residual. 
+
+> T
+
+X
+
+> t=1
+
+E
+
+" NX
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt)#
+
+≤ Cmd log T + Cmd 
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2. (A.2) The proof proceeds in four steps: construct the exact-target potential, smooth the moving KKT path, establish one-step drift, and sum the recursion. Supporting proofs and local verifications are collected in Appendix A.5. 
+
+A.1. Step 1: Construct the Exact-Target Potential 
+
+Step 1 verifies that capping preserves the KKT target and places its threshold representation in the moving box, then constructs a threshold-space potential for exact sales-space error. The next lemma verifies exact-target feasibility. Its complementarity identities are also used in the state-update analysis. 
+
+Lemma A.2 For every r ≥ 0, the selected moving target has the following feasibility properties. (i) Target preservation under capping. 
+
+(s∗(r), λ ∗(r)) = ( s∗(rc), λ ∗(rc)) . (A.3) 
+
+(ii) Resource feasibility and complementarity. 
+
+rc −
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r) = ( rc − r0)+, λ∗(r)( rc − r0)+ = 0 . (A.4) 
+
+(iii) Feasibility in the moving clipping box. 
+
+y∗ 
+
+> i
+
+(r) = m−1 
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) ≤ min 
+
+
+
+¯Xi, rc
+
+pi
+
+
+
+= Ui(r), i ∈ [N ],
+
+0 ≤ λ∗(r) ≤ λmax ,  (y∗ 
+
+> i
+
+(r)) Ni=1 , λ ∗(r) ∈ K (r).
+
+(A.5) 24 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+The proof of Lemma A.2 is given in Appendix A.5. We therefore construct a potential that measures error in sales space while following the algorithm’s threshold-space update. For comparator sales σ and current sales s, both in [0 , m i( ¯Xi)] , define 
+
+Bi(σ, s ) := 
+
+Z sσ
+
+u − σ
+
+ 1 − Fi
+
+ m−1 
+
+> i
+
+(u) 2 du. 
+
+Since m′
+
+> i
+
+(x) = 1 − Fi(x), ∂∂x Bi
+
+ σ, m i(x) = mi(x) − σ
+
+1 − Fi(x) . (A.6) The mean threshold step contains a factor 1 − Fi(x), so (A.6) cancels that factor and leaves exactly the sales-error–field pairing in (4.3). This is why we use Bi, rather than an ordinary squared distance. The comparator therefore remains in sales coordinates, while the update state remains in threshold coordinates. Because the pre-projection update can leave [0 , ¯Xi], we extend the potential quadratically by one unit at each endpoint. Matching the boundary slopes below gives bounded curvature and monotonicity toward the comparator, so projection cannot increase the potential: 
+
+∂∂x Bi(σ, m i(x)) 
+
+> x=0
+
+= −σ, ∂∂x Bi(σ, m i(x)) 
+
+> x= ¯Xi
+
+= mi( ¯Xi) − σ
+
+1 − Fi( ¯Xi) . (A.7) Using these slopes and the ordinary squared discrepancy for the dual coordinate, define 
+
+W (σ, ζ ), (x, λ ) := 
+
+> N
+
+X
+
+> i=1
+
+
+
+Bi(σi, 0) − σixi + 12 x2 
+
+> i
+
+, −1 ≤ xi < 0,
+
+Bi
+
+ σi, m i(xi), 0 ≤ xi ≤ ¯Xi,
+
+Bi
+
+ σi, m i( ¯Xi) + mi( ¯Xi) − σi
+
+1 − Fi( ¯Xi) (xi − ¯Xi)+ 12 (xi − ¯Xi)2,
+
+¯Xi < x i ≤ ¯Xi + 1 + 12 (λ − ζ)2.
+
+(A.8) The outer derivatives are nonpositive to the left of the comparator and nonnegative to its right, so the extensions preserve projection compatibility while adding bounded curvature. On the safe box, only the middle branch is active, and hence 
+
+W (σ, ζ ), (x, λ ) =
+
+> N
+
+X
+
+> i=1
+
+Bi
+
+ σi, m i(xi) + 12 (λ − ζ)2, 0 ≤ xi ≤ ¯Xi.
+
+Define the comparator and update domains, respectively, by 
+
+Q := 
+
+> N
+
+Y
+
+> i=1
+
+[0 , m i( ¯Xi)] × [0 , λ max ], Z := 
+
+> N
+
+Y
+
+> i=1
+
+[−1, ¯Xi + 1] × [−1, λ max + 1] .
+
+The joint domain is Q × Z . The containment below, together with the step-size bound αtG ≤ 1 verified below, ensures that every pre-projection update remains in Z:
+
+K(r) ⊆
+
+> N
+
+Y
+
+> i=1
+
+[0 , ¯Xi] × [0 , λ max ] ⊆ Z .
+
+The extra unit margin is used only to evaluate the potential at one pre-projection update. It does not enlarge the feasible actions onto which the algorithm projects. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 25 
+
+Lemma A.3 For q = ( σ, ζ ) ∈ Q and z = ( x, λ ) ∈ Z with 0 ≤ xi ≤ ¯Xi for every i, there is a primitive constant CW ≥ 1 such that 
+
+C−1
+
+> W
+
+ ∥m(x) − σ∥2 + |λ − ζ|2 ≤ W (( σ, ζ ), (x, λ )) ≤ CW
+
+ ∥m(x) − σ∥2 + |λ − ζ|2. (A.9) 
+
+∥∇ q W(q, z )∥2 + ∥∇ z W(q, z )∥2 ≤ CW(q, z ). (A.10) The proof of Lemma A.3 is given in Appendix A.5. We can now define the quantity that measures the tracking error of actual interest. Set 
+
+q∗ 
+
+> t
+
+:= q∗(rt) = ( s∗(rt), λ ∗(rt)) , zt := ( Xt, λ t),Wt := W(q∗ 
+
+> t
+
+, z t) = 
+
+> N
+
+X
+
+> i=1
+
+Bi
+
+ s∗ 
+
+> i
+
+(rt), m i(Xi,t ) + 12
+
+ λt − λ∗(rt)2.
+
+By (A.5), both q∗ 
+
+> t
+
+and the projected state zt lie in the required domains. The lower metric bound in (A.9) therefore gives 
+
+∥m(Xt) − s∗(rt)∥2 + |λt − λ∗(rt)|2 ≤ CW t.
+
+Taking expectations and summing yields 
+
+> T
+
+X
+
+> t=1
+
+E ∥m(Xt) − s∗(rt)∥2 + |λt − λ∗(rt)|2 ≤ C
+
+> T
+
+X
+
+> t=1
+
+EWt. (A.11) 
+
+A.2. Step 2: Construct the Smoothed Comparator 
+
+The natural exact comparator and its obstruction. The exact target q∗(rt) is feasible and ideal for the fixed-target restoring inequality, but its path has corners when active sets change or the resource constraint becomes slack. At a crossing no derivative gives a uniform expansion 
+
+q∗(r + ∆ r) − q∗(r) = ˙ q∗(r)∆ r + O(|∆r|2).
+
+The remainder is generally first order. Lipschitz continuity alone yields 
+
+CpWt|rt+1 − rt| ≤ εα tWt + Cε|rt+1 − rt|2/α t,
+
+whose last term is O(αt), rather than the O(α2 
+
+> t
+
+) forcing required for harmonic tracking. 
+
+High-level idea of smoothing. We therefore average q∗(r − ηu ) over a backward window of width η. This analysis-only smoothing stays O(η) from the target, has Taylor remainder O(|∆r|2/η ), and remains feasible because it uses no more resource than r. The choice ηt = √αt balances approximation and motion errors. Formally, extend q∗ constantly to negative r, and define 
+
+ρ(u) := 6 u(1 − u)1[0 ,1] (u),
+
+Z 10
+
+ρ(u) d u = 1 , (A.12) and, for 0 < η ≤ 1,
+
+qη (r) := 
+
+Z 10
+
+ρ(u)q∗(r − ηu ) d u =: ( sη (r), λ η (r)) .
+
+Lemma A.4 There is a primitive constant Csm < ∞ such that, for every r, r ′ ≥ 0 and 0 < η, η ′ ≤ 1, the following hold. (i) Approximation and admissibility: 
+
+∥qη (r) − q∗(r)∥ ≤ Csm η, m−1 
+
+> i
+
+(sηi (r)) ≤ y∗ 
+
+> i
+
+(r) ≤ Ui(r), i ∈ [N ], 0 ≤ λη (r) ≤ λmax .
+
+(A.13) 26 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+(ii) Monotonicity and constant tail: the primal coordinates of qη are nondecreasing, the dual coordinate is nonincreasing, and qη (r) = q∗(r) whenever r ≥ r0 + η.(iii) Motion in resource: the derivative 
+
+dqη (r)dr =
+
+ dsη (r)dr , dλη (r)dr
+
+
+
+exists, dqη (r)dr ≤ Csm , and 
+
+qη (r′) − qη (r) − dqη (r)dr (r′ − r) ≤ Csm |r′ − r|2/η. (A.14) 
+
+(iv) Motion in radius: ∥qη′
+
+(r) − qη (r)∥ ≤ Csm |η′ − η|.
+
+The proof of Lemma A.4 is given in Appendix A.5. Choose α0 ∈ (0 , 1] so that α0G ≤ 1, and set 
+
+ηt := √αt, qt := qηt (rt) =: ( σt, ζ t). (A.15) Under τ0 ≥ χ/α 0 in (A.25), 
+
+αt = χτ0 + min {t, n t} ≤ χτ0
+
+≤ α0.
+
+Thus 0 < η t ≤ 1 and αtG ≤ 1. The auxiliary potential in (A.19) is now 
+
+fWt = W(qt, z t) = 
+
+> N
+
+X
+
+> i=1
+
+Bi
+
+ σi,t , m i(Xi,t ) + 12 (λt − ζt)2.
+
+Admissibility of the chosen comparator. Lemma A.4(i) puts qt, q t+1 in Q and their threshold repre-sentations in K(rt) and K(rt+1 ), respectively. Together with αtG ≤ 1, this records the admissibility of the comparator sequence in (A.15). The remaining pre-projection domain and projection conditions are verified below. 
+
+A.3. Step 3: Establish the One-Step Drift 
+
+Lemma A.5 (Projected moving-comparator bound) Let Q and Z be convex sets, and let W : Q × Z → R
+
+be differentiable with LW -Lipschitz joint gradient. Fix q, q + ∈ Q , z ∈ Z , a direction g, a step size α > 0, and a nonempty closed convex set K+ ⊆ Z . Suppose that z − αg ∈ Z and 
+
+W  q+, Proj K+ (z − αg ) ≤ W (q+, z − αg ). (A.16) 
+
+Then, with z+ := Proj K+ (z − αg ),
+
+W (q+, z +) ≤ W (q, z ) − α⟨∇ z W (q, z ), g ⟩ + ⟨∇ q W (q, z ), q + − q⟩
+
++ LW
+
+2 α2∥g∥2 + LW α∥g∥ ∥ q+ − q∥ + LW
+
+2 ∥q+ − q∥2. (A.17) The proof is given in Appendix A.5. 
+
+Verification for the present potential. For W = W, the following facts verify the hypotheses of Lemma A.5. For i ∈ [N ], set 
+
+Gi := max {hi, b i − ci, λ max }, G := 
+
+> N
+
+X
+
+> i=1
+
+G2 
+
+> i
+
++ ( D + θG j )2
+
+!1/2
+
+.
+
+Then G < ∞, and there is a primitive LW < ∞, such that the following hold. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 27 
+
+(i) Regularity. On Q × Z , W is differentiable and has LW -Lipschitz joint gradient. (ii) Executable bounds. The algorithm is adapted and, for every t,
+
+zt ∈ K (rt), 0 ≤ Xi,t , I i,t , Y i,t ≤ ¯Xi < ¯di, 0 ≤ λt ≤ λmax , ∥ bGt∥ ≤ G. 
+
+(iii) Pre-projection update and projection. Fix t < T and qt, q t+1 ∈ Q . If αtG ≤ 1 and the threshold representation of qt+1 belongs to K(rt+1 ), then 
+
+zt − αt bGt ∈ Z 
+
+and, writing zt+1 := Proj K(rt+1 )(zt − αt bGt),
+
+W(qt+1 , z t+1 ) ≤ W (qt+1 , z t − αt bGt). (A.18) These are the domain and projection conditions needed below. The three claims above are proved in Appendix A.5, under Details for the one-step verification .For the smoothed comparator in (A.15), the checklist and Lemma A.4(i) permit Lemma A.5 with g = bGt,
+
+α = αt, and K+ = K(rt+1 ), yielding 
+
+fWt+1 ≤ fWt − αt
+
+D
+
+∇z W(qt, z t), bGt
+
+E
+
++ ⟨∇ q W(qt, z t), q t+1 − qt⟩ + LW G2
+
+2 α2
+
+> t
+
++ LW Gα t∥qt+1 − qt∥ + LW
+
+2 ∥qt+1 − qt∥2. (A.19) The next lemma controls the state-update and comparator-motion terms, respectively. Conditioning on Ht and using the marginal demand laws gives 
+
+E[ bGt | H t] = Gθ (Yt, λ t; rt), ∥Gθ (Yt, λ t; rt) − Gθ (Xt, λ t; rt)∥ ≤ C∥Yt − Xt∥. (A.20) Let μg := min 1≤i≤N hiκi and Lg,j := hj Kj /β 3 
+
+> j
+
+. Choose θ and define μ0 by 
+
+0 < θ ≤ min 
+
+
+
+1, μg βj
+
+L2
+
+> g,j
+
+
+
+, μ0 := 12 min {μg , θβ j } > 0. (A.21) 
+
+Lemma A.6 Let CW be the upper metric-comparison constant in (A.9) and set the state-update contraction modulus μupd := μ0/(8 CW ).
+
+(i) State-update contraction. There is a primitive remainder constant C < ∞ such that, for every t < T ,
+
+− αtE
+
+hD 
+
+∇z W(qt, z t), bGt
+
+E
+
+Ht
+
+i
+
+≤ − μupd αt fWt
+
+− αt
+
+> N
+
+X
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt) + λt(rc 
+
+> t
+
+− r0)+
+
+!
+
++ Cα t
+
+ αt + ∥Yt − Xt∥2. (A.22) (ii) Comparator-motion control. There is a primitive constant Cpair < ∞, given explicitly in (A.35) . Set 
+
+χM := max 
+
+
+
+1, 32 Cpair 
+
+μupd 
+
+
+
+, n0 := 
+
+
+
+max 
+
+
+
+8, 1 + 32 Cpair 
+
+μupd α0
+
+, 1 + 2
+
+√α0
+
+ 
+
+. (A.23) 
+
+Then there is a primitive constant Cm < ∞ such that, if 
+
+χ ≥ χM , χ/α 0 ≤ τ0 ≤ 2χ/α 0,
+
+then, for every t < T with nt ≥ n0,
+
+E
+
+
+
+⟨∇ q W(qt, z t), q t+1 − qt⟩ + LW Gα t∥qt+1 − qt∥ + LW
+
+2 ∥qt+1 − qt∥2 Ht
+
+
+
+≤ μupd 
+
+2 αt fWt + Cmα2 
+
+> t
+
++ Cmαt∥Yt − Xt∥2. (A.24) 28 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+The proof of Lemma A.6, including the fixed-target restoring calculation used in part (i), is given in Appendix A.5. Set μrec := min {μupd /2, 1/2}, and decrease α0, if necessary, so that 
+
+α0G ≤ 1, μrec α0 ≤ 12 .
+
+With this α0, take χM , n 0 from Lemma A.6(ii). For the rest of this step, impose 
+
+χ ≥ χM , χμ rec > 3, χ/α 0 ≤ τ0 ≤ 2χ/α 0, (A.25) and fix t < T with nt ≥ n0. The storewise KKT inequalities give g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt) ≥ 0, while mi(Xi,t ) ≥ 0,
+
+λt ≥ 0, and (rc 
+
+> t
+
+− r0)+ ≥ 0. Thus the residual below is nonnegative. Combining Lemma A.6(i)–(ii) in (A.19), and using μrec ≤ μupd /2 and μrec ≤ 1, gives 
+
+E[fWt+1 | H t] ≤ (1 − μrec αt)fWt − μrec αt
+
+> N
+
+X
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt) + λt(rc 
+
+> t
+
+− r0)+
+
+!
+
++ Cα 2 
+
+> t
+
++ Cα t∥Yt − Xt∥2. (A.26) The condition χμ rec > 3, in particular, guarantees μrec > 1/χ , as needed for the reciprocal-step absorption below. This completes the one-step drift argument. 
+
+A.4. Step 4: Sum the Recursion 
+
+With the one-step recursion (A.26) established in Appendix A.3, it remains to sum it in two ways and then return from the smoothed comparator to the exact target. 
+
+Summation. Dropping the nonnegative parenthesized residual in (A.26) and taking expectations gives 
+
+EfWt+1 ≤ (1 − μrec αt)EfWt + Cα 2 
+
+> t
+
++ Cα tE∥Yt − Xt∥2. (A.27) The first required bound is 
+
+> T
+
+X
+
+> t=1
+
+EfWt ≤ C log T + C
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2. (A.28) The second bound compares the exact and smoothed potentials: 
+
+Wt ≤ C fWt + Cα t. (A.29) Consequently, TX
+
+> t=1
+
+EWt ≤ C
+
+> T
+
+X
+
+> t=1
+
+EfWt + C log T. (A.30) To prove (A.28), first suppose T ≥ n0, set L = T − n0 + 1 , and write 
+
+ut := EfWt, bt := CE∥Yt − Xt∥2, ht := 1
+
+αt
+
+.
+
+Compactness gives 0 ≤ ut ≤ U . For t ≤ L, divide (A.27) by αt and sum to obtain 
+
+μrec 
+
+> L
+
+X
+
+> t=1
+
+ut ≤
+
+> L
+
+X
+
+> t=1
+
+ht(ut − ut+1 ) + C
+
+> L
+
+X
+
+> t=1
+
+αt +
+
+> L
+
+X
+
+> t=1
+
+bt.Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 29 
+
+Writing dt = min {t, T − t + 1 }, summation by parts and ht = ( τ0 + dt)/χ give 
+
+> L
+
+X
+
+> t=1
+
+ht(ut − ut+1 ) = h1u1 +
+
+> L
+
+X
+
+> t=2
+
+(ht − ht−1)ut − hLuL+1 ≤ C + 1
+
+χ
+
+> L
+
+X
+
+> t=2
+
+ut.
+
+Because μrec > 1/χ , this sum is absorbed. Moreover, 
+
+> T
+
+X
+
+> t=1
+
+αt ≤ 2χ
+
+> ⌈T / 2⌉
+
+X
+
+> k=1
+
+(τ0 + k)−1 ≤ C log T, 
+
+and the final n0 − 1 potentials contribute at most (n0 − 1) U . This proves (A.28). For T < n 0, boundedness gives the same conclusion directly. 
+
+Proof of the exact-to-smoothed comparison. The upper metric comparison in (A.9) gives 
+
+Wt ≤ CW
+
+ ∥m(Xt) − s∗(rt)∥2 + |λt − λ∗(rt)|2 .
+
+Insert qt = ( σt, ζ t) separately in the primal and dual coordinates and use ∥a + b∥2 ≤ 2∥a∥2 + 2 ∥b∥2. The expression in parentheses is at most 
+
+2  ∥m(Xt) − σt∥2 + |λt − ζt|2 + 2 ∥qt − q∗(rt)∥2.
+
+The lower metric comparison in (A.9) gives 
+
+∥m(Xt) − σt∥2 + |λt − ζt|2 ≤ C fWt,
+
+while Lemma A.4(i) and η2 
+
+> t
+
+= αt give 
+
+∥qt − q∗(rt)∥2 ≤ C2sm η2 
+
+> t
+
+≤ Cα t.
+
+Substitution proves (A.29). Taking expectations and summing this pointwise bound yields 
+
+> T
+
+X
+
+> t=1
+
+EWt ≤ C
+
+> T
+
+X
+
+> t=1
+
+EfWt + C
+
+> T
+
+X
+
+> t=1
+
+αt.
+
+The harmonic estimate above now proves (A.30). Combining (A.11), (A.30), and (A.28) gives 
+
+> T
+
+X
+
+> t=1
+
+E ∥m(Xt) − s∗(rt)∥2 + |λt − λ∗(rt)|2 ≤ C
+
+> T
+
+X
+
+> t=1
+
+EWt
+
+≤ C
+
+> T
+
+X
+
+> t=1
+
+EfWt + C log T ≤ C log T + C
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2,
+
+which is (A.1). 
+
+Residual summation. It remains to prove Lemma A.1(ii) from the same recursion. For T < n 0, each storewise residual is bounded by λmax mi( ¯Xi), so the claim follows after enlarging Cmd . Suppose therefore that T ≥ n0, and let L = T − n0 + 1 . For the residual, write wt = EfWt, rearrange (A.26), take expectations, and divide by μrec αt. Discarding only the nonpositive term −wt gives 
+
+E
+
+" NX
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt) + λt(rc 
+
+> t
+
+− r0)+
+
+#
+
+≤ wt − wt+1 
+
+μrec αt
+
++ Cα t + CE∥Yt − Xt∥2. (A.31) 30 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+The intermediate inequality contains an additional resource term. By Lemma A.2, 
+
+rc 
+
+> t
+
+−
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(rt) = ( rc 
+
+> t
+
+− r0)+, λ∗(rt)( rc 
+
+> t
+
+− r0)+ = 0 .
+
+Consequently, the target resource residual paired with the current dual error satisfies 
+
+(λt − λ∗(rt)) rc 
+
+> t
+
+−
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(rt)
+
+!
+
+= ( λt − λ∗(rt))( rc 
+
+> t
+
+− r0)+ = λt(rc 
+
+> t
+
+− r0)+ ≥ 0.
+
+Thus this resource-dissipation term may be dropped from the left-hand side of (A.31) when proving Lemma A.1(ii). The reciprocal-step telescope is the exact identity 
+
+> L
+
+X
+
+> t=1
+
+wt − wt+1 
+
+αt
+
+= w1
+
+α1
+
++
+
+> L
+
+X
+
+> t=2
+
+wt
+
+ 1
+
+αt
+
+− 1
+
+αt−1
+
+
+
+− wL+1 
+
+αL
+
+.
+
+For this proof, write dt := min {t, n t}. Because 1/α t = ( τ0 + dt)/χ , the positive part of the reciprocal increment is exactly 1/χ while dt increases, zero on a possible midpoint plateau, and nonpositive while it decreases. The first term is uniformly bounded and the last is nonpositive. Therefore the telescope is at most 
+
+C + (1 /χ ) PLt=2 wt, which is controlled by (A.28). After dropping the nonnegative resource term as above, summing (A.31) and adding the final n0 − 1 bounded storewise residuals proves (A.2). 
+
+A.5. Auxiliary Proofs and Verifications 
+
+This subsection collects, in order of use, the auxiliary proofs for Steps 1–3 and the remaining one-step verifications. 
+
+Proof of Lemma A.2. 
+
+Proof. Target preservation and complementarity. Since r0 = P 
+
+> i
+
+ϕi(0) ≤ D, if r ≤ D, capping does nothing. If r > D , then both r and rc = D lie on the constant nonbinding branch (ϕ(0) , 0) of (B.3). This proves (A.3). Moreover, the binding branch gives P 
+
+> i
+
+s∗ 
+
+> i
+
+(r) = r = rc for r < r 0, while the nonbinding branch gives P 
+
+> i
+
+s∗ 
+
+> i
+
+(r) = r0 and λ∗(r) = 0 for r ≥ r0. Hence 
+
+rc − X
+
+> i
+
+s∗ 
+
+> i
+
+(r) = ( rc − r0)+, λ∗(r)( rc − r0)+ = 0 .
+
+Feasibility in the moving clipping box. It remains to verify feasibility in the moving clipping box. A nonnegative resource price can only lower the store threshold below the zero-price newsvendor threshold, and hence y∗ 
+
+> i
+
+(r) < ¯Xi. If store i is active, then recall that pi is its zero-price survival probability. Therefore 
+
+1 − Fi(y∗ 
+
+> i
+
+(r)) ≥ pi, and 
+
+s∗ 
+
+> i
+
+(r) = 
+
+Z y∗ 
+
+> i(r)0
+
+ 1 − Fi(u) du ≥ piy∗ 
+
+> i
+
+(r).
+
+The capped complementarity identity already proved gives 
+
+s∗ 
+
+> i
+
+(r) ≤
+
+> N
+
+X
+
+> k=1
+
+s∗
+
+> k
+
+(r) = rc − (rc − r0)+ ≤ rc.
+
+This proves the primal bound in (A.5). For an inactive store, y∗ 
+
+> i
+
+(r) = 0 , so the same conclusion holds. Finally, 
+
+0 ≤ λ∗(r) ≤ λmax is part of the selected KKT path. Together with the coordinatewise primal bounds and the definition of K(r), it proves the asserted threshold–dual membership. 
+
+Proof of Lemma A.3. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 31 
+
+Proof. For a fixed store i, abbreviate 
+
+Si(x) := 1 − Fi(x), Mi := mi( ¯Xi), wi(u) := Si
+
+ m−1 
+
+> i
+
+(u)−2.
+
+The safe-box bounds imply, for 0 ≤ u ≤ Mi,
+
+1 ≤ wi(u) ≤ β−2 
+
+> i
+
+.
+
+Metric comparison. For s ∈ [0 , M i], the change of variables u = σ + τ (s − σ) gives 
+
+Bi(σ, s ) = ( s − σ)2
+
+Z 10
+
+τ w i
+
+ σ + τ (s − σ) dτ. 
+
+Consequently, 12 (s − σ)2 ≤ B i(σ, s ) ≤ 12β2
+
+> i
+
+(s − σ)2.
+
+Setting s = mi(xi), summing over i, and adding the dual quadratic proves (A.9). 
+
+Gradient control. Let Hi(σ, x ) denote the i-th primal summand in (A.8). On the safe box, direct differentiation of its middle branch gives 
+
+|∂xHi(σi, x i)| ≤ β−1 
+
+> i
+
+|mi(xi) − σi|, |∂σ Hi(σi, x i)| ≤ β−2 
+
+> i
+
+|mi(xi) − σi|.
+
+The two derivatives of the dual quadratic have magnitude |λ − ζ|. Therefore, 
+
+∥∇ q W(q, z )∥2 + ∥∇ z W(q, z )∥2 ≤ C ∥m(x) − σ∥2 + |λ − ζ|2.
+
+The lower bound in (A.9) converts the right-hand side to CW(q, z ), proving (A.10). 
+
+Proof of Lemma A.4. 
+
+Proof. Let Lq be a global Lipschitz constant of q∗. Coupling the integrands at the same kernel point gives 
+
+∥qη (r) − q∗(r)∥ ≤ Lq η
+
+Z 10
+
+uρ (u) d u ≤ Lq η, 
+
+∥qη′
+
+(r) − qη (r)∥ ≤ Lq |η′ − η|
+
+Z 10
+
+uρ (u) d u ≤ Lq |η′ − η|.
+
+Averaging preserves the coordinatewise monotonicity of the KKT path. Since the kernel uses only r − ηu ≤ r,primal monotonicity also gives 
+
+m−1 
+
+> i
+
+(sηi (r)) ≤ m−1 
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) = y∗ 
+
+> i
+
+(r) ≤ Ui(r).
+
+The multiplier average remains in [0 , λ max ], and every integrand equals the constant nonbinding target when 
+
+r ≥ r0 + η. This proves parts (i), (ii), and (iv). Extend ρ by zero outside [0 , 1] . A Lipschitz path is absolutely continuous and has an a.e. derivative ˙q∗
+
+with ∥ ˙q∗∥∞ ≤ Lq . With 
+
+Kη (u) := η−1ρ(u/η )1[0 ,η ](u),
+
+the smoothing is Kη ∗ q∗, and its weak derivative is 
+
+dqη (r)dr = ( Kη ∗ ˙q∗)( r).32 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Translation continuity in L1 makes this derivative continuous, so it is the classical derivative everywhere. The zero extension of ρ has total variation 
+
+Vρ := |ρ(0) | + |ρ(1) | +
+
+Z 10
+
+|ρ′(u)| du. 
+
+Consequently dqη (r)dr ≤ Lq , dqη (r′)dr′ − dqη (r)dr ≤ (VρLq /η )|r′ − r|,
+
+because ∥Kη (· − h) − Kη ∥1 ≤ (Vρ/η )|h|. The integral form of Taylor’s theorem gives (A.14). Choosing Csm 
+
+to dominate the displayed constants proves part (iii) and completes the proof. 
+
+Proof of Lemma A.5. 
+
+Proof. By (A.16), 
+
+W (q+, z +) ≤ W (q+, z − αg ).
+
+Applying the descent lemma first in the comparator argument gives 
+
+W (q+, z − αg ) ≤ W (q, z − αg ) + ∇q W (q, z − αg ), q + − q + LW
+
+2 ∥q+ − q∥2.
+
+Moreover, 
+
+∥∇ q W (q, z − αg ) − ∇ q W (q, z )∥ ≤ LW α∥g∥,
+
+while the descent lemma in the state argument gives 
+
+W (q, z − αg ) ≤ W (q, z ) − α⟨∇ z W (q, z ), g ⟩ + LW
+
+2 α2∥g∥2.
+
+Substitution and Cauchy–Schwarz prove (A.17). 
+
+Proof of Lemma A.6. 
+
+Proof. Part (i): State-update contraction. 
+
+Substep 1: fixed-target restoring inequality. For every r ≥ 0, 0 ≤ λ ≤ λmax , and 0 ≤ xi ≤ ¯Xi, the fixed-target calculation below gives 
+
+∇z W q∗(r), (x, λ ), G θ (x, λ ; r) ≥ μ0
+
+ ∥m(x) − s∗(r)∥2 + |λ − λ∗(r)|2
+
++
+
+> N
+
+X
+
+> i=1
+
+mi(xi) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) + λ(rc − r0)+. (A.32) 
+
+Substep 2: transfer to the smoothed comparator and identify the ideal pairing. Fix r ≥ 0, 0 < η ≤ 1,
+
+0 ≤ λ ≤ λmax , and 0 ≤ Xi ≤ ¯Xi. Subtracting the exact-target pairing in (A.32) from the corresponding pairing with qη (r) gives 
+
+−
+
+> N
+
+X
+
+> i=1
+
+ sηi (r) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(Xi)) + λ
+
+−  λη (r) − λ∗(r) rc −
+
+> N
+
+X
+
+> i=1
+
+mi(Xi) + θ 1 − Fj (Xj )  g′ 
+
+> j
+
+(mj (Xj )) + λ!
+
+.
+
+If store i is inactive at r, backward smoothing leaves sηi (r) = s∗ 
+
+> i
+
+(r) = 0 . If it is active, its KKT residual vanishes, and safe-box regularity gives 
+
+|g′
+
+> i
+
+(mi(Xi)) + λ| ≤ C ∥m(X) − s∗(r)∥ + |λ − λ∗(r)|.Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 33 
+
+For the dual line, use 
+
+rc −
+
+> N
+
+X
+
+> i=1
+
+mi(Xi) = ( rc − r0)+ −
+
+> N
+
+X
+
+> i=1
+
+ mi(Xi) − s∗ 
+
+> i
+
+(r),
+
+and (A.38). The product of λη (r) − λ∗(r) and (rc − r0)+ vanishes outside [r0, r 0 + η]. Inside that layer its two factors are O(η). Together with (A.13), the displayed difference is bounded below by 
+
+−Cη  ∥m(X) − s∗(r)∥ + |λ − λ∗(r)| − Cη 2.
+
+Young’s inequality yields 
+
+Cη  ∥m(X) − s∗(r)∥ + |λ − λ∗(r)| ≤ μ0
+
+2
+
+ ∥m(X) − s∗(r)∥2 + |λ − λ∗(r)|2 + Cη 2.
+
+Moreover, the squared triangle inequality, (A.13), and the upper bound in (A.9) give 
+
+∥m(X) − s∗(r)∥2 + |λ − λ∗(r)|2
+
+≥ 12
+
+ ∥m(X) − sη (r)∥2 + |λ − λη (r)|2 − Cη 2
+
+≥ 12CW
+
+W qη (r), (X, λ ) − Cη 2.
+
+Combining these bounds with (A.32) gives 
+
+> N
+
+X
+
+> i=1
+
+ mi(Xi) − sηi (r)  g′
+
+> i
+
+(mi(Xi)) + λ
+
++  λ − λη (r) rc −
+
+> N
+
+X
+
+> i=1
+
+mi(Xi) + θ 1 − Fj (Xj )  g′ 
+
+> j
+
+(mj (Xj )) + λ!
+
+≥ μ0
+
+4CW
+
+W qη (r), (X, λ ) +
+
+> N
+
+X
+
+> i=1
+
+mi(Xi) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) + λ(rc − r0)+ − Cη 2. (A.33) For a safe state, (A.6) and (3.7) show that the survival factors cancel, so the left side of (A.33) is precisely 
+
+⟨∇ z W(qη (r), (X, λ )) , G θ (X, λ ; r)⟩. At (r, η, X, λ ) = ( rt, η t, Xt, λ t), using η2 
+
+> t
+
+= αt, we obtain 
+
+∇z W(qt, z t), G θ (Xt, λ t; rt)
+
+≥ μ0
+
+4CW
+
+fWt +
+
+> N
+
+X
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt) + λt(rc 
+
+> t
+
+− r0)+ − Cα t.
+
+Substep 3: transfer from the ideal field to the executable stochastic update. Because ∇z W(qt, z t) is Ht-measurable, (A.20) yields 
+
+E
+
+hD 
+
+∇z W(qt, z t), bGt
+
+E
+
+Ht
+
+i
+
+= ∇z W(qt, z t), G θ (Xt, λ t; rt)
+
++ ∇z W(qt, z t), G θ (Yt, λ t; rt) − Gθ (Xt, λ t; rt) .
+
+By (A.10), (A.20), and Young’s inequality, the second inner product has absolute value at most 
+
+C
+
+qfWt ∥Yt − Xt∥ ≤ μupd fWt + C∥Yt − Xt∥2.34 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Consequently, 
+
+E
+
+hD 
+
+∇z W(qt, z t), bGt
+
+E
+
+Ht
+
+i
+
+≥ μupd fWt
+
++
+
+> N
+
+X
+
+> i=1
+
+mi(Xi,t ) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(rt)) + λ∗(rt) + λt(rc 
+
+> t
+
+− r0)+ − C αt + ∥Yt − Xt∥2.
+
+Multiplying by −αt therefore proves (A.22). 
+
+Part (ii): Comparator-motion control. 
+
+For brevity, write Dη (r) := dqη (r)dr .The resource recursion gives 
+
+rt+1 − rt = rt − PNi=1 Si,t 
+
+nt − 1 , E[rt+1 − rt | H t] = rt − PNi=1 mi(Yi,t )
+
+nt − 1 . (A.34) We first derive the first-order resource-pairing estimate. Fix r ≥ 0, 0 < η ≤ 1, 0 ≤ xi, y i ≤ ¯Xi, and 0 ≤ λ ≤
+
+λmax . For this calculation, abbreviate 
+
+W := W qη (r), (x, λ ), βmin := min  
+
+> i∈[N]
+
+βi, C∇q := √2 β−2min .
+
+The derivative calculation behind (A.10), together with the lower metric bound, gives the first estimate below. Lemma A.4(iii) gives the second: 
+
+∇q W qη (r), (x, λ ) ≤ C∇q
+
+√W, dqη (r)dr ≤ Csm .
+
+Set 
+
+Aη := 1 + √N C sm , AW := √2N , AY := √N . 
+
+If r ≤ r0, the resource constraint binds and r = PNi=1 s∗ 
+
+> i
+
+(r). The smoothing approximation, the lower bound in (A.9), and the one-Lipschitz property of every mi give 
+
+r −
+
+> N
+
+X
+
+> i=1
+
+mi(yi) ≤ ∥ s∗(r) − sη (r)∥1 + ∥sη (r) − m(x)∥1 +
+
+> N
+
+X
+
+> i=1
+
+|mi(xi) − mi(yi)|≤ Aη η + AW
+
+√W + AY ∥y − x∥.
+
+If r0 < r < r 0 + η, then s∗(r) = s∗(r0), |r − r0| ≤ η, and ∥sη (r) − s∗(r0)∥ ≤ Csm η. Inserting r0 =PNi=1 s∗ 
+
+> i
+
+(r0) gives the same bound. Finally, if r ≥ r0 + η, Lemma A.4(ii)–(iii) gives dqη (r)dr = 0 . Thus all three resource regimes satisfy 
+
+*
+
+∇q W qη (r), (x, λ ), dqη (r)dr r −
+
+> N
+
+X
+
+> i=1
+
+mi(yi)
+
+!+ 
+
+≤ C∇q Csm 
+
+√W
+
+
+
+Aη η + AW
+
+√W + AY ∥y − x∥
+
+
+
+.
+
+Using ab ≤ (a2 + b2)/2, a valid explicit choice is 
+
+Cpair := C∇q Csm 
+
+
+
+AW + Aη + AY
+
+2
+
+
+
+= √2 β−2min Csm 
+
+"√2N + 1 + √N C sm + √N
+
+2
+
+#
+
+. (A.35) Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 35 
+
+Indeed, for all the stated arguments, 
+
+*
+
+∇q W qη (r), (x, λ ), dqη (r)dr r −
+
+> N
+
+X
+
+> i=1
+
+mi(yi)
+
+!+ 
+
+≤ Cpair 
+
+ W qη (r), (x, λ ) + ∥y − x∥2 + η2 .
+
+Substep 1: control the two sources of comparator motion. Fix t < T . The comparator increment is 
+
+qt+1 − qt = qηt (rt+1 ) − qηt (rt)+ qηt+1 (rt+1 ) − qηt (rt+1 ).
+
+If rt ≤ max( D, r 0 + ηt), then r0 ≤ D, ηt ≤ 1, and PNi=1 Si,t ≤ D imply 
+
+|rt+1 − rt| = |rt − PNi=1 Si,t |
+
+nt − 1 ≤ D + 1 
+
+nt − 1 .
+
+If rt > max( D, r 0 + ηt), then PNi=1 Si,t ≤ D < r t, so rt+1 > r t > r 0 + ηt. Both Dηt (rt) and qηt (rt+1 ) −
+
+qηt (rt) vanish because the smoothed path is constant there. Thus Lemma A.4(iii) gives, in all cases, 
+
+∥qηt (rt+1 ) − qηt (rt) − Dηt (rt)( rt+1 − rt)∥ ≤ Cηt(nt − 1) 2 .
+
+Moreover, 
+
+|min {t + 1 , n t+1 } − min {t, n t}| ≤ 1, ηt = √χ  τ0 + min {t, n t}−1/2.
+
+The mean-value theorem and Lemma A.4(iv) therefore give 
+
+∥qηt+1 (rt+1 ) − qηt (rt+1 )∥ ≤ Cα 3/2 
+
+> t
+
+.
+
+Substep 2: bound the first-order resource increment. The vectors ∇q W(qt, z t) and Dηt (rt) are Ht-measurable. Hence (A.34) gives the exact identity 
+
+E
+
+h
+
+⟨∇ q W(qt, z t), D ηt (rt)( rt+1 − rt)⟩ Ht
+
+i
+
+= 1
+
+nt − 1
+
+*
+
+∇q W(qt, z t), D ηt (rt) rt −
+
+> N
+
+X
+
+> i=1
+
+mi(Yi,t )
+
+!+ 
+
+.
+
+Applying the first-order resource-pairing estimate above at (r, η, x, y, λ ) = ( rt, η t, Xt, Yt, λ t) yields 
+
+E
+
+h
+
+⟨∇ q W(qt, z t), D ηt (rt)( rt+1 − rt)⟩ Ht
+
+i
+
+≤ Cpair 
+
+nt − 1
+
+ fWt + ∥Yt − Xt∥2 + η2
+
+> t
+
+.
+
+Since 
+
+αt ≥ χτ0 + nt
+
+, τ0 ≤ 2χα0
+
+,
+
+the explicit choices in (A.23) give, for χ ≥ χM and n := nt ≥ n0,
+
+Cpair 
+
+(n − 1) αt
+
+≤ 2Cpair 
+
+α0(n − 1) + 2Cpair 
+
+χ ≤ μupd 
+
+8 .36 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+Moreover, for every n ≥ 2,
+
+1(n − 1) αt
+
+≤ 2
+
+α0(n − 1) + nχ(n − 1) ≤ 2
+
+α0
+
++ 2 ,
+
+while 
+
+αt ≥ χ
+
+2χ/α 0 + n ≥ min 
+
+ α0
+
+4 , 12n
+
+
+
+.
+
+Since n ≥ n0 implies n ≥ 8 and n − 1 ≥ 2/√α0, the last bound gives αt(n − 1) 2 ≥ 1. We have therefore established Cpair 
+
+nt − 1 ≤ μupd 
+
+8 αt, 1
+
+nt − 1 ≤
+
+ 2
+
+α0
+
++ 2 
+
+
+
+αt, ηt(nt − 1) ≥ 1. (A.36) The first inequality absorbs the fWt-term. The other two will be used below. Since η2 
+
+> t
+
+= αt,
+
+E
+
+h
+
+⟨∇ q W(qt, z t), D ηt (rt)( rt+1 − rt)⟩ Ht
+
+i
+
+≤ μupd 
+
+8 αt fWt + Cα t∥Yt − Xt∥2 + Cα 2 
+
+> t
+
+.
+
+Substep 3: bound the Taylor and radius remainders. By (A.10), ∥∇ q W(qt, z t)∥ ≤ C
+
+qfWt. Young’s inequality, the direct resource-motion remainder above, and the large-nt bounds give 
+
+|⟨∇ q W(qt, z t), q ηt (rt+1 ) − qηt (rt) − Dηt (rt)( rt+1 − rt)⟩| ≤ C
+
+qfWt
+
+ηt(nt − 1) 2 ≤ μupd 
+
+8 αt fWt + Cαtη2 
+
+> t
+
+(nt − 1) 4
+
+≤ μupd 
+
+8 αt fWt + Cα 2 
+
+> t
+
+.
+
+To make the final Taylor-remainder estimate explicit, set K0 := 2 /α 0 + 2 . Since η2 
+
+> t
+
+= αt, the second inequality in (A.36) gives 
+
+1
+
+αtη2 
+
+> t
+
+(nt − 1) 4 = 1
+
+α2
+
+> t
+
+ 1
+
+nt − 1
+
+4
+
+≤ K40 α2 
+
+> t
+
+.
+
+Thus the last term produced by Young’s inequality is O(α2 
+
+> t
+
+). Similarly, the radius-motion bound above and Young’s inequality give 
+
+|⟨∇ q W(qt, z t), q ηt+1 (rt+1 ) − qηt (rt+1 )⟩| ≤ C
+
+qfWt α3/2 
+
+> t
+
+≤ μupd 
+
+8 αt fWt + Cα 2 
+
+> t
+
+.
+
+Combining these estimates with the first-order resource bound yields 
+
+E
+
+h
+
+⟨∇ q W(qt, z t), q t+1 − qt⟩ Ht
+
+i
+
+≤ 3μupd 
+
+8 αt fWt + Cα 2 
+
+> t
+
++ Cα t∥Yt − Xt∥2.
+
+Finally, the two direct motion bounds and ηt(nt − 1) ≥ 1 give 
+
+∥qt+1 − qt∥ ≤ Cnt − 1 + Cα 3/2 
+
+> t
+
+≤ Cα t.
+
+Consequently, 
+
+LW Gα t∥qt+1 − qt∥ + LW
+
+2 ∥qt+1 − qt∥2 ≤ Cα 2
+
+> t
+
+pathwise. Adding this estimate to the preceding conditional bound and using 3μupd /8 ≤ μupd /2 proves (A.24), after enlarging the primitive constant Cm. No same-period noise factorization has been used. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 37 
+
+Fixed-target restoring calculation for Lemma A.6(i). 
+
+Proof. Substep 1: expand the full unstabilized pairing. Fix r ≥ 0, 0 ≤ λ ≤ λmax , and 0 ≤ xi ≤ ¯Xi for every i ∈ [N ]. By (A.6) and (3.7), the survival factors cancel and the pairing is 
+
+∇z W(q∗(r), (x, λ )) , G θ (x, λ ; r)
+
+= X
+
+> i
+
+(mi(xi) − s∗ 
+
+> i
+
+(r))( g′
+
+> i
+
+(mi(xi)) + λ) + ( λ − λ∗(r)) rc − X
+
+> i
+
+mi(xi)
+
+!
+
++ θ(λ − λ∗(r))(1 − Fj (xj ))( g′ 
+
+> j
+
+(mj (xj )) + λ).
+
+Expand the first two terms by adding and subtracting the target KKT quantities: 
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) + λ =
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) − g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) 
+
++
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r)
+
++  λ − λ∗(r) NX
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r),
+
+ λ − λ∗(r) rc −
+
+> N
+
+X
+
+> i=1
+
+mi(xi)
+
+!
+
+=  λ − λ∗(r) rc −
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r)
+
+!
+
+−  λ − λ∗(r) NX
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r).
+
+Only after this algebraic cancellation do we use (4.2) and (A.4), which give 
+
+s∗ 
+
+> i
+
+(r) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) = 0 , rc −
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r) = ( rc − r0)+, λ∗(r)( rc − r0)+ = 0 .
+
+More explicitly, (4.1) implies, for every i,
+
+ u − v  g′
+
+> i
+
+(u) − g′
+
+> i
+
+(v) ≥ hiκi(u − v)2, u, v ∈ [0 , m i( ¯Xi)] .
+
+Therefore, with u = mi(xi) and v = s∗ 
+
+> i
+
+(r),
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) − g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r))  ≥ μg ∥m(x) − s∗(r)∥2, μg := min  
+
+> 1≤i≤N
+
+hiκi.
+
+This is the strong-convexity inequality used in the final step below. 
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) + λ +  λ − λ∗(r) rc −
+
+> N
+
+X
+
+> i=1
+
+mi(xi)
+
+!
+
+=
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) − g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r))  +
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r)
+
++  λ − λ∗(r) rc −
+
+> N
+
+X
+
+> i=1
+
+s∗ 
+
+> i
+
+(r)
+
+!38 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+=
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) − g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r))  +
+
+> N
+
+X
+
+> i=1
+
+mi(xi) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) + λ(rc − r0)+
+
+≥ μg ∥m(x) − s∗(r)∥2 +
+
+> N
+
+X
+
+> i=1
+
+mi(xi) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) + λ(rc − r0)+. (A.37) 
+
+Substep 2: the anchor restores the multiplier error. For the maximum-margin anchor j, the selected KKT path satisfies 
+
+g′ 
+
+> j
+
+(s∗ 
+
+> j
+
+(r)) + λ∗(r) = 0 . (A.38) Indeed, for r > 0, λ∗(r) < b j − cj makes the anchor active, so its KKT condition is an equality. At r = 0 ,
+
+λ∗(0) = bj − cj = −g′ 
+
+> j
+
+(0) gives the same equality. On the safe box, 
+
+1 − Fj (xj ) ≥ βj , |g′ 
+
+> j
+
+(mj (xj )) − g′ 
+
+> j
+
+(s∗ 
+
+> j
+
+(r)) | ≤ Lg,j |mj (xj ) − s∗ 
+
+> j
+
+(r)|, Lg,j := hj Kj
+
+β3
+
+> j
+
+.
+
+Using (A.38), the anchor pairing first separates exactly into a positive multiplier square and one cross term: 
+
+ λ − λ∗(r)  1 − Fj (xj )  g′ 
+
+> j
+
+(mj (xj )) + λ
+
+=  1 − Fj (xj )   |λ − λ∗(r)|2 +  λ − λ∗(r)  g′ 
+
+> j
+
+(mj (xj )) − g′ 
+
+> j
+
+(s∗ 
+
+> j
+
+(r))  .
+
+Since 1 − Fj (xj ) ≤ 1, the survival lower bound, the preceding Lipschitz bound, and Young’s inequality yield, in that order, 
+
+ λ − λ∗(r)  1 − Fj (xj )  g′ 
+
+> j
+
+(mj (xj )) + λ
+
+≥ βj |λ − λ∗(r)|2 − | λ − λ∗(r)| | g′ 
+
+> j
+
+(mj (xj )) − g′ 
+
+> j
+
+(s∗ 
+
+> j
+
+(r)) |≥ βj |λ − λ∗(r)|2 − Lg,j |λ − λ∗(r)| | mj (xj ) − s∗ 
+
+> j
+
+(r)|≥ βj
+
+2 |λ − λ∗(r)|2 − L2
+
+> g,j
+
+2βj
+
+|mj (xj ) − s∗ 
+
+> j
+
+(r)|2. (A.39) 
+
+Substep 3: choose θ and absorb the cross term. Use the choice of θ and the joint restoring modulus μ0
+
+in (A.21). The bound involving Lg,j is the one used for absorption below. θ ≤ 1 is only a convenient normalization for the later uniform field bounds. Multiplying (A.39) by θ and adding it to (A.37) gives 
+
+> N
+
+X
+
+> i=1
+
+ mi(xi) − s∗ 
+
+> i
+
+(r)  g′
+
+> i
+
+(mi(xi)) + λ
+
++  λ − λ∗(r) rc −
+
+> N
+
+X
+
+> i=1
+
+mi(xi) + θ 1 − Fj (xj )  g′ 
+
+> j
+
+(mj (xj )) + λ!
+
+≥
+
+
+
+μg − θL 2
+
+> g,j
+
+2βj
+
+
+
+∥m(x) − s∗(r)∥2 + θβ j
+
+2 |λ − λ∗(r)|2
+
++
+
+> N
+
+X
+
+> i=1
+
+mi(xi) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) + λ(rc − r0)+.
+
+Condition (A.21) makes the first coefficient at least μg /2. The definition of μ0 then controls both squared errors. Together with the inner-product identity derived in Substep 1, this is exactly (A.32). 
+
+Details for the one-step verification. 
+
+This paragraph proves the three model-specific conditions recorded in Appendix A.3, which in turn verify the hypotheses of Lemma A.5. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 39 
+
+Proof. For a fixed store i, abbreviate 
+
+Si(x) := 1 − Fi(x), Mi := mi( ¯Xi), wi(u) := Si
+
+ m−1 
+
+> i
+
+(u)−2.
+
+On [0 , M i], the safe-box bounds give 
+
+1 ≤ wi ≤ β−2 
+
+> i
+
+, |w′
+
+> i
+
+| ≤ 2Kiβ−4 
+
+> i
+
+.
+
+Let Hi(σ, x ) be the i-th primal summand in (A.8). Its Hessian on the middle branch is 
+
+ wi(σ) −Si(x)−1
+
+−Si(x)−1 1 +  mi(x) − σfi(x)Si(x)−2
+
+
+
+,
+
+while the left and right branches replace the off-diagonal entry by −1 and −Si( ¯Xi)−1, respectively, and have lower-right entry 1. All three Hessians are uniformly bounded. The values and first derivatives match at 
+
+x = 0 and x = ¯Xi by (A.7). Integrating the uniform Hessian bound along line segments therefore proves the differentiability and Lipschitz joint-gradient claim after summing over i and adding the dual quadratic. For the executable bounds, initialization lies in the safe box. Moreover, Ct ≥ PNi=1 Ii,t , so the water-filling map is the infimum of a nonempty closed sublevel set of a continuous piecewise-linear function of the adapted inputs and is measurable. It gives 
+
+Ii,t ≤ Yi,t ≤ max {Ii,t , X i,t },
+
+> N
+
+X
+
+> i=1
+
+Yi,t ≤ Ct.
+
+The inventory recursion and the next coordinatewise projection then preserve the safe box and adaptedness by induction. The two possible values in (3.4) give | bGi,t | ≤ Gi, and 
+
+| bG0,t | ≤ D + θ| bGj,t | ≤ D + θG j .
+
+Thus ∥ bGt∥ ≤ G. If αtG ≤ 1, every coordinate of the pre-projection update moves by at most one. Since zt
+
+lies in the safe state box and Z extends that box by one in every coordinate, this gives zt − αt bGt ∈ Z , which is the pre-projection domain condition used above. It remains to verify projection compatibility. Write qt+1 = ( σt+1 , ζ t+1 ) and put yi = m−1 
+
+> i
+
+(σi,t +1 ). The derivative ∂xHi(σi,t +1 , x ) is nonpositive on x ≤ yi and nonnegative on x ≥ yi. This follows directly from the three branches in (A.8). If the threshold representation of qt+1 lies in K(rt+1 ), projecting each primal coordinate toward [0 , U i(rt+1 )] cannot increase Hi. The dual coordinate satisfies 
+
+| Proj [0 ,λ max ](λ) − ζt+1 | ≤ | λ − ζt+1 |.
+
+Summing the coordinatewise inequalities gives (A.18), completing the verification. 
+
+Verification of the conditional mean used in (A.20) . Conditionally on Ht, demand independence gives 
+
+E[1{Di,t < Y i,t } | H t] = Fi(Yi,t ), E[1{Di,t ≥ Yi,t } | H t] = 1 − Fi(Yi,t ),
+
+E[Di,t ∧ Yi,t | H t] = mi(Yi,t ).
+
+Substitution gives the first equality in (A.20). On [0 , ¯Xi], Fi is Ki-Lipschitz and mi is one-Lipschitz. By the executable bounds in the checklist above, both Xt and Yt lie in the fixed safe rectangle Q
+
+> i
+
+[0 , ¯Xi]. Hence the stabilized field is uniformly Lipschitz there, and comparing Yt with Xt proves the bias bound. 
+
+Appendix B: Fluid Geometry and Remaining Proofs 
+
+This appendix proves the remaining fluid-geometry, implementation-gap, and tuning claims and sketches the endpoint-envelope extension. Constants depend only on fixed primitives and horizon-independent tuning. 40 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+B.1. Fluid Benchmark and Re-Solving-Path Geometry 
+
+Proof of Proposition 2.3 
+
+Proof. We first verify the two direct calculations stated before the proposition. The identities 
+
+Yi,t − Ii,t = Si,t + Ii,t +1 − Ii,t , BT +1 = W −
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+(Yi,t − Ii,t )
+
+together with Ii, 1 = 0 and ci = ki − w give 
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+ ki(Yi,t − Ii,t ) + hiIi,t +1 + bi(Di,t − Yi,t )+ + wB T +1 −
+
+> N
+
+X
+
+> i=1
+
+ciIi,T +1 
+
+= wW +
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+ ci(Di,t ∧ Yi,t ) + hi(Yi,t − Di,t )+ + bi(Di,t − Yi,t )+.
+
+Since Yt is chosen before current demand, the conditional expectation of the bracketed store–period term on the right-hand side is ℓi(Yi,t ). Taking expectations proves (2.6). Moreover, shipments only relocate inventory, whereas sales deplete it. Summing the aggregate system-inventory recursion therefore gives 
+
+BT +1 +
+
+> N
+
+X
+
+> i=1
+
+Ii,T +1 = W −
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+Si,t .
+
+Taking expectations and using Eπ [Si,t | H πt ] = mi(Yi,t ) proves (2.7). The expected-sales transformation in Section 4.2 makes gi convex and writes 
+
+v(r) = min 
+
+(X
+
+> i
+
+gi(si) : X
+
+> i
+
+si ≤ r, 0 ≤ si ≤ μi
+
+)
+
+.
+
+Hence v is convex by mixing feasible allocations and nonincreasing because its feasible set expands with r.If 0 ≤ yi ≤ ¯di, then y is feasible for the program defining v(PNi=1 mi(yi)) . If some yi > ¯di, clipping it to 
+
+¯di leaves mi(yi) unchanged and weakly decreases ℓi(yi). Therefore, in either case, 
+
+> N
+
+X
+
+> i=1
+
+ℓi(yi) ≥ v
+
+> N
+
+X
+
+> i=1
+
+mi(yi)
+
+!
+
+pointwise in y. (B.1) Apply (B.1) to the random action Yt. Taking expectations and using Jensen again, 
+
+EπNX
+
+> i=1
+
+ℓi(Yi,t ) ≥ Eπ v
+
+> N
+
+X
+
+> i=1
+
+mi(Yi,t )
+
+!
+
+≥ v EπNX
+
+> i=1
+
+mi(Yi,t )
+
+!
+
+.
+
+Summing over periods and applying Jensen across periods gives 
+
+> T
+
+X
+
+> t=1
+
+EπNX
+
+> i=1
+
+ℓi(Yi,t ) ≥
+
+> T
+
+X
+
+> t=1
+
+v EπNX
+
+> i=1
+
+mi(Yi,t )
+
+!
+
+≥ T v 1
+
+T
+
+> T
+
+X
+
+> t=1
+
+EπNX
+
+> i=1
+
+mi(Yi,t )
+
+!
+
+≥ T v (γ),
+
+where the last inequality uses PTt=1 Eπ PNi=1 mi(Yi,t ) ≤ W = γT from (2.7) and the fact that v is nonin-creasing. Finally, (2.6) implies JπT ≥ wW + T v (γ). Taking the infimum over all admissible policies proves the oracle bound. Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 41 
+
+Derivation of sales-space curvature 
+
+Derivation. For y = m−1 
+
+> i
+
+(s), (2.4) and (2.5) give 
+
+m′
+
+> i
+
+(y) = 1 − Fi(y), m′′  
+
+> i
+
+(y) = −fi(y),
+
+and 
+
+ℓ′
+
+> i
+
+(y) = ( hi + bi − ci)Fi(y) − (bi − ci), ℓ′′  
+
+> i
+
+(y) = ( hi + bi − ci)fi(y).
+
+Thus g′
+
+> i
+
+(s) = ℓ′
+
+> i
+
+(y)/m ′
+
+> i
+
+(y). Differentiating once more, 
+
+g′′  
+
+> i
+
+(s) = ℓ′′  
+
+> i
+
+(y)m′
+
+> i
+
+(y) − ℓ′
+
+> i
+
+(y)m′′  
+
+> i
+
+(y)
+
+m′
+
+> i
+
+(y)3
+
+= fi(y) (hi + bi − ci)(1 − Fi(y)) + ( hi + bi − ci)Fi(y) − (bi − ci)
+
+(1 − Fi(y)) 3
+
+= hifi(y)(1 − Fi(y)) 3 .
+
+Proof of Lemma 4.3 
+
+Proof. For the proof, define the fixed-price response 
+
+ϕi(λ) := 
+
+
+
+mi
+
+
+
+F −1
+
+> i
+
+ bi − ci − λhi + bi − ci − λ
+
+ 
+
+, λ < b i − ci,
+
+0, λ ≥ bi − ci,
+
+Φ( λ) := 
+
+> N
+
+X
+
+> i=1
+
+ϕi(λ), (B.2) and write ϕ(λ) := ( ϕi(λ)) Ni=1 . Also let 
+
+Jmax := {i : bi − ci = λmax }, Lv := X
+
+> j∈J max
+
+p2
+
+> j
+
+(hj + bj − cj )Kj
+
+!−1
+
+.
+
+These quantities depend only on the fixed model primitives. For fixed λ ≥ 0, the derivative of gi(s) + λs at s = 0 is −(bi − ci) + λ. The strict convexity in (4.1) therefore makes s = 0 the unique minimizer when λ ≥ bi − ci. When λ < b i − ci, the unique interior stationary point solves 
+
+(hi + bi − ci)Fi(y) − (bi − ci)1 − Fi(y) + λ = 0 ,
+
+which gives the formula for ϕi(λ) in (B.2). For the derivative calculation below, write 
+
+yλi := m−1 
+
+> i
+
+(ϕi(λ)) .
+
+This quantile lies strictly below ¯di, so the upper sales constraint is slack. As λ ↑ bi − ci, it decreases to zero. Hence each ϕi(λ), and therefore Φ, is continuous at every breakpoint. At the endpoints, the definitions give PNi=1 ϕi(0) = r0, while ϕi(λmax ) = 0 for every i.For λ < b i − ci, implicit differentiation gives 
+
+dϕi(λ)dλ = − (1 − Fi(yλi )) 2
+
+(hi + bi − ci − λ)fi(yλi ) .
+
+Every maximum-margin store is active for λ < λ max . For such a store j,
+
+1 − Fj (yλj ) = hj
+
+hj + bj − cj − λ ≥ pj , (hj + bj − cj − λ)fj (yλj ) ≤ (hj + bj − cj )Kj ,42 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+so summing over Jmax yields 
+
+−Φ′(λ) ≥ L−1 
+
+> v
+
+> 0 a.e. on [0 , λ max ).
+
+Conversely, 
+
+|ϕ′
+
+> i
+
+(λ)| ≤ 1
+
+hiκi
+
+where the derivative exists. Integrating on the finitely many intervals cut out by the distinct values of bi − ci
+
+shows that Φ is Lipschitz and, for 0 ≤ λ < λ ′ ≤ λmax ,
+
+Φ( λ) − Φ( λ′) ≥ L−1 
+
+> v
+
+(λ′ − λ) > 0.
+
+Thus Φ is strictly decreasing from r0 to 0, its inverse is well defined, and 
+
+|Φ−1(r′) − Φ−1(r)| ≤ Lv |r′ − r|, r, r ′ ∈ [0 , r 0].
+
+We now establish the explicit representation 
+
+(s∗(r), λ ∗(r)) = 
+
+
+
+(ϕ(Φ −1(r)) , Φ−1(r)) , 0 < r < r 0,
+
+(0, λ max ), r = 0 ,
+
+(ϕ(0) , 0) , r ≥ r0.
+
+(B.3) For 0 < r < r 0, choose λ = Φ −1(r). The coordinate minimizers sum to r and satisfy the KKT conditions, so strict convexity gives the unique global optimizer. At the other endpoint r = 0 , primal feasibility forces 
+
+s = 0. Because every sales coordinate is then at its lower boundary, stationarity requires 
+
+g′
+
+> i
+
+(0) + λ = λ − (bi − ci) ≥ 0 for every i. 
+
+Equivalently, λ ≥ max i(bi − ci) = λmax . Conversely, every λ ≥ λmax satisfies these stationarity inequalities, and complementary slackness also holds because 0 − PNi=1 si = 0 . Hence the KKT multiplier is not unique at r = 0 : its admissible set is [λmax , ∞). We select its smallest element, λ∗(0) = λmax . This convention also matches Φ−1(r) ↑ λmax as r ↓ 0, so the selected dual target joins continuously to the unique multiplier for 
+
+r > 0. This establishes (B.3), uniqueness of the primal target, and minimality of the displayed multiplier. The inverse bound is exactly the multiplier bound in Lemma 4.3(iii) on [0 , r 0], including r = 0 by the continuous endpoint selection above. The same bound holds globally because λ∗(r) = 0 on [r0, ∞). Since 
+
+|ϕ′
+
+> i
+
+(λ)| ≤ (hiκi)−1 wherever the derivative exists, the representation in (B.3) gives, for all r, r ′ ≥ 0,
+
+|s∗ 
+
+> i
+
+(r′) − s∗ 
+
+> i
+
+(r)| ≤ Lv
+
+hiκi
+
+|r′ − r|.
+
+Thus q∗ is globally Lipschitz. Finally, ϕi(λ) is nonincreasing in λ, while λ∗(r) is nonincreasing in r. Hence each s∗ 
+
+> i
+
+(r) is nondecreasing. Integration across the finitely many breakpoints makes all of these conclusions valid when several breakpoints tie. The coordinate minimization above also gives s∗ 
+
+> i
+
+(r) < μ i, the storewise activity rule, and the KKT residuals in (4.2). The representation (B.3) yields P 
+
+> i
+
+s∗ 
+
+> i
+
+(r) = min {r, r 0} and all endpoint claims in Lemma 4.3(ii). Finally, standard value sensitivity gives v′(r) = −λ∗(r). Continuity of the selected multiplier makes v
+
+continuously differentiable, and the multiplier Lipschitz bound gives the stated Lipschitz bound for v′.Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 43 
+
+B.2. Implementation Gap 
+
+Proof of Lemma 4.4 
+
+Proof. For every store and period, define the excess inventory above the preferred threshold by 
+
+ei,t := ( Ii,t − Xi,t )+.
+
+Also let 
+
+H0 := 
+
+& NX
+
+> i=1
+
+p−1
+
+> i
+
+'
+
+, ¯Xmax := max 
+
+> 1≤i≤N
+
+¯Xi.
+
+We organize the proof in four steps. 
+
+Step 1: Bound preferred-path variation and the physical state. For t < T , the update in Algorithm 1 and the feasibility identity Xi,t = Proj [0 ,U i(rt)] (Xi,t ) imply 
+
+|Xi,t +1 − Xi,t | ≤ Proj [0 ,U i(rt+1 )] (Xi,t − αt bGi,t ) − Proj [0 ,U i(rt+1 )] (Xi,t )
+
++ Proj [0 ,U i(rt+1 )] (Xi,t ) − Proj [0 ,U i(rt)] (Xi,t )
+
+≤ αt| bGi,t | + |Ui(rt+1 ) − Ui(rt)|. (B.4) The last inequality uses nonexpansiveness of projection onto a fixed interval and the elementary endpoint bound 
+
+| Proj [0 ,a ](x) − Proj [0 ,b ](x)| ≤ | a − b|, a, b, x ≥ 0.
+
+If rt ≤ D, the one-Lipschitz cap and 0 ≤ P 
+
+> i
+
+Si,t ≤ D give 
+
+|rc 
+
+> t+1
+
+− rc 
+
+> t
+
+| ≤ | rt+1 − rt| = |rt − P 
+
+> i
+
+Si,t |
+
+nt − 1 ≤ Dnt − 1 .
+
+If rt > D , then rt+1 > r t > D , so rc 
+
+> t+1
+
+= rc 
+
+> t
+
+= D. Thus, in both cases, 
+
+|rc 
+
+> t+1
+
+− rc 
+
+> t
+
+| ≤ Dnt − 1 .
+
+Because Ui(r) = ¯Xi ∧ rc/p i,
+
+|Ui(rt+1 ) − Ui(rt)| ≤ Dpi(nt − 1) .
+
+Combining this inequality with (B.4) and | bGi,t | ≤ Gi yields 
+
+|Xi,t +1 − Xi,t | ≤ Giαt + Dpi(nt − 1) .
+
+The two-sided step-size profile and nt − 1 = T − t give  
+
+> T−1
+
+X
+
+> t=1
+
+αt ≤ 2χ
+
+> ⌈T / 2⌉
+
+X
+
+> k=1
+
+1
+
+τ0 + k ≤ C log T,  
+
+> T−1
+
+X
+
+> t=1
+
+1
+
+nt − 1 = 
+
+> T−1
+
+X
+
+> k=1
+
+1
+
+k ≤ C log T. 
+
+Consequently, T −1X
+
+> t=1
+
+|Xi,t +1 − Xi,t | ≤ C log T44 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+pathwise. The water-filling formula also gives 
+
+Ii,t +1 ≤ Yi,t ≤ max {Ii,t , X i,t }.
+
+Since Ii, 1 = 0 and 0 ≤ Xi,t ≤ ¯Xi, induction yields 
+
+0 ≤ Ii,t , Y i,t , e i,t ≤ ¯Xi (1 ≤ t ≤ T ). (B.5) 
+
+Step 2: Telescope expected drainage. The water-filling formula and the physical update Ii,t +1 = ( Yi,t −
+
+Di,t )+ give (
+
+Yi,t = Ii,t , Ii,t +1 = ( Ii,t − Di,t )+, Ii,t > X i,t ,Yi,t ≤ Xi,t , Ii,t +1 ≤ Xi,t , Ii,t ≤ Xi,t .
+
+In the first case, 
+
+ei,t +1 ≤ (ei,t − Di,t )+ + |Xi,t +1 − Xi,t |,
+
+whereas in the second case ei,t = 0 and 
+
+ei,t +1 ≤ | Xi,t +1 − Xi,t |.
+
+Hence, in both cases, 
+
+ei,t +1 ≤ (ei,t − Di,t )+ + |Xi,t +1 − Xi,t |.
+
+Using a − (a − d)+ = a ∧ d, this implies 
+
+ei,t ∧ Di,t ≤ ei,t − ei,t +1 + |Xi,t +1 − Xi,t |. (B.6) Conditionally on Ht, ei,t is fixed and Di,t has law Fi, so 
+
+E[ei,t ∧ Di,t | H t] = mi(ei,t ).
+
+Taking expectations and summing (B.6) through T − 1 gives  
+
+> T−1
+
+X
+
+> t=1
+
+Emi(ei,t ) ≤ Eei, 1 − Eei,T + 
+
+> T−1
+
+X
+
+> t=1
+
+E|Xi,t +1 − Xi,t |≤ C log T, 
+
+where ei, 1 = 0 . Since mi(ei,T ) ≤ ei,T ≤ ¯Xi,
+
+> T
+
+X
+
+> t=1
+
+Emi(ei,t ) ≤ ¯Xi + C log T. (B.7) 
+
+Step 3: Convert expected drainage into cumulative excess. From fi ≤ Ki and 1 = R ¯di 
+
+> 0
+
+fi(u) d u, one has 
+
+K−1 
+
+> i
+
+≤ ¯di. For every 0 ≤ y ≤ ¯Xi, Fi(u) ≤ Kiu implies 
+
+mi(y) ≥
+
+Z y∧K−1
+
+> i
+> 0
+
+(1 − Kiu) d u ≥
+
+(
+
+y/ 2, 0 ≤ y ≤ K−1 
+
+> i
+
+,
+
+1/(2 Ki), y > K −1 
+
+> i
+
+.
+
+In the first range, y ≤ 2mi(y). In the second, y ≤ ¯Xi ≤ 2Ki ¯Ximi(y). Therefore, throughout the safe box, 
+
+y ≤ 2 max {1, K i ¯Xi} mi(y). (B.8) Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 45 
+
+Applying (B.8) to y = ei,t and using (B.7) yields 
+
+> T
+
+X
+
+> t=1
+
+Eei,t ≤ C log T. (B.9) 
+
+Step 4: Convert cumulative excess into the implementation gap. Since Xi,t − νt ≤ Xi,t , the water-filling formula gives 
+
+Yi,t > X i,t ⇐⇒ Yi,t = Ii,t > X i,t .
+
+Thus 
+
+(Yi,t − Xi,t )+ = ei,t .
+
+The clipping rule gives Xi,t ≤ Ui(rt) ≤ rt/p i. Hence, whenever nt ≥ H0,
+
+> N
+
+X
+
+> i=1
+
+Xi,t ≤ rtNX
+
+> i=1
+
+p−1 
+
+> i
+
+≤ ntrt = Ct.
+
+If water-filling binds, then P 
+
+> i
+
+Yi,t = Ct, and 
+
+X
+
+> i
+
+(Yi,t − Xi,t )+ − X
+
+> i
+
+(Xi,t − Yi,t )+ = Ct − X
+
+> i
+
+Xi,t ≥ 0.
+
+If it does not bind, then νt = 0 and Yi,t = max {Ii,t , X i,t } ≥ Xi,t , so the downward discrepancy is zero. In either case, for nt ≥ H0,
+
+∥Yt − Xt∥1 ≤ 2
+
+> N
+
+X
+
+> i=1
+
+(Yi,t − Xi,t )+ = 2 
+
+> N
+
+X
+
+> i=1
+
+ei,t . (B.10) There are at most H0 − 1 periods with nt < H 0, and (B.5) gives ∥Yt − Xt∥1 ≤ P 
+
+> i
+
+¯Xi in every such period. Combining this bound with (B.9) and (B.10) gives 
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥1 ≤ 2
+
+> T
+
+X
+
+> t=1
+> N
+
+X
+
+> i=1
+
+Eei,t + ( H0 − 1) 
+
+> N
+
+X
+
+> i=1
+
+¯Xi ≤ C log T. (B.11) Finally, 
+
+∥Yt − Xt∥2 ≤ ∥ Yt − Xt∥∞∥Yt − Xt∥1 ≤ ¯Xmax ∥Yt − Xt∥1.
+
+Summing and applying (B.11) prove the same order for the squared norm. By the definition (4.4), 
+
+IMP T ≤ C log T, 
+
+which proves (4.18). 
+
+B.3. Tuning Construction 
+
+Verification of Remark 4.2 
+
+Proof. First compute from the known primitives 
+
+pi = hi
+
+hi + bi − ci
+
+, ¯Xi = ¯di − pi
+
+2Ki
+
+, βi = κipi
+
+2Ki
+
+,μg := min  
+
+> 1≤i≤N
+
+hiκi, Lg,j := hj Kj
+
+β3
+
+> j
+
+,46 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+and choose 
+
+θ := 12 min 
+
+
+
+1, μg βj
+
+L2
+
+> g,j
+
+
+
+.
+
+This choice satisfies (A.21). The constants entering the motion cutoff can also be fixed explicitly. Put 
+
+βmin := min  
+
+> i∈[N]
+
+βi, CW := 12β2min 
+
+, Jmax := {i : bi − ci = λmax },
+
+and 
+
+Lv := X
+
+> j∈J max
+
+p2
+
+> j
+
+(hj + bj − cj )Kj
+
+!−1
+
+, Lq := Lv 1 + 
+
+> N
+
+X
+
+> i=1
+
+(hiκi)−2
+
+!1/2
+
+, Csm := 3 Lq .
+
+The metric calculation in Lemma A.3 validates the displayed choice of CW . The proof of Lemma 4.3 gives the Lipschitz constant Lq , and the fixed kernel in (A.12) has total variation Vρ = 3 , so this Csm satisfies Lemma A.4. The field and joint-smoothness envelopes G, L W are likewise obtained from the safe-box bounds. They are proof envelopes rather than additional tuning inputs. All quantities in this paragraph use only the known primitives. With the same notation as in Section A.1, take 
+
+α0 := min {1, G −1}, μ0 := 12 min {μg , θβ j }, μupd := μ0
+
+8CW
+
+> 0.
+
+Then α0G ≤ 1, and the state-update argument gives the contraction in (A.22) with modulus μupd .For any χ ≥ 1 and χ/α 0 ≤ τ0 ≤ 2χ/α 0, the step profile satisfies, whenever n = nt ≥ 2,
+
+1(n − 1) αt
+
+≤ τ0 + nχ(n − 1) ≤ 2
+
+α0
+
++ 2 .
+
+Take Cpair from the explicit formula (A.35). It depends only on (N, h, b, c, κ, K). Choose 
+
+μrec := min {μupd /2, 1/2}, χM := max 
+
+
+
+1, 32 Cpair 
+
+μupd 
+
+
+
+,χ := 1 + max 
+
+
+
+χM , 3
+
+μrec 
+
+
+
+, τ0 := 
+
+ χα0
+
+
+
+.
+
+and set 
+
+n0 := 
+
+
+
+max 
+
+
+
+8, 1 + 32 Cpair 
+
+μupd α0
+
+, 1 + 2
+
+√α0
+
+ 
+
+.
+
+These choices give χ ≥ χM , μrec χ > 3, χ/α 0 ≤ τ0 ≤ 2χ/α 0, and μrec α0 ≤ 1/2.Substituting these choices into the bounds used to establish (A.36) verifies all three inequalities in that display. Hence the state-update, motion, and Taylor remainders in (A.26) have computable primitive-only constants. This constructs horizon-independent tuning without using the demand laws. 
+
+B.4. Fixed Support Envelopes: An Extension Sketch 
+
+This subsection sketches how the proof architecture of Theorem 4.1 can be adapted when exact support endpoints are replaced by fixed certified envelopes. The purpose is to isolate the additional localization mechanism. Theorem 4.1 remains the formal guarantee for the direct safe-box formulation. Suppose that the policy is supplied fixed, horizon-independent envelopes 
+
+Dup  
+
+> i
+
+≥ ¯di, Dup := 
+
+> N
+
+X
+
+> i=1
+
+Dup  
+
+> i
+
+< ∞.Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 47 
+
+Under (2.3), the conservative choice Dup  
+
+> i
+
+= 1 /κ i is valid because 1 = R ¯di 
+
+> 0
+
+fi ≥ κi ¯di. Replace the support-dependent caps by 
+
+rc,up := min {r, D up }, U up  
+
+> i
+
+(r) := min 
+
+
+
+Dup  
+
+> i
+
+, rc,up 
+
+pi
+
+
+
+, Kup (r) := Y
+
+> i
+
+[0 , U up  
+
+> i
+
+(r)] × [0 , λ max ].
+
+The envelope implementation RAPDL up uses the same recursion as Algorithm 1, with these caps and with 
+
+bGup 0,t := rc,up  
+
+> t
+
+−
+
+> N
+
+X
+
+> i=1
+
+Si,t + θ bGj,t .
+
+Let Gθ, up denote the corresponding conditional-mean field, obtained from Gθ by replacing rc with rc,up .
+
+What is inherited from the main proof. Because Dup ≥ P 
+
+> i
+
+¯di ≥ r0, replacing rc by rc,up affects only resource states at which the fluid solution is already on its slack branch. The fluid target, the KKT path, and the backward-smoothed comparator are therefore unchanged. The projected moving-comparator inequality in Lemma A.5, the comparator-motion argument in Lemma A.6(ii), the reciprocal-step summations in Appendix A.4, and the Bellman telescope can all be reused. The implementation-gap proof also transfers after replacing its support-dependent inputs by the envelope bounds below. The genuinely new issue is that a projected threshold may lie beyond the true support, where the original global survival and mirror-metric bounds are unavailable. 
+
+Implementation-gap ingredient. The four changed inputs to the proof of Lemma 4.4 are 
+
+| bGup 0,t | ≤ Dup + θG j , 0 ≤ Xi,t , I i,t , Y i,t ≤ Dup  
+
+> i
+
+,
+
+|U up  
+
+> i
+
+(rt+1 ) − U up  
+
+> i
+
+(rt)| ≤ Dup 
+
+pi(nt − 1) , y ≤ 2 max {1, K iDup  
+
+> i
+
+} mi(y).
+
+The cap-motion case split is the same as before: when rt > D up , both capped rates lie on the constant branch. Consequently, the preferred-path variation and excess-inventory recursion in Appendix B.2 give, with an envelope-dependent constant, 
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥1 +
+
+> T
+
+X
+
+> t=1
+
+E∥Yt − Xt∥2 ≤ Cup log T. (B.12) 
+
+The additional localization mechanism. For the analysis only, introduce the barriers 
+
+x⋆i := F −1 
+
+> i
+
+(1 − pi), x(1)  
+
+> i
+
+:= F −1 
+
+> i
+
+(1 − pi/4) , x(2)  
+
+> i
+
+:= F −1 
+
+> i
+
+(1 − pi/8) .
+
+The density upper bound gives 
+
+x(1)  
+
+> i
+
+− x⋆i ≥ 3pi
+
+4Ki
+
+, x(2)  
+
+> i
+
+− x(1)  
+
+> i
+
+≥ δi := pi
+
+8Ki
+
+, 1 − Fi(x) ≥ βloc  
+
+> i
+
+:= pi
+
+8 (x ≤ x(2)  
+
+> i
+
+).
+
+Every exact or backward-smoothed comparator threshold lies below x⋆i < x (1)  
+
+> i
+
+.Let Hi(σ, x ) agree with the sales-divergence block Bi(σ, m i(x)) on [0 , x (2)  
+
+> i
+
+], and use on [−1, D up  
+
+> i
+
++ 1] the same unit-curvature quadratic continuation as in (A.8), with ¯Xi and mi( ¯Xi) replaced by x(2)  
+
+> i
+
+and mi(x(2)  
+
+> i
+
+).For constants Ai ≥ 1, define 
+
+Wloc (( σ, ζ ), (x, λ )) := 
+
+> N
+
+X
+
+> i=1
+
+
+
+Hi(σi, x i) + Ai
+
+2 (xi − x(1)  
+
+> i
+
+)2+
+
+
+
++ 12 (λ − ζ)2.
+
+Because every comparator threshold is below x(1)  
+
+> i
+
+, the base continuation and the hinge are monotone away from the comparator. Projection onto Kup (r) therefore cannot increase Wloc . The matched continuation and 48 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+the C1,1 hinge also give a Lipschitz joint gradient on the fixed extended box. The reused step-size check, with the stochastic-direction bound replaced by its fixed-envelope counterpart, keeps pre-projection points in that box. On the interior region G := {x : xi ≤ x(2)  
+
+> i
+
+∀i}, the proofs of Lemma A.3 and Lemma A.6(i) apply with survival lower bound βloc  
+
+> i
+
+. The hinge handles the complement. Indeed, if ei := ( xi − x(1)  
+
+> i
+
+)+ > 0, then 
+
+Gθi (x, λ ; r) ≥ 3hi
+
+4 .
+
+On Gc, at least one ei ≥ δi. The base terms have finite worst-case envelopes on the fixed box. First choose 
+
+c > 0 so that c(Dup  
+
+> i
+
++ 1) ≤ 3hi/8 for every i, and let B0 bound the worst-case deficit of the desired base restoring inequality, including its base-potential and residual terms. Then 
+
+AieiGθi − cA ie2 
+
+> i
+
+≥ 3hi
+
+8 Aiei.
+
+Choosing 
+
+Ai ≥ max 
+
+
+
+1, 8B0
+
+3hiδi
+
+
+
+makes the inward hinge drift pay for that exterior loss. In particular, 
+
+1{G c} ≤ 
+
+> N
+
+X
+
+> i=1
+
+e2
+
+> i
+
+δ2
+
+> i
+
+≤ CWloc .
+
+This gives localized analogues of the three bounds used in the main proof: metric and gradient control, a restoring inequality, and an operational-gap charge. Define 
+
+Rup (x, λ ; r) := X
+
+> i
+
+mi(xi) g′
+
+> i
+
+(s∗ 
+
+> i
+
+(r)) + λ∗(r) + λ(rc,up − r0)+,
+
+Γ( y; r) := X
+
+> i
+
+ℓi(yi) − v(r) + λ∗(r) X
+
+> i
+
+mi(yi) − r
+
+!
+
+.
+
+For q = ( σ, ζ ) with 0 ≤ σi ≤ mi(x⋆i ) and 0 ≤ ζ ≤ λmax , projected z ∈ K up (r), and 0 ≤ yi ≤ Dup  
+
+> i
+
+, the required schematic estimates are 
+
+∥m(x) − σ∥2 + |λ − ζ|2 + 1{G c} ≤ CWloc (q, z ),
+
+∥∇ q Wloc (q, z )∥2 + ∥∇ z Wloc (q, z )∥2 ≤ CWloc (q, z ),
+
+⟨∇ z Wloc (qη (r), z ), G θ, up (x, λ ; r)⟩ ≥ cWloc (qη (r), z ) + cRup (x, λ ; r) − Cη 2,
+
+0 ≤ Γ( y; r) ≤ C Wloc (q∗(r), z ) + Rup (x, λ ; r) + ∥y − x∥1
+
+ .
+
+The exact-to-smoothed transfer still uses the main mechanism. On G, the active-coordinate and slack-boundary-layer calculation in Lemma A.6(i) is unchanged. On Gc, joint-gradient Lipschitzness gives an 
+
+O(η) perturbation, while 1{G c} ≤ CWloc converts it to O(η√Wloc ). Young’s inequality then gives the same contraction loss and an O(η2) remainder. For the operational charge, apply the main bound first at x. Outside the true support, the additional holding term is 
+
+ℓi(y) = gi(mi(y)) + hi(y − ¯di)+.
+
+At x, this exterior case is charged by the hinge. Since ℓi and mi are Lipschitz on the fixed envelope interval, replacing x by the implemented y costs at most C∥y − x∥1.
+
+Reusing the proof architecture. Set η2 
+
+> t
+
+= αt, qt = qηt (rt), and fW loc  
+
+> t
+
+:= Wloc (qt, z t). Combining Lemma A.5, the localized ingredients above, and the comparator-motion proof of Lemma A.6(ii) gives the Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 49 
+
+same type of recursion. In that case split, Dup replaces D: below the cap the resource increment is bounded, while above it the comparator is already constant on the slack branch. Thus 
+
+E[fW loc  
+
+> t+1
+
+| H t] ≤ (1 − cα t)fW loc  
+
+> t
+
+− cα tRup (Xt, λ t; rt)+ Cα 2 
+
+> t
+
++ Cα t∥Yt − Xt∥2.
+
+The only altered Taylor estimate is 
+
+C
+
+qfW loc 
+
+> t
+
+ηt(nt − 1) 2 ≤ c
+
+8 αt fW loc  
+
+> t
+
++ Cα 2 
+
+> t
+
+,
+
+which follows from η2 
+
+> t
+
+= αt and the same large-nt bounds as in Appendix A. The reciprocal-step summations, together with (B.12), then control the localized potential and residual at logarithmic order. Finally, the Bellman telescope uses Dup in place of D. When rt > D up , both resource rates lie on the constant slack branch of v, so the Taylor remainder is zero. These calculations identify the additional ingredients needed for a fixed-envelope implementation and show how they enter the already established proof architecture. We record the route as an extension sketch rather than as a separate theorem, and formal proof could be constructed from the sketch. 
+
+B.5. Two-Rate RAPDL: An Extension Sketch 
+
+This subsection records the transfer argument for using different primal and dual step scales. It isolates the weighted-potential identity that allows the common-rate proof to be reused, rather than repeating that proof. Fix κ > 0, treated as constant as the horizon varies, and write 
+
+Pκ := diag( IN , κ), at := χx
+
+τ0 + min {t, n t} .
+
+The two-rate update is 
+
+zt+1 := Proj K(rt+1 )
+
+ zt − atPκ bGt
+
+, t < T. 
+
+Equivalently, αxt = at, αλt = κat, and χλ = κχx. Inventory decisions, observations, resource updates, and clipping sets remain those of Algorithm 1. 
+
+The weighted-potential cancellation. For the primal blocks Hi in (A.8), define 
+
+Wκ (q, z ) := 
+
+> N
+
+X
+
+> i=1
+
+Hi(σi, x i) + 12κ (λ − ζ)2.
+
+It is equivalent to the common-rate potential: 
+
+min {1, κ−1}W (q, z ) ≤ W κ (q, z ) ≤ max {1, κ−1}W (q, z ). (B.13) For any direction g = ( g1, . . . , g N , g 0),
+
+⟨∇ z Wκ (q, z ), P κ g⟩ =
+
+> N
+
+X
+
+> i=1
+
+∂xi Hi(σi, x i)gi + ( λ − ζ)g0. (B.14) Thus the factor κ in the dual step is canceled exactly by the dual weight 1/κ. The first-order Primal-Dual pairing in Lemma A.6(i) is unchanged. 
+
+What changes in the reusable bounds. The metric and gradient constants become κ-dependent through (B.13). Projection compatibility is unchanged: the primal projection is the same, and multiplying the dual 50 Lyu: Resource-Adaptive Primal-Dual Learning for OWMS Systems 
+
+square by the positive constant 1/κ preserves interval-projection monotonicity. The stochastic-direction envelope becomes 
+
+G0 := D + θG j , Gκ := 
+
+> N
+
+X
+
+> i=1
+
+G2 
+
+> i
+
++ κ2G20
+
+!1/2
+
+, ∥Pκ bGt∥ ≤ Gκ ,
+
+so the mirror quadratic term remains Oκ (a2 
+
+> t
+
+).On the comparator side, the smoothing lemma is unchanged. Weighted gradient control and (B.14) transfer the two parts of Lemma A.6, with constants CW, κ , LW,κ , and Cpair ,κ . The last constant is obtained from (A.35) by replacing the comparator-gradient envelope with its weighted counterpart. Set 
+
+a0 := min {1, G −1 
+
+> κ
+
+}, μupd ,κ := μ0
+
+8CW, κ
+
+, μκ := min {μupd ,κ /2, 1/2}.
+
+Under the reused initialization condition τ0 ≥ χx/a 0, one has at ≤ a0 and atGκ ≤ 1. The tuning construction is then reused under the substitution 
+
+(G, C W , L W , μ upd , C pair , α 0, χ ) 7 → (Gκ , C W, κ , L W,κ , μ upd ,κ , C pair ,κ , a 0, χ x).
+
+Resulting recursion and summation. Set η2 
+
+> t
+
+= at, qt = qηt (rt), and fWκ,t := Wκ (qt, z t). With Rt
+
+denoting the same nonnegative residual as in (A.26), the weighted moving-comparator calculation has the form 
+
+E[fWκ,t +1 | H t] ≤ (1 − μκ at)fWκ,t − μκ atRt
+
++ Cκ a2 
+
+> t
+
++ Cκ at∥Yt − Xt∥2.
+
+Appendix A.4 applies with at in place of αt. The implementation argument also changes only through the primal variation bound 
+
+|Xi,t +1 − Xi,t | ≤ Giat + Dpi(nt − 1) ,
+
+because the dual rate does not enter the physical excess-inventory recursion. The exact-to-smoothed compari-son, implementation-gap bound, and re-solving reduction then follow the common-rate proof with constants allowed to depend on κ.These observations indicate how the common-rate analysis extends to any fixed κ > 0. We record the transfer argument as a sketch rather than repeat the proof of Theorem 4.1.

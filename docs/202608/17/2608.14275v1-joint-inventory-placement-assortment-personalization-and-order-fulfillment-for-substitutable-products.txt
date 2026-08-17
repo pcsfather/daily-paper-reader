@@ -1,0 +1,3967 @@
+Title: Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products
+
+URL Source: https://arxiv.org/pdf/2608.14275v1
+
+Published Time: Mon, 17 Aug 2026 00:57:24 GMT
+
+Number of Pages: 58
+
+Markdown Content:
+# Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products 
+
+Mikhail Fadin Omar El Housni Huseyin Topaloglu 
+
+School of Operations Research and Information Engineering Cornell Tech, New York, NY 10044, USA 
+
+mf853@cornell.edu , oe46@cornell.edu , ht88@cornell.edu 
+
+Abstract 
+
+Modern online retailers leverage networks of distributed warehouses to rapidly fulfill cus-tomer orders. We study a problem of jointly deciding (i) how to allocate inventories across warehouses in the network subject to warehouse capacity and product supply constraints, (ii) how to dynamically select personalized product assortments based on customer prefer-ences and location, as well as real-time stock levels, and (iii) which warehouse to use to fulfill the product chosen by the customer to maximize expected profit. In our model, the firm chooses an inventory placement across warehouses at the start of the selling horizon. Customers of different types then arrive at discrete time periods over a finite time horizon according to a known distribution. When offered an assortment, each customer type chooses at most one product according to a discrete choice model. The firm then chooses a feasible warehouse from which to fulfill the chosen product, depleting its stock and earning a profit that depends on the product, customer type, and warehouse choice. For any fixed inventory placement, the optimal dynamic assortment and fulfillment policy can be characterized by a high-dimensional dynamic program, which is intractable in general. To address this, we de-velop approximation algorithms and policies with provable theoretical guarantees and strong empirical performance. Under general probabilistic choice models, we establish asymptoti-cally optimal approximation algorithms as warehouse capacities and product supplies scale. Under the multinomial logit (MNL) choice model, we obtain constant-factor approximation algorithms, with approximation factors ranging from 0.080 in the most general setting to 0.199 under stationarity and unlimited product supplies, which means that only warehouse capacity constraints are present. To the best of our knowledge, these results provide the first provably efficient algorithms for the joint inventory placement, assortment personalization, and order fulfillment problem. Computational experiments demonstrate that in practice our methods achieve near-optimal profits even for modest capacities and supply levels and, combined with simple additional heuristics, can perform even better and scale extremely well computationally. 
+
+Keywords : Assortment Optimization, Submodular Function Optimization, Multinomial Logit Model. arXiv:2608.14275v1 [math.OC] 14 Aug 2026 Contents 
+
+1 Introduction 1
+
+1.1 Our Contributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21.2 Related Literature . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51.3 Outline . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+
+2 Problem Formulation 73 Inventory-Agnostic Assortment and Fulfillment Policies 10 
+
+3.1 Fluid Approximation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11 3.2 Simple Inventory-Agnostic Assortment and Fulfillment Policy . . . . . . . . . . . 11 3.3 Proof of Theorem 3.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13 3.3.1 Preliminary Lemmas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13 3.3.2 Concluding the Proof of Theorem 3.1 . . . . . . . . . . . . . . . . . . . . 16 3.4 Proof of Theorem 3.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 3.4.1 Part A: The Constant Guarantee . . . . . . . . . . . . . . . . . . . . . . . 17 3.4.2 Part B: The Asymptotic Guarantee . . . . . . . . . . . . . . . . . . . . . 22 
+
+4 Approximation Algorithms for PPF Under a General Choice Model 24 
+
+4.1 A Fluid Relaxation for PPF . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24 4.2 Proof of Theorem 4.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25 4.3 Proof of Theorem 4.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26 
+
+5 Constant Factor Approximation for PPF Under the MNL Choice Model 27 
+
+5.1 A DR-Submodular Surrogate for the Fluid Optimum . . . . . . . . . . . . . . . . 28 5.2 The Algorithm for Theorem 5.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29 
+
+6 From Inventory-Agnostic to Inventory-Aware Policies 30 
+
+6.1 Inventory-Aware Simple Policy . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31 6.2 Other Inventory-Aware Policies . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32 6.3 Special Case: The MNL Model . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32 
+
+7 Computational Experiments 33 
+
+7.1 Experimental Setup . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33 7.2 Tested Algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34 7.3 Computational Results and Discussion . . . . . . . . . . . . . . . . . . . . . . . . 36 
+
+8 Conclusion 38 Bibliography 38 A Proof of Lemma 3.3 40 B Proof of Lemma 3.4 41 C Proof of Technical Lemmas from Section 3.3.1 41 
+
+C.1 Proof of Claim 3.6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42 C.2 Proof of Lemma 3.8 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42 C.3 Proof of Lemma 3.9 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43 
+
+D Technical results from Section 3.4 43 
+
+D.1 Proof of Claim 3.10 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43 D.2 Proof of Lemma 3.11 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44 
+
+E Performance of Policy 1 in the Non-Stationary Case 44 F Tightness of the Fluid Bound (1) 46 
+
+F.1 Tightness of the Fluid Bound under Stationarity. . . . . . . . . . . . . . . . . . . 46 F.2 Tightness of the Fluid Bound under Non-Stationarity . . . . . . . . . . . . . . . 47 
+
+G Technical Results For Section 4 48 
+
+G.1 Verifying Feasibility of the Stocking Plan in Theorem 4.1 . . . . . . . . . . . . . 48 G.2 Verifying Feasibility of the Stocking Plan in Theorem 4.2 . . . . . . . . . . . . . 48 
+
+H Proof of Lemma 5.2 49 I Proof of Lemma 5.3 49 J Proof of Lemma 5.4 50 
+
+J.1 Main Proof Argument . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 50 J.2 Proof of Lemma J.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51 J.3 Proof of Lemma J.3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51 
+
+K Final Details of the Proof of Theorem 5.1 53 L Proof of Theorem 6.2 54 
+
+ii 1 Introduction 
+
+Leading e-commerce platforms use intricate warehouse networks to strategically pre-position inventory, flexibly customize offerings, and efficiently fulfill orders for customers spanning across multiple regions. The ability to tailor the product assortment based on customer information such as location, browsing history, or past purchases is a key source of competitive advantage. From the customer’s standpoint, personalized assortments align the displayed products with individual preferences and create a more satisfying shopping experience. From the retailer’s standpoint, personalized assortments enable strategic demand shaping, steering orders away from products in short supply in nearby warehouses and toward those with excessive stock. Realizing these benefits requires coordinating several interdependent decisions. The retailer must decide how to allocate the products across warehouses, which assortment to present to each incoming customer, and from which warehouse to fulfill each chosen product, trading off shipping costs and inventory preservation for future demand. The resulting joint optimization problem captures the full cycle from inventory placement to customer choice and fulfillment. To make the setting concrete, we now describe the sequence of decisions the retailer faces over the selling horizon. From the retailer’s perspective, at the start of the selling horizon we choose how many units of each product to stock at every warehouse. During the selling horizon, different types of customers arrive stochastically. A customer type encodes any available information such as zip code, purchase history, or loyalty level. When a customer arrives, we observe their type and select a set of products to offer, based on current inventory levels at each warehouse, the customer’s type, and time elapsed in the selling horizon. The customer then makes a purchase according to a probabilistic choice model and we fulfill the chosen product from a feasible warehouse of our choice, earning a profit that may depend not only on the product, but also on the customer type and warehouse location, reflecting varying shipping costs and personalized pricing effects. Profits may be negative when shipping costs exceed revenue. Our goal is to choose an initial stocking (inventory placement) plan and a policy for selecting assortments over time and making fulfillment decisions to maximize total expected profit over the selling horizon subject to supply and capacity constraints. Here, capacity constraints limit the total inventory stored at each warehouse, and supply constraints limit the total available units of each product across all warehouses. We take the total supply of each product as an exogenous input fixed before the selling season, for example by the team responsible for procurement decisions, so that the placement decision concerns how to distribute the given supply of each product across warehouses rather than how much to procure. We refer to this joint inventory placement ,assortment personalization , and order fulfillment problem as PPF ; see Section 2 for the formal definition. We construct policies that maintain good performance under broad customer choice models and provide even stronger guarantees when choices follow the multinomial logit (MNL) model. 
+
+Fundamental challenges. Solving the PPF problem comes with several fundamental chal-lenges. First, computing the exact optimal assortment personalization and order fulfillment policy would require solving a large dynamic programming model that tracks inventory at ev-ery warehouse and is intractable for realistic problem sizes. Second, unlike most models, we 1study a setting where the profit of a sale depends simultaneously on the product purchased, the type of customer being served, and the warehouse that fulfills the order. This triadic het-erogeneity is the principal source of technical difficulty because the same product can yield different profit depending on who buys it and where it is shipped from, and because each ful-fillment decision depletes inventory at a specific warehouse and changes what can be profitably offered and fulfilled later. We must strategically balance allocation at each warehouse: stocking, assortment, and routing decisions are tightly interdependent over time, and the future marginal value of a unit of inventory, that is, the additional expected profit attributable to the last unit added over the remaining horizon, differs across products and fulfilling warehouses. This value also shifts as inventories deplete, because the worth of a unit depends on the availability of substitutes, of units at other warehouses, and on the geography-dependent shipping costs of serving customers from different warehouses, which makes the assortment and stocking deci-sions difficult. Tracking how inventory is depleted over time is substantially more involved than in models that assign revenue depending only on the product. Standard analysis shortcuts, such as uniformly scaling the fluid solution by a single common factor to control stock-out risk, no longer apply: even in the stationary regime, i.e., when the customer arrival distribution is time-homogeneous, establishing performance guarantees requires nontrivial arguments to con-trol how realized demand and purchases deviate from their fluid expectations across customer types and warehouses. In the general non-stationary regime, the difficulty is starker: natural randomized algorithms based on fluid relaxations, which suffice in simpler settings, can perform arbitrarily poorly because they ignore how profitability and feasibility shift as the horizon un-folds and inventories deplete. In addition, inventory-aware policies that always fulfill products chosen by customers and are a widely used standard both in theory and industry are extremely hard to analyze directly in this setting due to complex intertwinement of inventory depletion and assortment and fulfillment decisions. This motivates us to first develop and analyze re-laxed policies without the fulfillment guarantee, that is, without requiring that every offered product a customer chooses be fulfilled from available inventory, and then convert them into inventory-aware policies. Unlike standard settings, where removing unavailable products from an assortment only redirects demand toward other offered products and, because the revenue of a sale depends solely on the product sold, never lowers expected performance, such mono-tonicity is not apparent here, since profit also depends on the customer type and the fulfilling warehouse. Therefore, the conversion step requires a more sophisticated approach. 
+
+1.1 Our Contributions 
+
+We study the joint inventory placement, assortment personalization, and order fulfillment prob-lem, PPF , described above and develop algorithms and policies for it with provable perfor-mance guarantees and strong empirical performance. Our results are organized along two axes: whether customer arrivals are stationary , meaning the arrival distribution of customer types is time-homogeneous over the selling horizon, or non-stationary , and whether the underlying choice model is general or of the MNL type. Table 1 summarizes the resulting approximation ratio guarantees for the PPF problem. In particular, the general choice model row gives approx-imation ratios that approach one as the minimum capacity across warehouses and the minimum 2supply across products grow, while the MNL row reports explicit constant-factor guarantees, distinguishing the setting with only warehouse capacity constraints from the setting with both warehouse capacity and product supply constraints. Table 1: Approximation-ratio guarantees for the PPF problem.                                               
+
+> Choice model Stationary arrivals Non-stationary arrivals
+> WH WH+SPL WH WH+SPL General 1−2
+> rnKmin 1−2 max
+> r nKmin ,
+> rLCmin
+> 
+> 1−2
+> rnm Kmin 1−2 max
+> r nm Kmin ,
+> rLm Cmin
+> 
+> MNL 0.199 0.158 0.101 0.080 Here WH marks the setting with only warehouse capacity constraints and WH+SPL the setting with both warehouse capacity and product supply constraints; nis the number of products, mthe number of customer types, and Lthe number of warehouses, while Kmin = min ℓ∈L Kℓis the minimum storage capacity across warehouses and Cmin = min i∈N Cithe minimum supply across products. Each entry is the fraction of the optimal expected profit our policies guarantee: in the general model these bounds approach 1 as Kmin and Cmin
+> grow, whereas in the MNL model they are the stated constants.
+
+Comparison to prior work. The guarantees in Table 1 improve upon and unify several strands of prior work. The closest benchmark is Bai et al. (2025a), who study the single-warehouse problem with profits depending only on products. For general choice models they obtain a guarantee with a cubic-root convergence rate, which our results sharpen to a faster square-root rate while additionally accommodating multiple warehouses and customer-type-dependent profits. We are able to achieve this by introducing a novel joint construction that derives the stocking, assortment, and fulfillment decisions from a single fluid solution rather than sequentially. For the MNL model, Bai et al. (2025a) give a 14 (1 − 1/e ) ≈ 0.158 constant, subsequently improved by a factor of two to ≈ 0.316 by Sun et al. (2025); our constants under stationary arrivals (0 .199 without and 0 .158 with product supply constraints) are of comparable magnitude but hold in the substantially more general setting with multiple warehouses and profits that depend jointly on the product, the customer type, and the fulfilling warehouse. To handle this richer structure, we develop a sophisticated selective scaling procedure for fulfillment probabilities together with a triadic profit analysis. To obtain the guarantees for the PPF problem, we build our results in several steps, each corresponding to a key component of the analysis. We now describe these components. 
+
+Inventory-agnostic assortment and fulfillment policies (Section 3). In Section 3, we develop the key analytical and building blocks used throughout the paper. We treat the in-ventory placement as given, focusing on developing near-optimal assortment personalization and order fulfillment policies. We work with an inventory-agnostic relaxation of the problem, in which the firm may offer out-of-stock products or decline to fulfill orders after customer choices. This relaxation is used as an analytical device: we produce clean policies that are later converted into feasible, inventory-aware ones. Within this relaxed environment, we construct three policies based on a fluid relaxation, which serves as an upper bound on the maximum expected profit. Section 3 establishes that each of the three policies guarantees an expected 3profit that is at least a constant fraction of the fluid objective value. In the stationary regime, the Simple Inventory-Agnostic Policy achieves a (1 − 1/e )-approximation guarantee relative to the fluid upper bound. At a high level, the policy uses the fluid solution to guide the assort-ment and routing decisions over time. The approximation guarantee proof tracks how routing and inventory co-evolve when profitability depends on both the arriving customer type and the chosen warehouse. In the non-stationary regime, this simple policy may perform arbitrarily badly. We therefore develop a novel profit-based scaling method that selectively suppresses low-value demand while preserving flows that can be routed to yield high profit. The scaling balances reductions across customer types and warehouse locations so that it remains resilient to future stock-outs. This approach significantly outperforms the naive strategy of uniformly scaling the fluid solution by a common factor chosen to control stock-out probability. The corresponding Advanced Inventory-Agnostic Policy provides a 0 .322-approximation guarantee. Finally, we construct an asymptotically optimal policy, the Modified Inventory-Agnostic Policy ,which refines the scaling to drive the approximation ratio to one in the large inventory levels regime. These approximation guarantees serve as the foundation for the performance bounds proved under both general choice models and the MNL model. 
+
+Asymptotically optimal guarantees under general choice models (Section 4). Hav-ing developed assortment personalization and order fulfillment policies for a fixed inventory placement, we now bring the placement decision back into the picture and study the full joint problem. In this section, we develop approximation algorithms for the PPF problem under a general choice model. Departing from the conventional two-stage approach, where one first se-lects an approximately optimal inventory placement and then uses an assortment and fulfillment policy with its own approximation guarantees, we base both the inventory placement decision and the dynamic assortment and fulfillment policy on an optimal solution of a joint fluid relax-ation. Our construction leverages policies from Section 3. Unlike the analyses used in simpler single-warehouse settings such as Bai et al. (2025a), which bound inventory consumption as a fraction of the maximum stock, our analysis focuses on the absolute deviations between expected demand and the realized (random) cumulative inventory consumption across the horizon. This tighter coupling yields square-root convergence rates in the minimum warehouse capacity Kmin 
+
+and product supply Cmin , which is the benchmark in closely related revenue management set-tings, and significantly improves the cubic-root rate of Bai et al. (2025a) obtained only for the single-warehouse setting with profits depending only on products. 
+
+Constant-factor guarantees under the MNL choice model (Section 5). For the MNL choice model, we first optimize the inventory placement by introducing a surrogate objective that we prove to be monotone DR-submodular even with customer-type-dependent profits. This enables a provably good polynomial-time approximation using classical submodular opti-mization algorithms. We then apply assortment and fulfillment policies from Section 3. This framework yields strong approximation algorithms whose performance depends on whether ar-rivals are stationary and on whether the setting imposes only warehouse capacity constraints or both warehouse capacity and product supply constraints. Approximate numerical guarantees are showcased in Table 1. 4Conversion to inventory-aware policies (Section 6). As mentioned before, policies built in Section 3 are inventory-agnostic: they may offer out-of-stock products or decline to fulfill orders after customer choices. To address this, Section 6 presents a universal conversion that maps any inventory-agnostic policy from Section 3 to a fully inventory-aware policy that never offers out-of-stock products and always fulfills any product it offers if chosen by the customer. Crucially, the conversion preserves expected profit. As a result, all guarantees proven in Sec-tions 4 and 5 translate directly into guarantees for feasible policies for the original PPF problem. The key idea is to offer, in place of the assortment the inventory-agnostic policy would show, a randomized assortment over currently available products that matches the per-product pur-chase probabilities induced by that policy’s intended assortment; since these probabilities are preserved exactly, so is the expected profit. 
+
+Computational experiments (Section 7). To complement our theoretical guarantees, we conduct extensive computational experiments. These experiments validate our framework and show that our policies are highly effective in practice. The results demonstrate that our fluid-based joint optimization algorithms are empirically near-optimal, consistently achieving per-formance that approaches the fluid upper bound in large-scale settings. We also show that the empirical performance systematically improves as the problem scales. Here, scaling refers to increasing the horizon length and correspondingly scaling product inventory and warehouse capacities, which makes the fluid approximation more accurate and highlights the asymptotic behavior implied by our theoretical results. 
+
+1.2 Related Literature 
+
+Early work on joint assortment and inventory decisions dates back at least to Honhon et al. (2010) who study joint assortment and inventory decisions under a rank-based substitution model in which customers move down a customer-type-dependent preference list when higher-ranked products stock out. Several subsequent papers enrich the choice model at the cost of assuming uniform customer preferences. In Topaloglu (2013), the retailer selects both stocking quantities and assortments over a finite selling horizon, and customers choose among the offered products according to the MNL model. Mouchtaki et al. (2026) consider joint assortment and inventory planning under the Markov chain choice model. These papers enlarge the class of choice models under which optimal joint assortment and inventory decisions can be tractably approximated but they do not incorporate customer-type-specific assortment personalization. By contrast, in a static two-stage assortment problem, El Housni and Topaloglu (2023) first select a cardinality-constrained set of products to carry and then, for a single random customer visit, offer a type-specific subset after observing the customer’s type. Our work is most closely connected to the relatively recent stream that couples offline stock-ing with personalized online offering, typically analyzed via a choice-based linear program. We generalize the setting from Bai et al. (2025a), where joint assortment optimization and stock-ing decision is studied with one warehouse and revenues dependent only on products. They introduce a novel framework for a constant factor approximation under the MNL choice model involving optimizing a DR-submodular surrogate to get near-optimal stocking quantities, which 5they then combine with a simple personalization policy with a provable constant-factor approx-imation guarantee. In addition, they construct the first asymptotically optimal approximation algorithm for general choice models with cubic-root convergence rate. Sun et al. (2025) improve the constant factor approximation guarantees of the assortment-personalization policy of Bai et al. (2025a) and develop a more efficient stocking policy, improving the overall approximation guarantee by a factor of two. Building on that foundation, we study the same joint stocking-personalization paradigm but in a networked fulfillment setting where the per-sale profit depends jointly on the product, the arriving customer type, and the fulfillment location. We generalize the results above to this more complex setting and dramatically improve the approximation guarantee under general choice models. Parallel work by Huang et al. (2024) studies the same joint assortment and inventory prob-lem when resources are reusable; they show that similar surrogates and submodular structure yield constant-factor approximations in that setting under some usage-duration assumptions. Although our paper focuses on single-use units rather than reusable ones, their perspective underscores that the fluid-guided approach extends beyond the single-use case. There is also a line of work that jointly optimizes assortment (or broader demand-shaping decisions) and fulfillment. Lei et al. (2022) study a joint product-framing and fulfillment problem under the MNL choice model. They take the initial inventory distribution across multiple fulfillment centers as given. Over time, the retailer chooses how to display products and, should the customer choose some product, where to fulfill the order from. Their heuristic, derived from a deterministic relaxation, is shown to be asymptotically optimal. Their model highlights the benefit of coordinating demand shaping with fulfillment routing, though it does not consider offline placement decisions. A related body of work studies order fulfillment in e-commerce networks in isolation: given realized demand, the retailer routes each accepted order across geographically dispersed ful-fillment centers to control shipping and handling cost, often through linear-programming re-laxations and rounding. Acimovic and Graves (2015) propose a heuristic that makes real-time fulfillment decisions, using opportunity-cost estimates from a linear-programming relaxation to account for the value of reserving inventory for future demand, while Jasin and Sinha (2015) develop an LP-based correlated rounding scheme with provable guarantees for multi-item ful-fillment. These models take assortment, prices, and inventory placement as given and optimize routing alone; our setting embeds such a fulfillment decision but jointly optimizes it together with inventory placement and assortment personalization. A growing body of literature studies joint placement and fulfillment. Bai et al. (2025b) ana-lyze a multi-warehouse setting in which the retailer chooses an offline placement of inventory and then, upon each arrival, selects both a delivery promise, which influences conversion probability, and a fulfillment center. They obtain constant-factor and asymptotically optimal approxima-tion guarantees. In related work, Epstein and Ma (2024) consider optimizing the placement of products across multiple warehouses in anticipation of a downstream online matching algorithm governing fulfillment. They show a constant-factor approximation to optimal joint placement-fulfillment performance for a fixed choice of the downstream online policy, so the remaining problem is to choose the offline placement that performs well under that given online policy. 6Separately, in work developed concurrently with and independently of ours, Zuo et al. (2026) study joint inventory allocation and dynamic assortment optimization across multiple stores. Their joint model is a substantially restricted special case of ours: after the initial allocation, stores operate independently; each store serves a fixed number of customers who are homoge-neous within the store; there is no customer-level personalization or fulfillment decision; and their joint results assume the MNL choice model. Exploiting this structure, they obtain guar-antees for this special case and also study non-adaptive assortment policies. Taken together, these strands of literature highlight the importance of coordinating as-sortment, inventory placement (stocking), and fulfillment decisions. Existing models typically optimize at most two of these components at a time, rely on restrictive demand or network structures, or do not incorporate customer-type-dependent personalization. Our work con-tributes by studying a very general joint inventory placement, assortment personalization, and order fulfillment setting and providing approximation guarantees under both the MNL and gen-eral choice models, often improving existing guarantees even though we consider a much more general problem setting. 
+
+1.3 Outline 
+
+In Section 2, we formulate our model. In Section 3, we develop assortment personalization and order fulfillment policies with approximation guarantees, which we then use in Sections 4 and 5 to obtain approximation algorithms for the PPF problem. In Section 4, we provide approxi-mation algorithms which are asymptotically optimal under a general choice model as product supplies and warehouse capacities scale. In Section 5, we build constant-factor approximation algorithms under the MNL choice model. In Section 6, we convert all of our assortment per-sonalization and order fulfillment policies into inventory-aware ones; this conversion preserves the expected performance. In Section 7, we present computational experiments. In Section 8, we conclude and discuss possible future research directions. 
+
+2 Problem Formulation 
+
+We consider a firm that sells n products, indexed by N = {1, . . . , n }, from a network of L
+
+warehouses, indexed by L = {1, . . . , L }. The firm serves m distinct types of customers, indexed by M = {1, . . . , m }. The profit from delivering product i ∈ N to a customer of type j ∈ M from warehouse ℓ ∈ L , denoted by rℓij , may depend on all three parameters, reflecting varying shipping costs which depend on the product itself, warehouse and customer location, incorporated in the customer type. The problem unfolds over a finite selling horizon of T discrete time periods, indexed by 
+
+T = {1, . . . , T }. In each time period t ∈ T , a customer of type j arrives with probability 
+
+λjt ; with probability 1 − P 
+
+> j∈M
+
+λjt , no customer arrives. Arrivals are independent across time periods. Let τj = PTt=1 λjt denote the expected number of type-j customer arrivals over the horizon. When a customer of type j is offered an assortment of products S ⊆ N , she chooses product 
+
+i ∈ S with probability ϕij (S), given by a discrete choice model ϕ. Choices of different customers 7are independent across time periods. Should the customer choose some product i, the firm must fulfill it from a warehouse ℓ that has positive inventory of product i, depleting the corresponding stock by one unit and earning a profit of rℓij , which is not required to be non-negative, as discussed in Section 1. Throughout this work, we assume the choice model satisfies weak substitutability, meaning that adding a new product to an assortment does not increase the choice probability of existing products. Formally, for any assortment S ⊆ N , any product k / ∈ S, and any product i ∈ S, we have ϕij (S ∪ { k}) ≤ ϕij (S). We also assume that for any assortment S ⊆ N , and any product 
+
+k / ∈ S, we have ϕkj (S) = 0. These are standard properties satisfied by all random utility choice models (RUM), including the MNL model, which is of particular interest in our work. The firm seeks to maximize its total expected profit over the selling horizon by making two sets of decisions: (i) a static stocking (inventory placement) decision at the beginning of the horizon, determining the quantity of each product to stock at each warehouse, and (ii) a dynamic policy for assortment personalization and order fulfillment. Assortment personalization refers to choosing which subset of products to offer to each arriving customer, while order fulfillment refers to deciding which warehouse ships a chosen product. The initial stocking decisions are subject to two types of constraints: each warehouse ℓ has a finite storage capacity of Kℓ units, and each product i has a total supply limit of Ci units across all warehouses. The dynamic policy specifies which assortment to offer and from which warehouse to ship each product i ∈ N ,should it be chosen, for any customer arrival depending on the customer type, the time period, and the remaining inventory levels. To formalize the dynamic policy problem for a fixed initial inventory vector, we construct a dynamic program. Let the state of the system at the beginning of time period t be the vector of inventory levels x = ( xℓi : i ∈ N , ℓ ∈ L ), where xℓi denotes the inventory level of product i at warehouse ℓ. In each time period t, if a customer of type j arrives, the decision-maker takes an action ( S, f ), where S ⊆ N is the assortment of products to offer and f : S → L is a fulfillment function that maps each product in the assortment to a warehouse. A decision ( S, f ) is feasible at the state x if there is positive inventory for each product at its assigned warehouse, i.e., 
+
+xf (i) 
+
+> i
+
+> 0 for all i ∈ S. Let I(x) denote the set of all such feasible decisions. Let Jt(x) be the maximum total expected profit from time periods t, . . . , T , given state x
+
+at the beginning of time period t. The value functions satisfy the following dynamic program: 
+
+Jt(x) = X
+
+> j∈M
+
+λjt max  
+
+> (S,f )∈I(x)
+
+(X
+
+> i∈S
+
+ϕij (S)
+
+h
+
+rf (i) 
+
+> ij
+
++ Jt+1 (x − ef (i) 
+
+> i
+
+)
+
+i
+
++ 1 − X
+
+> i∈S
+
+ϕij (S)
+
+!
+
+Jt+1 (x)
+
+)
+
++
+
+1 − X
+
+> j∈M
+
+λjt 
+
+ Jt+1 (x),
+
+with the boundary condition JT +1 (x) = 0 for all x. Here, eℓi denotes the unit vector correspond-ing to product i at warehouse ℓ. On the right side of the equation, a customer of type j arrives in time period t with probability λjt . If the firm offers assortment S to her, she chooses product 
+
+i ∈ S with probability ϕij (S) and one unit of product i is depleted from warehouse f (i), yielding a profit of rf (i) 
+
+> ij
+
+. The customer does not choose a product with probability 1 − P 
+
+> i∈S
+
+ϕij (S) and 8there is no customer arrival in time period t with probability 1 − P 
+
+> j∈M
+
+λjt . In either of those cases, no inventory is consumed and the firm gains no profit. By rearranging terms and factoring out Jt+1 (x), we can write the dynamic program more compactly as: 
+
+Jt(x) = Jt+1 (x) + X
+
+> j∈M
+
+λjt max  
+
+> (S,f )∈I(x)
+
+(X
+
+> i∈S
+
+ϕij (S)
+
+h
+
+rf (i) 
+
+> ij
+
++ Jt+1 
+
+
+
+x − ef (i)
+
+> i
+
+
+
+− Jt+1 (x)
+
+i)
+
+.
+
+The firm’s overall problem is to choose an initial inventory vector c = ( cℓi : i ∈ N , ℓ ∈ L ) and an inventory-aware assortment and fulfillment policy to maximize the total expected profit, subject to capacity and supply constraints. Therefore, the Joint Inventory Placement, Assortment Personalization, and Order Fulfillment Problem, which we refer to as PPF , can be stated as: OPT = max 
+
+> c∈ZnL
+> +
+
+(
+
+J1(c) : X
+
+> i∈N
+
+cℓi ≤ Kℓ ∀ℓ ∈ L , X
+
+> ℓ∈L
+
+cℓi ≤ Ci ∀i ∈ N 
+
+)
+
+. (PPF) 
+
+Here, OPT denotes the optimal total expected profit of the PPF problem, obtained by maxi-mizing J1(c) over all feasible initial inventory vectors c. The state space of the dynamic program grows exponentially with the number of products and warehouses, making the direct computa-tion of J1(c) and the solution of the PPF problem intractable for realistically sized problems. This computational challenge necessitates the development of approximation methods. Our ap-proach, detailed in the subsequent sections, focuses on finding a near-optimal initial inventory placement c and a corresponding high-performance dynamic policy for assortment personal-ization and fulfillment. We assume the existence of a polynomial-time oracle for solving the single-period assortment optimization problem for the choice model: given a customer type 
+
+j and per-product rewards, it returns an assortment S ⊆ N that maximizes the customer’s expected reward under ϕ. This is a standard assumption satisfied by many choice models, including the multinomial logit model. In the next sections, we separate solving the PPF problem into making a near-optimal stocking decision c and building a near-optimal assortment personalization and fulfillment policy for it. However, instead of directly constructing a feasible policy, we first construct a policy for the relaxed problem, where the firm is not required to fulfill customer orders, which also implies that the firm is allowed to include out-of-stock products in offered assortments. These policies are then converted to those that fulfill any offered product if it is chosen by a customer, as required in the original problem, by using the technique from Section 6. The conversion preserves expected profit and thus maintains the performance guarantees. Note that allowing the firm to decline fulfilling customer orders is equivalent to maintaining the fulfillment requirement but adding a virtual warehouse, labeled as L + 1, with infinite stock of each product, and zero profit for all products and customer types. Declining an order in the original setting is equivalent to choosing to fulfill the order from the virtual warehouse in the relaxed setting. Throughout the paper, we consider this relaxed setting, denoting the extended set of warehouses as L+ = L ∪ { L + 1 }. We call assortment and fulfillment policies which are guaranteed not to use the virtual warehouse inventory-aware . These policies directly 9correspond to feasible policies in the original setting. Assortment and fulfillment policies without this guarantee are called inventory-agnostic . Working in this relaxed setting with warehouse set 
+
+L+, let J∗ 
+
+> 1
+
+(c) be the optimal expected profit of the relaxed PPF problem for a fixed placement c,and let OPT ∗ = max c J∗ 
+
+> 1
+
+(c) be its optimum over feasible placements. Restricting attention to inventory-aware policies in the relaxed setting gives exactly J1(c) and OPT, as defined earlier. Sections 3, 4, and 5 work with the relaxed, inventory-agnostic values J∗ 
+
+> 1
+
+(c) and OPT ∗, and Section 6 converts the resulting policies back to inventory-aware ones. By definition, J1(c) ≤
+
+J∗ 
+
+> 1
+
+(c) and OPT ≤ OPT ∗. In a slight abuse of notation, we refer to these relaxed problems simply as the assortment and fulfillment problem and the PPF problem, dropping the word “relaxed”. In Section 3, we build inventory-agnostic assortment and fulfillment policies with provable performance guarantees. We then utilize these policies to build approximation algorithms for the PPF problem in Sections 4 and 5. Finally, we show how to convert these policies into inventory-aware ones, while preserving the expected profit, in Section 6. 
+
+3 Inventory-Agnostic Assortment and Fulfillment Policies 
+
+In this section, we focus on a key block in our approximation framework: developing inventory-agnostic assortment and fulfillment policies and establishing their performance guarantees. These policies are then converted to inventory-aware ones using the technique from Section 6. As discussed in Section 2, the dynamic program for the assortment and fulfillment problem is intractable to solve directly due to exponentially growing state space. Instead, we focus on developing approximately optimal policies. We treat the inventory placement c as given and fixed, establishing approximation guaran-tees that depend on whether customer arrivals are stationary and whether the minimum positive product inventory cmin = min {cℓi : i ∈ N , ℓ ∈ L , c ℓi > 0}, the smallest number of units of any product stocked at any warehouse, is large. The all-zero placement is trivial, so we assume that cmin > 0. We use the lowercase cmin for this realized stocking quantity to distinguish it from the minimum product supply Cmin and the minimum warehouse capacity Kmin . In the special case of stationary arrivals (i.e., λjt = λj for all t), we develop a policy with the following performance guarantee. 
+
+Theorem 3.1 (Performance Guarantee Under Stationarity). Under a general choice model and the stationarity assumption, we can compute a max 
+
+n
+
+1 − 1 
+
+> e
+
+, 1 − 1√cmin 
+
+o
+
+-approximate assortment and fulfillment policy in polynomial time. 
+
+Without the stationarity assumption, we establish the following result. 
+
+Theorem 3.2 (Performance Guarantee Under Non-Stationary Arrivals). Under a general choice model, we can compute a max 
+
+n
+
+0.322 , 1 − m+1 √cmin 
+
+o
+
+-approximate assortment and fulfillment policy in polynomial time. 
+
+As a reminder, we work in the relaxed setting with added virtual warehouse L + 1, and both approximation guarantees are with respect to J∗ 
+
+> 1
+
+(c). Our approach consists of two key steps: (1) formulate a fluid approximation that provides an upper bound on the maximum expected profit, and (2) use its solution to design randomized inventory-agnostic policies. 10 3.1 Fluid Approximation 
+
+First, we relax the discrete stochastic problem of determining an optimal assortment and ful-fillment policy into a continuous optimization problem where the decision variables represent expected flows rather than discrete decisions. Consider the following fluid approximation: LP( c) = max 
+
+> w,y ≥0
+
+X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L +
+
+rℓij yℓij : X
+
+> j∈M
+
+yℓij ≤ cℓi , ∀i ∈ N , ℓ ∈ L ;
+
+X
+
+> S⊆N
+
+ϕij (S) wj (S) = X
+
+> ℓ∈L +
+
+yℓij , ∀i ∈ N , j ∈ M ;
+
+X
+
+> S⊆N
+
+wj (S) = τj , ∀j ∈ M 
+
+
+
+(1) 
+
+Interpretation of Variables and Constraints. In LP (1), yℓij represents the expected number of type-j customers buying product i served from warehouse ℓ, and wj (S) represents the expected number of times we show assortment S to type-j customers. The first constraint ensures we cannot sell more in expectation than the available inventory, the second constraint ensures flow balance between expected assortment offerings and sales, and the third constraint ensures the total expected number of assortment offerings equals the expected number of arrivals for each customer type. The number of decision variables in (1) grows exponentially with the number of products but (1) can be solved in polynomial time under the assortment optimization oracle assumption using column generation. In the following lemma, proven in Appendix A, we formally establish that this LP provides an upper bound on the optimal expected profit. 
+
+Lemma 3.3. For any inventory placement c, we have J∗ 
+
+> 1
+
+(c) ≤ LP( c).
+
+Throughout the paper, whenever we write ( ˆ w, ˆy), we refer to a feasible solution to (1). Without loss of generality, we further always assume rℓij ˆyℓij ≥ 0 for all i ∈ N , j ∈ M , ℓ ∈ L +;if rℓij < 0, we can set ˆ yℓij = 0 and transfer its value to ˆ yL+1  
+
+> ij
+
+, the variable corresponding to the expected sales of product i to type-j customers from virtual warehouse with corresponding profit of zero, without decreasing the objective value, while maintaining feasibility. 
+
+3.2 Simple Inventory-Agnostic Assortment and Fulfillment Policy 
+
+We prove Theorem 3.1 by constructing an inventory-agnostic probabilistic policy using a feasible solution to the fluid approximation (1), which we denote as ( ˆ w, ˆy). The policy’s design follows a natural, two-stage randomization. First, upon the arrival of a type-j customer, we sample an assortment S from a distribution proportional to ˆwj (S). Second, if the customer chooses product i, we must select a warehouse for fulfillment. The variables ˆ yℓij from the fluid solution represent the target expected sales from each warehouse and serve as a natural guide for this decision; we therefore select warehouse ℓ with probability proportional to ˆ yℓij .Let ( w∗, y∗) be an optimal solution to (1). While to prove Theorem 3.1 we simply use ( ˆ w, ˆy) = ( w∗, y∗), we use non-optimal feasible solutions when building an asymptotically opti-mal joint policy in Section 4. Moreover, as we show in Appendix E, when using this policy in the case of non-stationarity, it is beneficial to use a scaled optimal solution: ( ˆ w, ˆy) = α(w∗, y∗), 11 for a tuning parameter α ∈ (0 , 1] (with a slight modification of increasing ˆ wj (∅) as needed to satisfy the third constraint in (1)). Note that this scaled solution, after the modification, is still a feasible solution to (1) but not necessarily an optimal one. Hence it is beneficial to formulate and analyze our policy in the more general case of using some feasible solution. A key challenge in our approach is the risk of cannibalization : myopically fulfilling an order might deplete stock that would be better reserved for a future, more profitable demand. As shown later in the paper this risk is significant in the non-stationary setting, where our policy can perform arbitrarily poorly when we choose ( ˆ w, ˆy) to be an unscaled optimal solution to (1). However, the stationarity assumption fundamentally changes the problem dynamics. It implies that the sequence of demands is probabilistically identical over time, which mitigates the risk of cannibalization, as there is no strategic benefit to reserving inventory for “later” versus “earlier” demands. This property allows our simple randomized policy to achieve a strong performance guarantee. We now formally define the policy. 
+
+Policy 1: Simple Inventory-Agnostic Assortment and Fulfillment Policy 
+
+• Input: A feasible solution ( ˆ w, ˆy) to the fluid approximation (1). 
+
+• Execution: In each time period t ∈ T , if a customer of type j arrives: 1. Offer Assortment: Sample an assortment ˆS ∼ qj , where qj is the distribution over subsets S ⊆ N defined by qj (S) = ˆ wj (S)/τ j , and offer ˆS to the customer. 2. Fulfill Order: If the customer chooses product i ∈ ˆS:(a) Select Warehouse: Sample a warehouse ℓ ∈ L + from the fulfillment distribution 
+
+ρij over L+ defined by: 
+
+ρij (ℓ) = ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+.
+
+(b) Attempt Sale: If the selected warehouse ℓ has a positive stock level for product 
+
+i, fulfill the order. Otherwise, a stockout occurs, sell from the virtual warehouse instead. Let us first analyze the expected demand generated by the policy. We define Zℓij as the random variable for the total demand generated for product i from (non-virtual) warehouse ℓ by type-j
+
+customers over the selling horizon. Let Zℓi = P 
+
+> j∈M
+
+Zℓij be the total demand for product i at warehouse ℓ, which we call the ( i, ℓ )-demand . Analogously, we let ¯Zℓij denote the number of units of product i actually sold to type-j customers from warehouse ℓ, and ¯Zℓi = P 
+
+> j∈M
+
+¯Zℓij the total ( i, ℓ )-sales ; the fulfillment guarantees throughout this section bound ¯Zℓi from below, and we use this ( i, ℓ )-demand and ( i, ℓ )-sales shorthand from here on. The following lemma, proven in Appendix B shows that the expected values of these random variables match the variables in the fluid solution. This result holds for both stationary and non-stationary arrivals. 12 Lemma 3.4 (Expected Demand). For any i ∈ N , j ∈ M , ℓ ∈ L , the expected demand under Policy 1 is given by E[Zℓij ] = ˆ yℓij . Consequently, the total expected demand for product i at warehouse ℓ is E[Zℓi ] = P 
+
+> j∈M
+
+ˆyℓij .
+
+3.3 Proof of Theorem 3.1 
+
+We now analyze the performance of Policy 1 under the stationarity assumption, i.e., λjt =
+
+λj for all t ∈ T . This assumption is pivotal because it implies that the demand process is probabilistically uniform over time, which greatly simplifies the analysis of expected profit lost to stockouts. 
+
+3.3.1 Preliminary Lemmas 
+
+Since total expected profit decomposes into sum of expected profits from each product-warehouse pair, our analysis is going to focus on evaluating and bounding such expected profit. Let ¯Zℓij be the random variable for the total number of units of product i sold to type-j cus-tomers from warehouse ℓ. The total realized profit from this pair ( i, ℓ ) is the random variable ¯Rℓi = P 
+
+> j∈M
+
+rℓij ¯Zℓij . The following lemma provides an exact expression for E[ ¯Rℓi ], which is crucial for providing performance guarantees. 
+
+Lemma 3.5 (Expected Profit Under Stationarity). Under the stationarity assumption, whenever E[Zℓi ] > 0, the expected total realized profit from product i at warehouse ℓ is given by 
+
+E[ ¯Rℓi ] = 
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+
+
+1 − E[( Zℓi − cℓi )+]
+
+E[Zℓi ]
+
+
+
+.
+
+To prove this lemma, we first need to establish the conditional probability of an arriving customer’s type, given that a demand occurs for product i at warehouse ℓ. Let Djt be the indicator that a customer of type j arrives at time period t, and let Iℓit be the indicator of a demand for product i assigned to warehouse ℓ at time period t.
+
+Claim 3.6. Under stationarity, we have 
+
+P(Djt = 1 | Iℓit = 1) = ˆyℓij 
+
+P 
+
+> j′∈M
+
+ˆyℓij ′
+
+.
+
+The proof of this claim can be found in Appendix C.1 
+
+Proof of Lemma 3.5. In this proof, we treat product i and warehouse ℓ as fixed and, for no-tational convenience, whenever we say “demand”,“sale(s)”, or “profit”, we only consider de-mand/sale(s) for product i from warehouse ℓ. Before we begin our proof, we define the following random variables, which are necessary for our proof. 
+
+• ¯Zℓi = P 
+
+> j∈M
+
+¯Zℓij is the total sales. 
+
+• Rℓi is the total potential profit if all demand is met. 13 • Rℓi,t is the potential profit from a demand at time period t. If the customer arriving at time period t is of type j, the value of this variable is rℓij .
+
+• N ℓik for k = 1 , . . . , T is the time period at which the k-th demand occurs. If total demand is less than k, we set N ℓik = + ∞.Our goal is to find an expression for E[ ¯Rℓi ]. We express the total realized profit as the total potential profit minus the total profit lost from demands that occur after inventory is depleted: 
+
+E[ ¯Rℓi ] = E[Rℓi ] − E[Total Lost Profit] .
+
+From Lemma 3.4, the expected potential profit is E[Rℓi ] = P 
+
+> j∈M
+
+rℓij E[Zℓij ] = P 
+
+> j∈M
+
+rℓij ˆyℓij . The main challenge is to evaluate the expected total lost profit. A loss only occurs if the total demand Zℓi exceeds the capacity cℓi . Writing k = Zℓi for the realized total demand, when k > c ℓi
+
+the demands from customers arriving at time periods N ℓi,c ℓi +1 , . . . , N ℓik are unfulfilled. By the law of total expectation, 
+
+E[Total Lost Profit] = 
+
+> T
+
+X 
+
+> k=cℓi+1
+
+P(Zℓi = k) · E
+
+
+
+> k
+
+X 
+
+> v=cℓi+1
+
+Rℓi,N ℓiv 
+
+Zℓi = k
+
+ .
+
+To evaluate the conditional expectation, we further condition on the exact ordered set of time periods Qk = {qcℓi +1 , . . . , q k} at which these unfulfilled demands occur. Let the event that these specific times occurred be EQk := {N ℓiv = qv}kv=cℓi +1 . By the law of total expectation, averaging over all admissible orderings Qk, we then have: 
+
+E
+
+
+
+> k
+
+X 
+
+> v=cℓi+1
+
+Rℓi,N ℓiv 
+
+Zℓi = k
+
+ = X
+
+> Qk
+
+P(EQk | Zℓi = k)
+
+> k
+
+X 
+
+> v=cℓi+1
+
+E
+
+h
+
+Rℓi,q v | Zℓi = k, EQk
+
+i
+
+. (2) Under our policy and the stationarity assumption, the demand at any time period t is an independent Bernoulli trial. As shown in the proof of Claim 3.6, the success probability is constant, p = P(Iℓit = 1) = 1
+
+> T
+
+P 
+
+> j∈M
+
+ˆyℓij . The event Zℓi = k is equivalent to observing exactly k
+
+successes in T trials. Intuitively, because these trials are independent, conditioning on the total number of successes and the locations of all successes does not alter the properties of a specific success. We now formalize this intuition and prove that for any qv ∈ Qk, the following equality holds: 
+
+E
+
+h
+
+Rℓi,q v | Zℓi = k, EQk
+
+i
+
+= E
+
+h
+
+Rℓi,q v | Iℓi,q v = 1 
+
+i
+
+.
+
+To prove this equality rigorously, note that 
+
+E
+
+h
+
+Rℓi,q v | Zℓi = k, EQk
+
+i
+
+= X
+
+> j∈M
+
+rℓij · P(Dj,q v = 1 | Zℓi = k, EQk ).
+
+The event {Zℓi = k, EQk } tells us that a demand for product i from warehouse ℓ occurs at time period qv, i.e., Iℓi,q v = 1; it reveals nothing further about time period qv, and any information it carries about the other time periods is irrelevant to the customer’s type at qv. Indeed, because the trials are independent across time periods and the customer’s type at time period 14 qv depends only on the random events at that time period, only the event Iℓi,q v = 1 is relevant to the distribution of the customer’s type at qv. Hence, we have 
+
+P(Dj,q v = 1 | Zℓi = k, EQk ) = P(Dj,q v = 1 | Iℓi,q v = 1) .
+
+Substituting this back into the expectation gives: 
+
+E
+
+h
+
+Rℓi,q v | Zℓi = k, EQk
+
+i
+
+= X
+
+> j∈M
+
+rℓij · P(Dj,q v = 1 | Iℓi,q v = 1) = E
+
+h
+
+Rℓi,q v | Iℓi,q v = 1 
+
+i
+
+,
+
+as desired. This conditional expectation is the expected potential profit from a single demand, which, from Claim 3.6, is a constant value independent of time period: 
+
+E[Rℓi,q v | Iℓi,q v = 1] = X
+
+> j∈M
+
+rℓij · P(Dj,q v = 1 | Iℓi,q v = 1) = 
+
+P 
+
+> j∈M
+
+rℓij ˆyℓij 
+
+E[Zℓi ] .
+
+Therefore, we have 
+
+E
+
+h
+
+Rℓi,q v | Zℓi = k, EQk
+
+i
+
+=
+
+P 
+
+> j∈M
+
+rℓij ˆyℓij 
+
+E[Zℓi ] .
+
+Since this value is constant for each of the k − cℓi unfulfilled demands, the inner sum in (2) becomes: kX 
+
+> v=cℓi+1
+
+E
+
+h
+
+Rℓi,q v | Zℓi = k, EQk
+
+i
+
+= ( k − cℓi ) ·
+
+P 
+
+> j∈M
+
+rℓij ˆyℓij 
+
+E[Zℓi ] .
+
+Because this term is constant for any set of time periods Qk, and since the probabilities sum to one ( P 
+
+> Qk
+
+P(EQk | Zℓi = k) = 1), the full expression simplifies to: 
+
+E
+
+
+
+> k
+
+X 
+
+> v=cℓi+1
+
+Rℓi,N ℓiv 
+
+Zℓi = k
+
+ = ( k − cℓi ) ·
+
+P 
+
+> j∈M
+
+rℓij ˆyℓij 
+
+E[Zℓi ] .
+
+Substituting this back into our expression for the total expected lost profit, we get: 
+
+E[Total Lost Profit] = 
+
+> T
+
+X 
+
+> k=cℓi+1
+
+P(Zℓi = k)( k − cℓi )
+
+P 
+
+> j∈M
+
+rℓij ˆyℓij 
+
+E[Zℓi ]=
+
+P 
+
+> j∈M
+
+rℓij ˆyℓij 
+
+E[Zℓi ]
+
+> ∞
+
+X 
+
+> k=cℓi+1
+
+(k − cℓi )P(Zℓi = k).
+
+The summation is the definition of E[( Zℓi − cℓi )+]. Finally, combining the potential and lost profit yields the lemma’s statement: 
+
+E[ ¯Rℓi ] = 
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+ −
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+ E[( Zℓi − cℓi )+]
+
+E[Zℓi ] ,
+
+15 which simplifies to the expression in the lemma. With the exact expression for the expected profit from Lemma 3.5, the final step is to bound the fractional loss term E[( Zℓi −cℓi )+]/E[Zℓi ]. We use the following three lemmas for this purpose. 
+
+Lemma 3.7 (Bai et al. (2025a)). Let Z be a sum of independent Bernoulli random variables and let c ≥ E[Z] be a positive integer. Then, E[( Z − c)+] ≤ 1√c E[Z].
+
+Lemma 3.8. For any inventory-agnostic policy under which the demand for product i from warehouse ℓ arrives as a sequence of independent (but not necessarily identical) Bernoulli trials, the expected number of units of product i sold from warehouse ℓ, E[ ¯Zℓi ], is lower-bounded by 
+
+E[ ¯Zℓi ] ≥ cℓi
+
+
+
+1 − e−E[Zℓi ]/c ℓi
+
+
+
+.
+
+Lemma 3.9. For the demand random variable Zℓi generated by Policy 1 with (w∗, y∗), and for any initial stock cℓi ≥ E[Zℓi ], we have E[( Zℓi − cℓi )+] ≤ 1 
+
+> e
+
+E[Zℓi ].
+
+Lemmas 3.8 and 3.9 are closely related to Lemma 5 in Sun et al. (2025); their proofs are provided in Appendix C.2 and C.3. We now have all the necessary components to conclude the proof of the theorem. 
+
+3.3.2 Concluding the Proof of Theorem 3.1 
+
+First, as mentioned before, we set the feasible solution used in Policy 1 to be an optimal one. The total expected profit of the policy is the sum of the expected profit from each product-warehouse pair. Pairs with E[Zℓi ] = 0 contribute zero, so the sums below are restricted to pairs with E[Zℓi ] > 0. From Lemma 3.5, we have: 
+
+E[Total Profit] = X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+
+
+1 − E[( Zℓi − cℓi )+]
+
+E[Zℓi ]
+
+
+
+.
+
+We apply each tail bound separately. First, applying Lemma 3.7 provides one bound on the profit: 
+
+E[Total Profit] ≥ X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+
+
+1 − 1
+
+√cmin 
+
+
+
+=
+
+
+
+1 − 1
+
+√cmin 
+
+
+
+LP( c).
+
+Second, applying Lemma 3.9 provides another bound: 
+
+E[Total Profit] ≥ X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+
+
+1 − 1
+
+e
+
+
+
+=
+
+
+
+1 − 1
+
+e
+
+
+
+LP( c).
+
+Since the policy’s expected profit is guaranteed to be at least as large as both of these quantities, its performance relative to the fluid optimum is bounded below by their maximum. Given that LP( c) ≥ J∗ 
+
+> 1
+
+(c), this completes the proof. 16 3.4 Proof of Theorem 3.2 
+
+Now we drop the stationarity assumption. In Section 3.4.1 we construct a 0.322-approximation, while in Section 3.4.2 we construct a 
+
+
+
+1 − m+1 √cmin 
+
+
+
+-approximation. 
+
+3.4.1 Part A: The Constant Guarantee 
+
+In the non-stationary setting, Policy 1 based on the optimal solution can perform arbitrarily poorly, as we demonstrate through an example in Appendix E. There we also show that a uniform scaling of the optimal fluid solution, ( ˆ w, ˆy) = α(w∗, y∗) with α < 1, while helping by reducing the cannibalization of high profit sales, can still provide a worst-case guarantee of only 1 /4, achieved at α = 1 /2, as shown in Lemma E.1. This is because it reduces the target sales for high profit demands by the same factor as for low profit ones. The key idea behind our advanced policy is to be more selective. Instead of uniform scaling, we design a set of non-uniform, customer-product-specific fulfillment probabilities, 1 − Hℓij . These factors are strategically calculated to reduce the likelihood of fulfilling low profit demands, thereby preserv-ing scarce inventory for higher profit opportunities and leading to a better overall guarantee. We now formalize the policy and the construction of Hℓij .
+
+Policy 2: Advanced Inventory-Agnostic Assortment and Fulfillment Policy 
+
+• Input: A feasible solution ( ˆ w, ˆy) to (1) and pre-computed parameters Hℓij ∈ [0 , 1]. 
+
+• Execution: In each time period t ∈ T , if a customer of type j arrives: 1. Offer Assortment: Sample an assortment ˆS ∼ qj , with qj the assortment distribution defined in Policy 1. 2. Fulfill Order: If the customer chooses product i ∈ ˆS:(a) Select Warehouse: Choose a warehouse ℓ ∈ L with probability pℓ given by: 
+
+pℓ = ρij (ℓ) (1 − Hℓij ), ρij (ℓ) = ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+.
+
+With the remaining probability 1 − P 
+
+> ℓ∈L
+
+pℓ, select the virtual warehouse. (b) Attempt Sale: If the selected warehouse ℓ has a positive stock level for product 
+
+i, fulfill the order. Otherwise, a stockout occurs, sell from the virtual warehouse instead. 
+
+Construction of the Scaling Parameters Hℓij . Parameters Hℓij ∈ [0 , 1] are computed independently for each product-warehouse pair ( i, ℓ ) ∈ N × L . For a fixed pair ( i, ℓ ), we first order the customer types j ∈ M by their profit, such that rℓij 1 ≤ rℓij 2 ≤ . . . ≤ rℓij m . For notational convenience, let r = Pmk=1 rℓij k ˆyℓij k be the expected total potential profit and y = Pmk=1 ˆyℓij k be 17 the expected total demand for ( i, ℓ ) in the fluid solution. If r = 0, the desired lower bound is zero and the claim is immediate; therefore, we may assume r, y > 0. The construction uses two constants, α = 0 .3848 and β = 0 .524, chosen to approximately maximize the resulting worst-case guarantee, as discussed at the end of this subsection. First, we define a set of intermediate scaling parameters hℓij . Let u be the smallest index for which the cumulative expected potential profit exceeds a fraction α of the total, i.e., u =min {k ∈ { 1, . . . , m } | Pks=1 rℓij s ˆyℓij s > αr }. We then set: 
+
+hℓij k =
+
+
+
+1 if k < u    
+
+> αr −Pu−1
+> s=1 rℓijs ˆyℓijs
+> rℓiju ˆyℓiju
+
+if k = u
+
+0 if k > u. 
+
+By design, these h-parameters precisely nullify the fulfillment probabilities for the least prof-itable demands such that their potential profit sums to αr . To be precise, setting Hℓij = hℓij 
+
+would scale the expected total potential profit exactly by a factor of 1 − α while reducing total expected demand as much as possible. The three cases below split according to how much low-profit demand the scaling step sup-presses. Recall that the h-parameters nullify the fulfillment probabilities for the least profitable demands, i.e., those below the profit threshold u (the cutoff index at which the cumulative po-tential profit first reaches αr ); writing Pmk=1 hℓij k ˆyℓij k = β′y, the fraction β′ measures how much of the total expected demand this suppression accounts for. When β′ > β , the suppression is large, so little demand survives relative to capacity and a stockout argument alone gives the guarantee. When β′ ≤ β, the guarantee instead comes from the profit of the surviving demand: this profit is high enough on its own in one regime, whereas in the other we must lower the threshold to a smaller index u′ ≤ u and suppress demand in an all-or-nothing way, fully drop-ping the customer types below u′ and fully keeping the rest. These three regimes are formalized as Cases 1, 2, and 3 below. It remains to define the final fulfillment-suppression parameters Hℓij ∈ [0 , 1], where Hℓij = 1 suppresses type j for pair ( i, ℓ ) (its fulfillment probability is set to zero), Hℓij = 0 keeps it, and intermediate values suppress it proportionally; Cases 1 and 2 set Hℓij = hℓij , which is in general fractional, while only Case 3 yields integral Hℓij ∈ { 0, 1}. The two constants α = 0 .3848 and 
+
+β = 0 .524 are the fixed numbers introduced in the construction of the h-parameters above, and β′ = 1
+
+y
+
+Pmk=1 hℓij k ˆyℓij k is the fraction of the expected ( i, ℓ )-demand that those h-parameters already suppress. When β′ > β , enough demand is suppressed on its own, and we keep Hℓij = hℓij .When β′ ≤ β, we instead decide which types to keep by comparing each type’s per-sale profit 
+
+rℓij to a profit threshold and dropping the types that fall below it. The reference threshold is  
+
+> αr β′y
+
+, the average profit per unit of the demand suppressed by the h-parameters (a profit mass 
+
+αr spread over a demand mass β′y). Whether the profit rℓij u of the type ju lies above or below this threshold determines whether we keep the h-based choice (Case 2) or re-select the cutoff (Case 3); to make these two options certify the same guarantee, we offset the threshold by the 18 factors 1 ± ϵ(β′) built from the auxiliary functions 
+
+ψ(x) = 1 − ex−1
+
+1 − ex/ 2−1 , ϵ(x) = 1 − ψ(x)1 + ψ(x) .
+
+Case 2 uses the raised threshold (1 + ϵ(β′)) αr β′y and Case 3 the lowered threshold (1 − ϵ(β′)) αr β′y ;in Case 3 we set Hℓij k = 1 for exactly those low-profit types jk whose profit lies below the lowered threshold, and Hℓij k = 0 for the rest. The offset ϵ(β′) is chosen precisely so that the two resulting profit bounds, (1 + ϵ(β′)) αr β′ (1 − eβ′−1) and (1 − ϵ(β′)) αr β′ (1 − eβ′/2−1), are equal; their common value is g(β′) αr , where g(x) = 21+ ψ(x)1−ex−1 
+
+> x
+
+. We now make these three regimes precise as Cases 1, 2, and 3. 
+
+Case 1: If β′ > β , we set Hℓij = hℓij for all j ∈ M .
+
+Case 2: If β′ ≤ β and rℓij u ≥ (1 + ϵ(β′)) αr β′y , we set Hℓij = hℓij for all j ∈ M .
+
+Case 3: If β′ ≤ β and rℓij u < (1 + ϵ(β′)) αr β′y , let u′ be the smallest index such that rℓij u′ ≥
+
+(1 − ϵ(β′)) αr β′y . We set Hℓij k = 1 for k < u ′, and Hℓij k = 0 for k ≥ u′.
+
+Performance Analysis. Here Zℓij and ¯Zℓij are the ( i, ℓ )-demand and ( i, ℓ )-sales from type-
+
+j customers, now generated under Policy 2, in the notation introduced above. The expected profit of the policy from product-warehouse pair ( i, ℓ ) is equal to P 
+
+> j∈M
+
+rℓij E[ ¯Zℓij ]. The expected (i, ℓ )-demand from type-j customers is E[Zℓij ] = ˆ yℓij (1 − Hℓij ). We now show that for any ( i, ℓ )the expected ( i, ℓ ) profit is lower-bounded by 0 .322 P 
+
+> j∈M
+
+rℓij ˆyℓij by analyzing each of the three cases. 
+
+Case 1 ( β′ > β ): 
+
+In this case, Hℓij = hℓij . The total expected demand for ( i, ℓ ) is: 
+
+E[Zℓi ] = X
+
+> j∈M
+
+ˆyℓij (1 − hℓij ) = y − X
+
+> j∈M
+
+hℓij ˆyℓij = y(1 − β′).
+
+Since β′ > β by the case condition, we have E[Zℓi ] < y (1 − β). As the total fluid demand y
+
+cannot exceed the capacity cℓi , it follows that E[Zℓi ] < (1 − β)cℓi . The probability of a stockout is therefore bounded: by Markov’s inequality, P(Zℓi ≥ cℓi ) ≤ E[Zℓi ]
+
+> cℓi
+
+< 1 − β, which implies that the probability of not stocking out is P(Zℓi < c ℓi ) ≥ β.Let Aℓit be the indicator that product i has non-empty stock at warehouse ℓ at the beginning of time period t. The expected sales to customer type j can be expressed as: 
+
+E[ ¯Zℓij ] = X
+
+> t∈T
+
+λjt 
+
+X
+
+> S⊆N
+
+ˆwj (S)
+
+τj
+
+ϕij (S) ˆyℓij 
+
+P 
+
+> b∈L +
+
+ˆybij 
+
+(1 − hℓij )E[Aℓit ].
+
+The probability of having stock at the beginning of time period t, E[Aℓit ], is at least the prob-ability of not stocking out over the entire horizon. Thus, E[Aℓit ] ≥ P(Zℓi < c ℓi ) ≥ β. The whole summation in the expression for E[ ¯Zℓij ] without E[Aℓit ] factor is equal to E[Zℓij ], similarly to what 19 we have proven before. This gives a lower bound on expected sales: 
+
+E[ ¯Zℓij ] ≥ E[Zℓij ] · β = ˆ yℓij (1 − hℓij )β. 
+
+The total expected profit for ( i, ℓ ) is therefore bounded as follows: 
+
+X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] ≥ X
+
+> j∈M
+
+rℓij ˆyℓij (1 − hℓij )β = β
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij − X
+
+> j∈M
+
+rℓij hℓij ˆyℓij 
+
+ .
+
+By construction of the h-parameters, P 
+
+> j∈M
+
+rℓij hℓij ˆyℓij = αr = α P 
+
+> j∈M
+
+rℓij ˆyℓij . Substituting this in, we get: X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] ≥ β(1 − α) X
+
+> j∈M
+
+rℓij ˆyℓij ≥ 0.322 X
+
+> j∈M
+
+rℓij ˆyℓij ,
+
+which completes the proof for Case 1. 
+
+Case 2 ( β′ ≤ β and rℓij u ≥ (1 + ϵ(β′)) αr β′y ): 
+
+Here, Hℓij = hℓij . By construction, hℓij k = 1 for all k < u , so the fulfillment probability for these low-profit customer types is zero. The profit is therefore derived only from customers of type jk for k ≥ u. Since rℓij k is non-decreasing in k, the expected total profit is lower-bounded by noting that all sales generate a profit of at least rℓij u :
+
+X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] = 
+
+> m
+
+X
+
+> k=u
+
+rℓij k E[ ¯Zℓij k ] ≥ rℓij u
+
+> m
+
+X
+
+> k=u
+
+E[ ¯Zℓij k ] = rℓij u E[ ¯Zℓi ],
+
+where ¯Zℓi are total ( i, ℓ )-sales. Using Lemma 3.8, the fact that the function f (x) = 1−e−x 
+
+> x
+
+is decreasing, and that, like in Case 1, E Zℓi
+
+ = y(1 − β′) and therefore E Zℓi
+
+ /c ℓi ≤ 1 − β′, we can bound the expected sales: 
+
+E[ ¯Zℓi ] ≥ cℓi (1 − e−E[Zℓi ]/c ℓi ) ≥ E[Zℓi ] · 1 − e−(1 −β′)
+
+1 − β′ = y(1 − β′) 1 − e−(1 −β′)
+
+1 − β′ = y(1 − eβ′−1).
+
+Combining these results with the condition on rℓij u from the case definition gives: 
+
+X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] ≥ rℓij u · y(1 − eβ′−1)
+
+≥
+
+
+
+(1 + ϵ(β′)) αr β′y
+
+
+
+· y(1 − eβ′−1)=
+
+ 1 − ψ(β′)1 + ψ(β′) + 1 
+
+ αr β′ (1 − eβ′−1)= 21 + ψ(β′)
+
+αr β′ (1 − eβ′−1).
+
+Here, the second inequality follows from the case condition, and the first equality follows from the definition of ϵ. The bound above can be written as g(β′) · αr . A direct computation shows that g(x) is a decreasing function for x ∈ (0 , 1]. Since the case condition is β′ ≤ β, it follows 20 that g(β′) ≥ g(β). Therefore, 
+
+X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] ≥ g(β′)αr ≥ g(β)αr ≥ 0.322 r = 0 .322 X
+
+> j∈M
+
+rℓij ˆyℓij .
+
+This concludes the proof for Case 2. 
+
+Case 3 ( β′ ≤ β and rℓij u < (1 + ϵ(β′)) αr β′y ): 
+
+In this case, we set Hℓij k = 1 for k < u ′ and Hℓij k = 0 for k ≥ u′, zeroing out the demand from the lowest profit customers (types j1, . . . , j u′−1). The remaining profit is driven by customers of type ju′ and higher. An important property in this case is that since the profits rℓij k are ordered, the construction of hℓij k implies a lower bound on rℓij u :
+
+αr =
+
+> u
+
+X
+
+> k=1
+
+rℓij k hℓij k ˆyℓij k ≤ rℓij u
+
+> u
+
+X
+
+> k=1
+
+hℓij k ˆyℓij k = rℓij u β′y =⇒ rℓij u ≥ αr β′y .
+
+This directly implies u′ ≤ u. We first provide a claim about the amount of demand reduction from the intermediate h-parameters, proven in Appendix D.1. 
+
+Claim 3.10. Pus=u′ hℓij s ˆyℓij s ≥ 12 β′y.
+
+The total expected demand under the new parameters H is E[Zℓi ] = Pmk=u′ ˆyℓij k . Let this sum be equal to (1 − β′′ )y. To bound this term, we use the result from the claim. By definition, 
+
+Pmk=1 hℓij k ˆyℓij k = β′y. Since hℓij k = 1 for k < u (and u′ ≤ u), this can be decomposed as: 
+
+β′y =
+
+> u′−1
+
+X
+
+> k=1
+
+ˆyℓij k +
+
+> u
+
+X
+
+> k=u′
+
+hℓij k ˆyℓij k .
+
+The claim states that Puk=u′ hℓij k ˆyℓij k ≥ β′y/ 2. This implies that the expected demand reduction from the lowest profit customer types is bounded: Pu′−1 
+
+> k=1
+
+ˆyℓij k ≤ β′y/ 2. The remaining expected demand is therefore: (1 − β′′ )y = y −
+
+> u′−1
+
+X
+
+> k=1
+
+ˆyℓij k ≥ y − β′y/ 2 = y(1 − β′/2) .
+
+In particular, this gives β′′ ≤ β′/2. Because the customer types are ordered by increasing per-sale profit and Case 3 retains exactly the types ju′ , . . . , j m, every remaining sale earns at least 
+
+rℓij u′ , the per-sale profit of the least profitable retained type ju′ . Following the logic of the Case 2 analysis, we have: 
+
+X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] ≥ rℓij u′ E[ ¯Zℓi ] ≥ rℓij u′ y(1 − eβ′′ −1) ≥ rℓij u′ y(1 − eβ′/2−1).
+
+The last inequality holds because β′′ ≤ β′/2, as established above, and x 7 → 1 − ex−1 is decreas-ing, so the smaller argument β′′ yields the larger value. Using the condition on rℓij u′ from this 21 case’s definition, we obtain the final bound: 
+
+X
+
+> j∈M
+
+rℓij E[ ¯Zℓij ] ≥ (1 − ϵ(β′)) αr β′y · y(1 − eβ′/2−1) = g(β′)αr ≥ g(β)αr ≥ 0.322 r, 
+
+where g is a decreasing function for x ∈ (0 , 1], as stated in Case 2. This concludes the proof for Case 3. When Policy 2 is applied to an optimal solution of (1), summing the pairwise guarantees gives a total expected profit of at least 0 .322 · LP( c) ≥ 0.322 J∗ 
+
+> 1
+
+(c). 
+
+Remark. Parameters α and β were chosen by a fine grid search to approximately maximize min( β(1 −α), g (β)α), with the goal of obtaining the best possible uniform performance guarantee across all three cases. 
+
+3.4.2 Part B: The Asymptotic Guarantee 
+
+We now construct a 
+
+
+
+1 − m+1 √cmin 
+
+
+
+-approximate policy. 
+
+Policy with Customer-Specific Capacities. The core idea for this case is to create vir-tual, customer-specific inventory capacities, cℓij , that are slightly larger than the expected ( i, ℓ )demands from that customer type, ˆ yℓij . This allows us to use a powerful concentration inequality (Lemma 3.11) to show that stockouts for any specific customer type are rare. The asymptotic guarantee is nontrivial only if √cmin > m + 1, so we assume this condition below; otherwise, Policy 2 applies. First, we scale down the optimal fluid solution ( w∗, y∗) by a factor that depends on cmin :( ˆ w, ˆy) = 
+
+
+
+1 − m
+
+√cmin 
+
+
+
+(w∗, y∗).
+
+Here, as before, with scaling we also make a slight modification of increasing ˆ wj (∅) as needed to preserve feasibility. Next, for each triple ( i, j, ℓ ) with i ∈ N , j ∈ M , ℓ ∈ L , we define a virtual capacity cℓij = ⌊ˆyℓij + √cmin ⌋ if cℓi > 0, and set cℓij = 0 otherwise. Next, we show that these capacities satisfy the original physical constraints. This is immediate when cℓi = 0. Otherwise, 
+
+cℓi ≥ cmin , and since ⌊x⌋ ≤ x, we have: 
+
+X
+
+> j∈M
+
+cℓij ≤ X
+
+> j∈M
+
+(ˆ yℓij + √cmin ) = 
+
+ X
+
+> j∈M
+
+ˆyℓij 
+
+ + m√cmin 
+
+=
+
+
+
+1 − m
+
+√cmin 
+
+  X
+
+> j∈M
+
+y∗ℓij 
+
+ + m√cmin 
+
+≤
+
+
+
+1 − m
+
+√cmin 
+
+
+
+cℓi + m√cmin 
+
+= cℓi − mc ℓi
+
+√cmin 
+
++ m√cmin ≤ cℓi .
+
+The policy we introduce is a modification of Policy 1, using these new virtual capacities. 22 Policy 3: Modified Simple Inventory-Agnostic Assortment and Fulfillment Policy 
+
+• Assumption: For each product i, physical warehouse ℓ, and customer type j, there is a virtual stock level of cℓij .
+
+• Execution: In each time period t, if a type-j customer arrives, the policy follows the same steps as Policy 1 with ( ˆ w, ˆy), but a (non-virtual) sale is made only if the chosen warehouse 
+
+ℓ has a positive stock of product i for customer type j. This stock is depleted by one in the event of sale. 
+
+Performance Analysis. The analysis of this policy relies on the following concentration inequality, proven in Appendix D.2. 
+
+Lemma 3.11. Let Z be a non-zero sum of independent [0 , 1] -valued random variables. If c > 
+
+E[Z], then E[( Z−c)+] 
+
+> E[Z]
+
+≤ 14( c−E[Z]) .
+
+Under the modified policy, sales are fulfilled from the customer-specific capacities. The expected profit is: 
+
+E[Total Profit] = X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij E[ ¯Zℓij ] = X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij 
+
+
+
+E[Zℓij ] − E[( Zℓij − cℓij )+]
+
+
+
+.
+
+Similar to Lemma 3.4, we have E[Zℓij ] = ˆ yℓij . We can rewrite the expected total profit as: 
+
+E[Total Profit] = X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij 1 − E[( Zℓij − cℓij )+]ˆyℓij 
+
+!
+
+,
+
+where terms with ˆ yℓij = 0 contribute zero and are omitted. We use Lemma 3.11 to bound the multipliers. Note that cℓij − E[Zℓij ] = ⌊ˆyℓij + √cmin ⌋ − ˆyℓij ≥ ˆyℓij + √cmin − 1 − ˆyℓij = √cmin − 1. For 
+
+cmin ≥ 4 (and otherwise the bound is trivial), this is at least √cmin /2. Applying the lemma: 
+
+E[( Zℓij − cℓij )+]
+
+E[Zℓij ] ≤ 14( cℓij − E[Zℓij ]) ≤ 14( √cmin − 1) ≤ 12√cmin 
+
+.
+
+Substituting this bound back into the expected profit expression and using the definition of ˆ y
+
+gives: 
+
+E[Total Profit] ≥ X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij 
+
+
+
+1 − 12√cmin 
+
+
+
+=
+
+
+
+1 − 12√cmin 
+
+ X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij 
+
+=
+
+
+
+1 − 12√cmin 
+
+  
+
+1 − m
+
+√cmin 
+
+ X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij y∗ℓij .
+
+23 Since P  
+
+> i∈N ,j ∈M ,ℓ ∈L
+
+rℓij y∗ℓij = LP( c), and for any a, b ≥ 0 we have (1 − a)(1 − b) ≥ 1 − a − b, we deduce 
+
+1 − 12√cmin 
+
+  
+
+1 − m
+
+√cmin 
+
+
+
+≥ 1 − m
+
+√cmin 
+
+− 12√cmin 
+
+> 1 − m + 1 
+
+√cmin 
+
+.
+
+This gives E[Total Profit] ≥ (1 − m+1 √cmin )LP( c) ≥ (1 − m+1 √cmin )J∗ 
+
+> 1
+
+(c), which yields the desired performance guarantee. 
+
+4 Approximation Algorithms for PPF Under a General Choice Model 
+
+We now turn to the main joint optimization problem: PPF . In this section, we develop ap-proximation algorithms for the PPF problem under a general customer choice model. The performance guarantees depend on whether the customer arrival process is stationary. We use the notation Kmin = min ℓ∈L Kℓ and Cmin = min i∈N Ci. The approximation algorithms we develop are asymptotically optimal as Kmin and Cmin scale. 
+
+Theorem 4.1. For the PPF problem under a general choice model and the assumption of sta-tionary arrivals ( λjt = λj ), we can compute a 1 − 2 max 
+
+p nKmin ,
+
+q LCmin 
+
+
+
+-approximation in polynomial time. 
+
+Theorem 4.2. For the PPF problem under a general choice model with non-stationary arrivals, we can compute a 1 − 2 max 
+
+p nm Kmin ,
+
+q Lm Cmin 
+
+
+
+-approximation in polynomial time. 
+
+Our approach is to first solve a fluid relaxation of the joint problem to find a near-optimal stocking plan, and then run one of the inventory-agnostic policies from Section 3 using a scaled optimal solution to the (joint) fluid relaxation and chosen stocking quantities. 
+
+4.1 A Fluid Relaxation for PPF 
+
+We relax the integer constraints on the stocking c and combine that with the fluid approximation LP( c) from Lemma 3.3. This yields the following linear program: LP ∗ = max 
+
+> c,w,y≥0
+
+X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L +
+
+rℓij yℓij s.t. constraints in (1) and constraints on c
+
+ . (3) Here, the constraints on c are those of the PPF problem with integrality relaxed: P 
+
+> i∈N
+
+cℓi ≤
+
+Kℓ for all ℓ ∈ L and P 
+
+> ℓ∈L
+
+cℓi ≤ Ci for all i ∈ N . We sometimes refer to this linear program as joint fluid approximation (relaxation) or, more concisely, joint fluid. It can be solved in polynomial time under the assumption of an assortment optimization oracle. Let ( c∗, w∗, y∗) be an optimal solution to the joint fluid (3). It follows from Lemma 3.3 that this value serves as an upper bound on the optimal expected profit. Similarly to Section 3, without loss of generality, we assume rℓij y∗ℓij ≥ 0 for all i ∈ N , j ∈ M , ℓ ∈ L +; if rℓij < 0, we can set y∗ℓij = 0 and transfer its value to y∗L+1  
+
+> ij
+
+, without decreasing the objective value, while maintaining feasibility. 24 4.2 Proof of Theorem 4.1 
+
+To build a policy with desired performance, we follow the plan outlined in the beginning of the section. 
+
+Choosing the Stocking and Dynamic Policy. For the approximation guarantee to be non-trivial, we assume Kmin ≥ 4n and Cmin ≥ 4L. We define a scaling factor α and a rounding term 
+
+γ as follows: 
+
+α = 1 − max 
+
+r nKmin ,
+
+r LCmin 
+
+!
+
+, γ = min 
+
+r Kmin 
+
+n ,
+
+r Cmin 
+
+L
+
+!
+
+.
+
+We construct our feasible stocking plan ˆ c by scaling and rounding up the fluid solution: ˆcℓi = ⌊αc ∗ℓi + γ⌋ for all i ∈ N , ℓ ∈ L .
+
+We verify feasibility of our stocking plan in Appendix G.1. The assortment and fulfillment policy we use is Policy 1 with ( ˆ w, ˆy) = α(w∗, y∗) (as before, with a slight modification of increasing ˆ wj (∅) as needed to maintain feasibility). 
+
+Performance Analysis. We now analyze the expected profit of running Policy 1 with the scaled optimal joint fluid solution ( ˆ w, ˆy) = α(w∗, y∗) and the feasible capacities ˆ c. Note that α(w∗, y∗) is always a feasible solution for (1) with ˆ c. We prove the desired performance guarantee using Lemma 3.11. From Lemma 3.5, which holds under the assumption of stationary arrivals, it follows that the expected profit is: 
+
+E[Total Profit] = X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+ X
+
+> j∈M
+
+rℓij ˆyℓij 
+
+
+
+1 − E[( Zℓi − ˆcℓi )+]
+
+E[Zℓi ]
+
+
+
+,
+
+where Zℓi is the random variable for total demand for product i at warehouse ℓ, as defined in Section 3. To apply Lemma 3.11, we need to lower-bound the gap ˆ cℓi − E[Zℓi ]. Applying Lemma 3.4, we have E[Zℓi ] = P 
+
+> j
+
+ˆyℓij = α P 
+
+> j
+
+y∗ℓij ≤ αc ∗ℓi . Therefore, ˆcℓi − E[Zℓi ] ≥ ⌊ αc ∗ℓi + γ⌋ − αc ∗ℓi ≥ (αc ∗ℓi + γ − 1) − αc ∗ℓi = γ − 1.
+
+Since our non-triviality assumption implies γ ≥ 2, we have γ − 1 ≥ γ/ 2. Let δ =max 
+
+p nKmin ,
+
+q LCmin 
+
+
+
+for notational simplicity. From Lemma 3.11 we get 
+
+E[( Zℓi − ˆcℓi )+]
+
+E[Zℓi ] ≤ 14(ˆ cℓi − E[Zℓi ]) ≤ 14( γ − 1) ≤ 12γ = 12 δ. 
+
+Substituting this bound into the profit formula and using the fact that P  
+
+> i∈N ,j ∈M ,ℓ ∈L
+
+rℓij ˆyℓij =25 α · LP ∗, we get 
+
+E[Total Profit] ≥ X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij 
+
+
+
+1 − δ
+
+2
+
+
+
+=
+
+
+
+1 − δ
+
+2
+
+
+
+α · LP ∗
+
+=
+
+
+
+1 − δ
+
+2
+
+
+
+(1 − δ) LP ∗
+
+≥ (1 − 2δ) LP ∗.
+
+Substituting the definition of δ back gives the final guarantee. Since LP ∗ is an upper bound on the optimal expected profit, this completes the proof. 
+
+4.3 Proof of Theorem 4.2 
+
+The proof for the non-stationary case follows a similar structure to the stationary case. However, we use Policy 3 and different scaling and rounding parameters, accounting for the greater uncertainty inherent in non-stationary arrivals. 
+
+Choosing the Stocking and Dynamic Policy. For the approximation to be non-trivial, we assume that Kmin ≥ 4mn and Cmin ≥ 4mL . We define a new scaling factor α and rounding term γ:
+
+α = 1 − max 
+
+r mn Kmin ,
+
+r mL Cmin 
+
+!
+
+, γ = min 
+
+r Kmin 
+
+mn ,
+
+r Cmin 
+
+mL 
+
+!
+
+.
+
+We construct an aggregate stocking plan ˆ c and customer-specific virtual capacities ˆ cℓij as follows: ˆcℓi = ⌊αc ∗ℓi + mγ ⌋ and ˆcℓij = ⌊ˆyℓij + γ⌋.
+
+We verify feasibility of our stocking plan in Appendix G.2. The assortment and fulfillment policy we use is Policy 3 with ( ˆ w, ˆy) = α(w∗, y∗) (as usual, with a slight modification of increasing ˆwj (∅) as needed to maintain feasibility). This policy operates using a feasible fluid solution for assortment and fulfillment probabilities, but makes each sale contingent on the corresponding customer-specific virtual capacity ˆ cℓij being positive. Note that α(w∗, y∗) is always a feasible solution for (1) with ˆ c.
+
+Performance Analysis. The expected profit of Policy 3 is the sum of expected profits across all combinations of product, customer type, and warehouse. For a given tuple ( i, j, ℓ ), the expected profit is rℓij E[ ¯Zℓij ], where ¯Zℓij are corresponding sales, which are equal to demand capped by the customer-specific capacity ˆ cℓij . We can write the total expected profit as: 
+
+E[Total Profit] = X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij 
+
+
+
+E[Zℓij ] − E[( Zℓij − ˆcℓij )+]
+
+
+
+.
+
+Here, Zℓij is the random variable for total demand from type-j customers for product i at warehouse ℓ. Following the same logic as in the proof of Lemma 3.4, the expected demand is 26 E[Zℓij ] = ˆ yℓij . We can therefore rewrite the expected profit as: 
+
+E[Total Profit] = X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij 1 − E[( Zℓij − ˆcℓij )+]ˆyℓij 
+
+!
+
+.
+
+We use Lemma 3.11 again to bound the fractional loss for each ( i, j, ℓ ) tuple. The gap term is: ˆcℓij − E[Zℓij ] = ⌊ˆyℓij + γ⌋ − ˆyℓij ≥ (ˆ yℓij + γ − 1) − ˆyℓij = γ − 1.
+
+For the bound to be non-trivial, we must have γ ≥ 2, so γ − 1 ≥ γ/ 2. Applying Lemma 3.11: 
+
+E[( Zℓij − ˆcℓij )+]
+
+E[Zℓij ] ≤ 14(ˆ cℓij − E[Zℓij ]) ≤ 14( γ − 1) ≤ 12γ .
+
+Let δ = max 
+
+p nm Kmin ,
+
+q Lm Cmin 
+
+
+
+. Then 12γ = 12 δ. Substituting this into the expected total profit formula: 
+
+E[Total Profit] ≥ X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij 
+
+
+
+1 − δ
+
+2
+
+
+
+=
+
+
+
+1 − δ
+
+2
+
+
+
+α · LP ∗
+
+=
+
+
+
+1 − δ
+
+2
+
+
+
+(1 − δ) LP ∗
+
+≥ (1 − 2δ) LP ∗.
+
+Substituting the definition of δ back gives the final guarantee. Since LP ∗ is an upper bound on the optimal profit, this completes the proof. 
+
+5 Constant Factor Approximation for PPF Under the MNL Choice Model 
+
+In this section, we show that in the case of the widely-used MNL choice model, we can de-velop a constant-factor approximation algorithm for the full joint optimization problem, PPF .The structure inherent in the MNL model allows for a crucial simplification of the fluid relax-ation. This, in turn, enables us to formulate an auxiliary optimization problem whose objective function can be shown to be DR-submodular. By leveraging known results for maximizing submodular functions under matroid constraints, we are able to establish a constant-factor performance guarantee. We begin by formally defining the MNL model in our setting. For each customer type j ∈ M ,there is a set of non-negative preference weights {vij | i ∈ N } . The probability that a type-j
+
+customer chooses product i from an offered assortment S is given by: ϕij (S) = vij  
+
+> 1+ P
+> i′∈Svi′j
+
+. The probability of choosing the no-purchase option is 11+ P 
+
+> i′∈Svi′j
+
+.Let us briefly sketch our strategy in building the approximation. We approximate LP( c)with a DR-submodular surrogate function and then apply well-known algorithms to optimize that function subject to capacity and supply constraints. This allows us to find approximately optimal stocking quantities for which we can use some of our policies from Section 3. Our 27 focus in this section, therefore, will be on finding the surrogate function and proving its DR-submodularity. First, however, we formalize our key results in this section. 
+
+Theorem 5.1 (Constant-Factor Approximations for MNL). For the PPF problem under the MNL choice model, there exists a polynomial-time algorithm that computes a β-approximation, where the factor β depends on the problem assumptions as follows: 
+
+• In the general case: β = 0 .0805 − ϵ.
+
+• If product supplies are unlimited ( Cmin = + ∞): β = 0 .161(1 − 1/e ).
+
+• If customer arrivals are stationary: β = 14 (1 − 1/e ) − ϵ.
+
+• If arrivals are stationary and product supplies are unlimited: β = 12 (1 − 1/e )2.Here, ϵ > 0 can be an arbitrarily small positive constant and its inverse, 1/ϵ , is treated as a constant in the complexity analysis. 
+
+The following lemma, proven in Appendix H is key to our approach. It establishes that under the MNL model, the complex fluid approximation from (1) is equivalent to a much simpler and more tractable linear program. This program is then modified to get a surrogate with the desired properties, similar to the approach of Bai et al. (2025a). 
+
+Lemma 5.2 (LP Equivalence for MNL). Under the MNL choice model, the optimal value of the fluid approximation (1) , denoted as LP( c), is equal to the optimal value of the following linear program: 
+
+max 
+
+> y≥0,y0≥0
+
+X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L +
+
+rℓij yℓij : X
+
+> j∈M
+
+yℓij ≤ cℓi , ∀i ∈ N , ℓ ∈ L ;
+
+X
+
+> i∈N
+
+X
+
+> ℓ∈L +
+
+yℓij + y0j ≤ τj , ∀j ∈ M ;
+
+X
+
+> ℓ∈L +
+
+yℓij ≤ vij y0j , ∀i ∈ N , j ∈ M 
+
+
+
+(4) 
+
+where y0j represents the expected number of times a type-j customer leaves without making a purchase. 
+
+5.1 A DR-Submodular Surrogate for the Fluid Optimum 
+
+The core of our approximation algorithm is to reframe the stocking optimization problem as a maximization of a DR-submodular function, for which efficient approximation algorithms are known. However, the fluid optimum LP( c) itself is known not to be DR-submodular even in a single warehouse setting, as discussed in (Bai et al., 2025a). Following the surrogate construction of Bai et al. (2025a), adapted here to customer-type-dependent profits, we introduce a closely related surrogate function fapp (c), which approximates LP( c) and possesses the required DR-submodularity. Intuitively, fapp caps each customer type’s expected sales and each product’s MNL attraction at half their natural maxima, restoring diminishing returns in stocking while preserving a constant fraction of the fluid value. 28 Let fapp (c) be the optimal value of the following linear program: max 
+
+> y≥0
+
+X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L +
+
+rℓij yℓij : X
+
+> j∈M
+
+yℓij ≤ cℓi , ∀i ∈ N , ℓ ∈ L ;
+
+X
+
+> i∈N
+
+X
+
+> ℓ∈L +
+
+yℓij ≤ τj
+
+2 , ∀j ∈ M ;
+
+X
+
+> ℓ∈L +
+
+yℓij ≤ vij τj
+
+2 , ∀i ∈ N , j ∈ M 
+
+
+
+. (5) This function has two crucial properties, stated in the following lemmas. 
+
+Lemma 5.3 (Approximation Property of fapp ). For any inventory placement c, the sur-rogate function fapp (c) provides a 1/2-approximation to the fluid optimum, i.e., 
+
+12 LP (c) ≤ fapp (c) ≤ LP (c).
+
+The proof is deferred to Appendix I. 
+
+Lemma 5.4 (DR-Submodularity of fapp ). The function fapp (c) is DR-submodular in c.That is, for any integer vectors c ≥ b ≥ 0 and a unit integer vector eℓi , we have 
+
+fapp (c) + fapp (b + eℓi ) ≥ fapp (c + eℓi ) + fapp (b).
+
+The proof of Lemma 5.4, which requires a detailed analysis of the dual formulation, is presented in Appendix J. We are now ready to construct the approximation algorithm. 
+
+5.2 The Algorithm for Theorem 5.1 
+
+In this section we formalize the algorithm with approximation guarantees matching those in the theorem statement. The algorithm proceeds in two main stages: 1. Offline Planning: First, we find a near-optimal stocking plan calg by approximately maximizing the DR-submodular surrogate function fapp (c) subject to the capacity and supply constraints. 2. Online Execution: Second, we run the appropriate assortment and fulfillment policy from Section 3, guided by the fluid solution corresponding to this stocking plan calg .
+
+Framework For Offline Planning: Maximizing a Submodular Set Function. To lever-age standard results from submodular optimization, we first translate our problem from maxi-mizing a function over the integer lattice to maximizing a set function. We create a ground set 
+
+E of discrete “inventory units.” For each product-warehouse pair ( i, ℓ ), we create a set Eiℓ of min( Kℓ, C i, T ) identical units. The ground set is the disjoint union E = S 
+
+> i,ℓ
+
+Eiℓ . Any subset 
+
+S ⊆ E corresponds to a stocking plan c with cℓi = |S ∩ Eiℓ |. Note that we are allowed to limit each stocking quantity cℓi by min( Kℓ, C i, T ) without decreasing the maximum possible expected profit due to feasibility constraints and the fact that stocking more than T units cannot increase 29 expected profit, because no more than T customers arrive over the selling horizon. This con-straint ensures that the size of the constructed ground set is polynomial in the original input size. We define a set function g : 2 E → R+ corresponding to fapp (c) as g(S) = fapp (cS ), where cS
+
+is the vector of stockings induced by the set S. Because fapp (c) is monotone and DR-submodular (Lemma 5.4), the corresponding set function g(S) is monotone and submodular. The capacity and supply constraints on c can now be modeled as matroid constraints on the set S.
+
+• General Case: The warehouse capacity constraints, P 
+
+> i∈N
+
+cℓi ≤ Kℓ, define a partition matroid MK on E. The product supply constraints, P 
+
+> ℓ∈L
+
+cℓi ≤ Ci, define a second partition matroid MC . The problem is to maximize a monotone submodular function 
+
+g(S) subject to the intersection of two matroids: S ∈ I (MK ) ∩ I (MC ). This problem admits a (1 /2 − ϵ)-approximation algorithm, see Lee et al. (2010). 
+
+• Unlimited Product Supplies ( Cmin = + ∞): In this case, only the warehouse capac-ity constraints remain. The problem simplifies to maximizing a monotone submodular function subject to a single partition matroid constraint. This problem admits a random-ized (1 − 1/e )-approximation, as well as a deterministic (1 − 1/e − ϵ)-approximation, see C˘ alinescu et al. (2011), Buchbinder and Feldman (2025). 
+
+Deriving the Performance Guarantees. The final approximation factor β is the product of three distinct performance guarantees: (1) the factor for the submodular maximization al-gorithm used in the planning stage, (2) the factor from Lemma 5.3 relating fapp (c) to the true fluid optimum LP( c), and (3) the performance guarantee of the chosen assortment and fulfill-ment policy from Section 3. Multiplying these factors in each case yields exactly the guarantees stated in the theorem statement as shown in Appendix K. 
+
+6 From Inventory-Agnostic to Inventory-Aware Policies 
+
+The policies developed in the previous section are inventory-agnostic: they make assortment and fulfillment decisions based on a pre-determined fluid solution, only checking for stock at the final step. In this section, we show how to convert these policies into more practical inventory-aware policies that only offer products that are in stock, while provably preserving the same performance guarantees. The conversion relies on the following key result, which is an application of Proposition 3 in Feng et al. (2024) formulated in our notation; we include the derivation for completeness. It allows us to dynamically adjust a randomized assortment offering to account for a restricted set of available products, without altering the marginal choice probabilities for those available products. 
+
+Lemma 6.1. Let ϕi(S) be a customer choice model satisfying weak substitutability. Let p be a probability distribution over assortments S ⊆ N and let Pi = ES∼p[ϕi(S)] for each product i.Assume that we can sample from p in polynomial time. Then, for any set ˆS ⊆ N , there exists a distribution p′ over subsets of ˆS such that an assortment can be sampled from it in polynomial time, and for all products i ∈ ˆS, the marginal choice probability is preserved: ES∼p′ [ϕi(S)] = Pi.
+
+30 Proof. First, we sample an assortment ¯S from p. Then we apply Proposition 3 from Feng et al. (2024) with pi = ϕi( ¯S) ∀i ∈ N and S = ˆS ∩ ¯S, sampling an assortment ˜S. This sampling procedure is polynomial in time and induces a distribution p′ on subsets of ˆS such that ES∼p′ [ϕi(S)] = Pi ∀i ∈ ˆS (by the law of total expectation). 
+
+6.1 Inventory-Aware Simple Policy 
+
+We now present the inventory-aware counterpart to Policy 1. 
+
+Policy 1-IA: Inventory-Aware Simple Policy 
+
+• Input: A feasible solution ( ˆ w, ˆy) to the fluid approximation (1). 
+
+• Execution: In each time period t ∈ T , if a customer of type j arrives: 1. Pre-select Fulfillment Warehouses: For each product i ∈ N , independently sample a potential fulfillment warehouse ℓi ∼ ρij , the fulfillment distribution over L+ defined in Policy 1. 2. Determine Available Set: Identify the set of products that are currently in stock at their pre-selected, non-virtual warehouse: St = {i ∈ N | ℓi ∈ L and xℓi 
+
+> i
+
+(t) > 0}.3. Construct and Offer a Feasible Assortment: 
+
+(a) Find a probability distribution p′ 
+
+> j,S t
+
+over assortments S ⊆ St that preserves each available product’s purchase probability, so that every available product i ∈ St has the same purchase probability under p′ 
+
+> j,S t
+
+as under the original inventory-agnostic policy. (b) Offer an assortment ˜S ∼ p′ 
+
+> j,S t
+
+to the customer. 4. Fulfill Order: If the customer chooses product i ∈ ˜S, fulfill the order from its pre-selected warehouse ℓi. The corresponding stock is depleted by one. Such a distribution p′ 
+
+> j,S t
+
+exists by Lemma 6.1, applied with available set ˆS = St, type-j
+
+choice model ϕij , and input distribution qj (S) = ˆ wj (S)/τ j , which is the assortment distribution used by the inventory-agnostic policy. For every available product i ∈ St, it satisfies 
+
+ES∼p′
+
+> j,S t
+
+[ϕij (S)] = ES∼qj [ϕij (S)] = 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+τj
+
+.
+
+The first equality is the marginal-preservation guarantee of Lemma 6.1; the second substitutes 
+
+qj (S) = ˆ wj (S)/τ j and applies the flow-balance constraint P 
+
+> S⊆N
+
+ϕij (S) ˆ wj (S) = P 
+
+> ℓ∈L +
+
+ˆyℓij of the fluid approximation (1). This policy has the same performance as the original inventory-agnostic one, which we formalize in the following theorem, proven by a coupling argument in Appendix L. 
+
+Theorem 6.2. The expected total profit of the Inventory-Aware Simple Policy (Policy 1-IA) is equal to the expected total profit of Policy 1. 
+
+31 6.2 Other Inventory-Aware Policies 
+
+While we explicitly construct the inventory-aware counterpart only for Policy 1, same technique applies for other policies we introduced. To avoid duplication, in this subsection we briefly state the conversion for other policies. 
+
+Advanced Inventory-Aware Policy (2-IA) The only difference between Policy 2-IA and Policy 1-IA is that pre-select probabilities are scaled by (1 − Hℓij ). The performance analysis remains the same with a minor modification of multiplying appropriate expressions by (1 −Hℓij ). 
+
+Modified Inventory-Aware Policy (3-IA) The only difference between Policy 3-IA and Policy 1-IA is that stock availability check is done against the customer-specific virtual capacities 
+
+cℓij . The performance analysis remains the same with a minor modification of including customer type parameter in stock indicators. 
+
+6.3 Special Case: The MNL Model 
+
+Under the MNL choice model, formally defined in the beginning of Section 5, the conversion can be done more directly without solving a linear program at each step for any of the policies. While all other steps are done exactly as for a general choice model, in Step 3 instead of applying the algorithm from Lemma 6.1, we simply sample ˜S from 
+
+p′ 
+
+> j,S t
+
+(S) = ˆwj (S) · (1 + vj (S ∩ St)) 
+
+τj · (1 + vj (S)) ∀S ⊆ N : S̸ = ∅, p′ 
+
+> j,S t
+
+(∅) = 1 − X 
+
+> S̸=∅
+
+p′ 
+
+> j,S t
+
+(S),
+
+and offer ˜S ∩ St, where vj (A) = P 
+
+> i∈A
+
+vij is the total preference weight of the products in set A. To see why the marginal choice probabilities are preserved, first note that p′ 
+
+> j,S t
+
+is a valid distribution: because S ∩ St ⊆ S we have vj (S ∩ St) ≤ vj (S), so each weight satisfies 
+
+p′ 
+
+> j,S t
+
+(S) ≤ ˆwj (S)/τ j , and since P 
+
+> S
+
+ˆwj (S) = τj the residual mass assigned to ∅ is nonnegative. Now fix an available product i ∈ St and consider the two sources of randomness, the sampled set S ∼ p′ 
+
+> j,S t
+
+and the customer’s choice from the offered set S ∩ St. Since we offer S ∩ St,product i is chosen with probability vij 1[i ∈ S ∩ St]/(1 + vj (S ∩ St)), and only realizations with 
+
+i ∈ S contribute because i ∈ St is fixed. Averaging over S using the definition of p′ 
+
+> j,S t
+
+(S), the probability that i is chosen equals 
+
+X 
+
+> S:i∈S
+
+ˆwj (S) (1 + vj (S ∩ St)) 
+
+τj (1 + vj (S)) · vij 
+
+1 + vj (S ∩ St) = X 
+
+> S:i∈S
+
+ˆwj (S)
+
+τj
+
+· vij 
+
+1 + vj (S) = ES∼p[ϕij (S)] ,
+
+the marginal probability required by Lemma 6.1. Intuitively, trimming the sampled set S down to the available set S ∩St shrinks the MNL normalizer from 1+ vj (S) to 1+ vj (S ∩St); the weight 
+
+p′ 
+
+> j,S t
+
+(S) carries the compensating factor (1 + vj (S ∩ St)) /(1 + vj (S)) that cancels this change exactly, leaving every available product’s marginal choice probability equal to ES∼p[ϕij (S)]. Because this correcting factor is available in closed form, no linear program is solved at any step, providing a highly efficient implementation. 32 7 Computational Experiments 
+
+In this section, we conduct a series of computational experiments to evaluate the empirical performance of our proposed algorithms. The primary goals of these experiments are (i) to validate our theoretical performance guarantees on a range of synthetically generated data, (ii) to compare the algorithms against a standard benchmark and enhance their performance via simple heuristics, and (iii) to understand the practical trade-offs between theoretical guarantees, and real-world computational complexity and performance. We first detail our experimental design, then describe the algorithms tested, and finally present and discuss the computational findings. 
+
+7.1 Experimental Setup 
+
+Every test instance contains n = 100 products, m = 50 customer types, L = 10 warehouses, and is characterized by randomly generated model inputs, unique for each instance. In our experiments, each customer type is represented by a location, i.e., a point on the map. This representation is what makes the triadic (product, customer type, warehouse) profit hetero-geneity clean to formulate: the distances from a customer type’s location to the warehouses define the shipping costs, while the customer type’s product preferences are carried by the cus-tomer type itself. Customer type and warehouse locations are defined by coordinates sampled uniformly from the square [0 , 10] × [0 , 10]. The revenue ri for each product i is sampled inde-pendently from Uniform[10 , 20], and the profit for fulfilling an order for product i for a type-j
+
+customer from warehouse ℓ is rℓij = ri − dist( ℓ, j ), where dist( ℓ, j ) is the Euclidean distance between warehouse ℓ and customer type j’s location. The selling horizon consists of T time periods, where we experiment with different values of T .Customer choices follow the MNL model. To introduce heterogeneity, we first determine a consideration set Cj for each type j by sampling a size Lj ∼ Uniform {10 , . . . , 40 } and then choosing a subset of N of that size uniformly at random. For each product i ∈ C j , we sample a raw preference weight ˜ vij ∼ Uniform[1 , 10], and set ˜ vij = 0 for i / ∈ C j . For half of the customer types, we reorder these raw weights in reverse order of the revenues ri to model price sensitivity, meaning that these customers assign higher preference to lower-priced (lower-revenue) products and thus are less willing to purchase more expensive ones. We fix the no-purchase weight at 
+
+v0j = 1 and use the normalized preference weights 
+
+vij = ˜vij P0
+
+> 1−P0
+
+P 
+
+> k∈C j
+
+˜vkj 
+
+for each i ∈ C j ,
+
+which ensures that, when the full consideration set Cj is offered, the no-purchase probability equals P0, a parameter we vary across experiments. To model non-stationarity, we make customer types with smaller consideration sets, i.e., “pickier” customers more likely to arrive later in the horizon. The arrival probability for type 
+
+j at time period t is given by λjt ∝ exp( −γL j (t − T / 2)), normalized so that P 
+
+> j∈M
+
+λjt = 1 in every period t. We choose the parameter γ such that the minimum time-averaged market share across all customer types, min j∈M 1
+
+> T
+
+P 
+
+> t
+
+λjt , equals θmin .33 To set realistic capacity and supply levels, which allow us to test our policies in structurally different settings, we first calculate a baseline total demand Di for each product by assuming that, for each type j ∈ M , the myopic optimal assortment eSj = arg max S⊆N 
+
+P 
+
+> i∈S
+
+rij ϕij (S) is offered to each incoming customer of that type, where rij = max ℓ∈L rℓij is the best profit product 
+
+i can earn from a type-j customer across all warehouses. Assuming each type-j customer is shown its myopic optimal assortment eSj , Di = P 
+
+> j∈M
+
+τj ϕij ( eSj ) is the expected number of purchases of product i. We then set the total product supply as Ci = Di/ρ and the capacity of each warehouse as Kℓ = ( P 
+
+> i∈N
+
+Ci/L ) · α. The parameters ρ and α control the supply and capacity tightness, respectively. Varying P0 ∈ { 0.1, 0.3}, θmin ∈ { 1200 , 1100 }, ρ ∈ { 1.0, 1.4, 2.0}, and α ∈ { 0.6, 1.0, 1.4} yields 36 unique parameter configurations. We generate one instance for each configuration for T = 8 ,000 and T = 100 ,000. In additional experiments, generating multiple instances per parameter con-figuration produced qualitatively similar results, with comparable quantitative performance, at substantially higher computational cost; we therefore limit the scope to one instance per configu-ration. Customer type and warehouse locations, revenues, preference weights and consideration sets are generated separately for each instance. 
+
+7.2 Tested Algorithms 
+
+We test the empirical performance of five algorithms. Four closely follow the theoretical algo-rithms we propose: one from Section 5 and three variations of those from Section 4. These four are enhanced for efficient implementation; relative to the theoretical versions, we sim-plify the stocking optimization for computational tractability and experiment with different inventory-aware conversion heuristics. The fifth is a standard benchmark that relies on myopic optimization. Each algorithm has three components: (i) an offline stocking decision, (ii) a “raw” inventory-agnostic assortment and fulfillment policy, and (iii) a conversion rule that makes the raw policy inventory-aware. We now provide a description of each algorithm. 
+
+DualGreedy and SubSampling (DGSS). This policy combines our algorithm from Sec-tion 5 with the inventory-awareness technique from Section 6. To lower computational com-plexity and improve empirical performance significantly, we make some simplifications. 
+
+• Stocking Decision : To find a near-optimal stocking plan calg , we approximately maximize the surrogate function fapp (c) using a computationally efficient dual-greedy heuristic. This heuristic iteratively allocates inventory to the product-warehouse pair with the highest corre-sponding dual variable in the LP (5). While this approach currently does not have a theoret-ical guarantee, it is based on the two following observations. First, it is a classical result that a simple greedy algorithm allows to optimize a monotone DR-submodular function on non-negative integer lattice subject to 2 partition matroid constraints with 1 /3-approximation. Second, fapp (c + eℓi ) − fapp (c) can be approximated by ∂f app 
+
+> ∂c ℓi
+
+(c), where it exists, which is, in turn, equal to the value of dual variable corresponding to cℓi in the LP formulation of fapp (c). 
+
+• “Raw” Personalization and Fulfillment Policy : The raw policy is Policy 1 from Section 3 with optimal solution ( w∗, y∗) to LP (1) with the stocking plan calg . Note that while this policy 34 has a strong theoretical guarantee of (1 − 1/e )-approximation in the case of stationarity, it does not have theoretical guarantees in the general case, which we are testing. However, as is common with algorithms like Policy 2, which artificially lower sales of products to provide a better theoretical guarantee, in practice it is more sensible not to perform such reduction. We will see that this approach pays off for our setting later in this section. 
+
+• Inventory-Aware Conversion : The “raw” policy is made inventory-aware using the subsam-pling technique from Section 6, which provably preserves the expected profit. 
+
+Rounding and SubSampling (RSS). This is a simplified version of the algorithms from Section 4. We first solve the joint fluid LP (3) to obtain an optimal fractional stocking plan c∗.We then convert c∗ into a feasible integer plan calg by randomized rounding: each product i
+
+is stocked at the floor ⌊c∗ℓi ⌋ in every warehouse ℓ, and the few remaining units needed to reach 
+
+⌈P 
+
+> ℓ
+
+c∗ℓi ⌉ (capped by the supply Ci) are assigned to warehouses sampled without replacement with probability proportional to the fractional parts c∗ℓi − ⌊ c∗ℓi ⌋; any warehouse exceeding its capacity Kℓ then drops its added units with the smallest fractional parts until feasible, so that both P 
+
+> i∈N
+
+cℓi ≤ Kℓ and P 
+
+> ℓ∈L
+
+cℓi ≤ Ci hold. The assortment and fulfillment policy is the same as in DGSS. 
+
+Rounding and Drop-if-Unavailable (RDU). This is a modification of RSS which uses the same stocking algorithm and “raw” assortment and fulfillment policy but replaces subsampling with a simpler, more intuitive inventory-awareness rule. In each time period t, the algorithm determines the set of available products, namely those with positive stock in at least one ware-house where the profit is positive. It then removes all unavailable products from the “raw” assortment. If the customer chooses product i, the order is fulfilled from an available, positive-profit warehouse ℓ with probability proportional to the fluid variable ˆ yℓij . Unlike subsampling, this inventory-awareness rule carries no proven performance guarantee. 
+
+Rounding and Drop-at-Selected-Warehouse (RDWH). This is another modification of RSS which uses the same stocking algorithm and “raw” assortment and fulfillment policy but another inventory-awareness rule. In each time period t, the policy first pre-selects a potential fulfillment warehouse ℓi for each product i according to the fulfillment probabilities from the fluid solution. It then removes all products which are out of stock at their pre-selected warehouse from the “raw” assortment. If a customer makes a purchase, the order is fulfilled from the pre-selected warehouse. Unlike subsampling, this inventory-awareness rule carries no proven performance guarantee. 
+
+Benchmark (BM). This is a static benchmark policy based on myopic optimization. The stocking plan is determined by solving a mixed-integer program that allocates inventory to best serve the demand that would be generated by offering a fixed, myopically optimal assortment 
+
+eSj , defined earlier in this section, to each customer type j. Concretely, for each customer type j, the benchmark fixes the assortment offered to all customers of this type to its myopic optimal assortment eSj , so that type j generates an expected demand of τj ϕij ( eSj ) units of 35 product i, the expected number of type-j customers who choose i if we always show them eSj .It then solves the MIP similar to the LP (3) but with this fixed demand and the stocking levels c restricted to integers, placing inventory where it best serves that demand subject to the warehouse capacities Kℓ and product supplies Ci. The resulting optimal calg is the benchmark stocking plan. The “raw” policy is static: always offer the myopic assortment eSj to a type-j
+
+customer. The inventory-awareness conversion is also straightforward. In each time period t, the policy offers the subset of the myopic assortment eSj , consisting of products that are currently in stock at any warehouse with a positive corresponding profit for the current customer type. Fulfillment is routed greedily to an available warehouse with the highest profit. 
+
+7.3 Computational Results and Discussion 
+
+We present the results of our computational experiments in Table 2. Each row corresponds to one test instance, identified in the leftmost column by its parameter tuple ( P0, θ min , ρ, α ), where P0 is the no-purchase probability, θmin the minimum time-averaged market share, and ρ
+
+and α control the supply and capacity tightness, respectively. Expected profit of each policy is estimated by averaging over 100 simulations for each policy. The performance of each policy is reported as a percentage of the upper bound on the optimal profit, which is obtained by solving the joint fluid LP (3). Table 2: Performance Comparison Across Different Policies and Instances (T = 8,000 vs. 100,000) 
+
+Instance 
+
+(P 0, θ min , ρ, α )
+
+T = 8,000 T = 100,000 BM DGSS RSS RDU RDWH BM DGSS RSS RDU RDWH 
+
+(0.1,0.005,1.0,0.6) 90.05 89.08 90.40 94.75 94.44 90.35 95.16 97.22 97.90 98.52 (0.1,0.005,1.0,1.0) 96.24 61.93 90.54 95.80 95.30 98.63 65.37 97.30 98.80 98.69 (0.1,0.005,1.0,1.4) 95.94 63.58 91.17 96.00 95.56 98.23 66.99 97.45 98.80 98.73 (0.1,0.005,1.4,0.6) 88.73 89.43 89.82 93.74 93.55 89.15 96.09 96.82 95.73 98.20 (0.1,0.005,1.4,1.0) 91.79 78.97 89.80 94.69 94.98 92.16 84.93 96.93 97.27 98.70 (0.1,0.005,1.4,1.4) 90.29 80.44 91.14 94.48 95.28 90.79 85.70 97.40 97.65 98.81 (0.1,0.005,2.0,0.6) 83.27 86.89 89.58 94.52 93.66 83.16 94.62 96.72 96.20 98.32 (0.1,0.005,2.0,1.0) 81.69 88.93 90.87 93.40 95.32 81.80 95.22 97.18 96.14 98.60 (0.1,0.005,2.0,1.4) 86.23 87.81 89.61 92.04 94.16 86.47 95.70 96.89 94.60 98.42 (0.1,0.01,1.0,0.6) 83.64 88.52 91.02 94.43 94.30 83.66 94.36 97.41 97.48 98.53 (0.1,0.01,1.0,1.0) 94.68 65.92 90.52 95.49 95.00 96.32 69.89 97.27 98.68 98.61 (0.1,0.01,1.0,1.4) 95.76 60.75 90.55 95.04 95.35 98.57 64.41 97.35 98.58 98.72 (0.1,0.01,1.4,0.6) 81.47 88.06 89.85 94.32 93.61 81.72 94.16 96.81 96.69 98.32 (0.1,0.01,1.4,1.0) 90.40 79.13 89.52 94.87 94.49 90.93 85.56 96.86 96.75 98.53 (0.1,0.01,1.4,1.4) 92.41 79.68 90.31 94.53 95.17 92.66 85.65 96.81 96.49 98.70 (0.1,0.01,2.0,0.6) 82.36 88.57 88.85 92.20 93.08 82.53 95.52 96.37 95.27 98.13 (0.1,0.01,2.0,1.0) 83.82 87.94 88.21 91.22 94.32 84.11 95.30 96.33 94.84 98.52 (0.1,0.01,2.0,1.4) 86.85 87.83 88.76 91.96 94.04 87.19 95.74 96.76 95.05 98.43 (0.3,0.005,1.0,0.6) 89.13 85.15 86.84 92.05 90.92 90.03 94.89 96.05 95.75 97.55 (0.3,0.005,1.0,1.0) 94.05 74.94 87.60 93.45 92.12 97.11 82.10 96.48 98.14 97.85 (0.3,0.005,1.0,1.4) 94.03 70.55 87.68 92.89 92.67 97.84 77.32 96.43 97.86 97.92 (0.3,0.005,1.4,0.6) 84.99 84.75 86.36 90.52 89.67 85.38 94.51 95.63 94.40 97.22 (0.3,0.005,1.4,1.0) 91.64 85.11 87.77 92.78 92.22 92.22 94.34 95.90 96.08 97.89 (0.3,0.005,1.4,1.4) 92.08 84.86 87.04 92.32 91.78 92.98 94.44 95.95 96.50 97.75 (0.3,0.005,2.0,0.6) 84.73 83.82 86.08 87.80 89.07 85.29 95.29 95.65 91.21 97.38 
+
+continued on next page 
+
+36 continued from previous page                                                                                                                             
+
+> Instance
+> (P 0, θ min , ρ, α )
+> T = 8,000 T = 100,000 BM DGSS RSS RDU RDWH BM DGSS RSS RDU RDWH
+> (0.3,0.005,2.0,1.0) 84.62 82.98 85.07 89.15 90.14 85.11 93.72 95.08 92.64 97.43 (0.3,0.005,2.0,1.4) 85.53 84.59 86.79 90.65 90.92 85.68 94.31 95.77 92.82 97.66 (0.3,0.01,1.0,0.6) 89.42 85.47 87.28 92.22 90.57 90.66 95.25 96.26 96.70 97.47 (0.3,0.01,1.0,1.0) 92.73 72.37 86.15 92.52 91.45 95.38 79.98 96.07 97.89 97.66 (0.3,0.01,1.0,1.4) 93.62 70.14 86.87 92.60 92.01 97.06 76.80 96.25 97.86 97.83 (0.3,0.01,1.4,0.6) 86.19 84.36 87.10 90.30 90.14 86.58 94.67 95.63 93.34 97.39 (0.3,0.01,1.4,1.0) 88.60 84.77 86.15 91.22 91.20 89.13 93.57 95.76 94.84 97.66 (0.3,0.01,1.4,1.4) 87.98 84.33 86.14 90.54 91.18 88.87 94.38 95.42 95.05 97.59 (0.3,0.01,2.0,0.6) 83.12 84.94 86.35 88.11 89.86 83.52 95.00 95.69 91.48 97.27 (0.3,0.01,2.0,1.0) 83.44 82.03 84.65 85.45 90.21 84.28 93.57 93.78 88.75 97.46 (0.3,0.01,2.0,1.4) 85.02 83.12 86.67 90.81 90.96 85.63 93.72 95.78 92.55 97.55
+> Average 88.51 81.16 88.31 92.47 92.74 89.48 88.84 96.37 95.74 98.05
+
+Our analysis of the computational results, presented in Table 2, highlights several key in-sights. First, the policies using a stocking plan derived from the joint fluid LP (3), namely RSS, RDU, and RDWH, are highly efficient: RDU and RDWH outperform the benchmark on average at both horizons, while RSS is on par with the benchmark at the shorter horizon and substantially exceeds it at the longer one. This provides strong empirical support for our joint fluid-based optimization approach from Section 4. This effectiveness is particularly pronounced as the problem scales, which aligns with our asymptotic theoretical guarantees in Section 4. For instance, the average performance of the RSS algorithm, the closest to our asymptotic the-oretical algorithms, jumps by 8 percentage points (from 88.31% to 96.37%) as the horizon T
+
+increases from 8 ,000 to 100 ,000, while the static benchmark remains flat. This is consistent with the theoretical guarantee that, as the problem scales, the optimum converges to our fluid approximations, which our policies effectively exploit. We also observe a distinction between the two main theoretical approaches. The DGSS policy, implementing the DR-submodular framework from Section 5 via a dual-greedy heuris-tic, is outperformed by the rounding-based methods, which correspond to the algorithms from Section 4. The results suggest that the main point of weakness of DGSS is the substantial instance-to-instance variation in the objective value attained by the submodular optimization approximation algorithm. This suggests that while the DR-submodular fapp function is a pow-erful theoretical tool, the combination of a 1 /2-approximation in the surrogate (Lemma 5.3) and the need for complex submodular optimization makes it less robust in practice than the joint fluid-based approach. At the same time, relative to the benchmark and to its theoretical guarantees, DGSS still performs excellently, far exceeding the guarantees from Theorem 5.1 and having average per-formance similar to the benchmark on T = 100 ,000. Keeping in mind that synthetic data construction inherently favors the benchmark due to underlying synergy (the supply levels 
+
+Ci = Di/ρ and warehouse capacities are calibrated from the baseline demand Di generated by the same myopic optimal assortments eSj that the benchmark offers), these results are very encouraging. In addition, we gain practical insights from comparing the inventory-aware conversion heuris-tics. For T = 100 ,000, the theoretically-sound subsampling-based algorithm (RSS) achieves an 37 excellent 96.37%. However, the RDWH algorithm, which pre-selects a fulfillment decision ac-cording to the fluid solution, performs even better at 98.05%. This is in line with the intuitive understanding that subsampling tends to be overly conservative in practice, causing the policy to show the empty assortment too often to prevent overselling. At the same time, the RDU algorithm, which only filters products that are out of stock everywhere, while having a strong performance for smaller T , performs worst of the three when T grows to 100 ,000, indicating that it tends to oversell products from distant warehouses. Finally, note that while to get theoretical guarantees without the stationarity assumption we need to artificially reduce demand by scaling fluid solutions, and there are instances when algorithms with unscaled input perform arbitrarily badly, in practice it is best not to apply such demand reduction. Overall, the outstanding performance of the joint fluid-based algo-rithms, combined with excellent performance of the submodular surrogate approach, suggests that carefully coordinating the inventory placement, assortment personalization, and order ful-fillment decisions is both theoretically grounded and effective in practice. 
+
+8 Conclusion 
+
+In this work, we studied the joint inventory placement, assortment personalization, and order fulfillment problem motivated by online retailers serving geographically dispersed customers and operating networks of warehouses. To the best of our knowledge, we provide the first perfor-mance guarantees for this joint problem with distributed warehouses and profit heterogeneity incorporating customer characteristics and fulfillment locations. For general choice models, our algorithms are asymptotically optimal as the minimum warehouse capacity Kmin and minimum product supply Cmin grow, attaining a square-root convergence rate that notably improves on the cubic-root rate of Bai et al. (2025a), whose guarantee applies only to the much less general single-warehouse setting with profits depending only on products. We provide constant-factor approximation algorithms for the MNL choice model and our advanced assortment and ful-fillment policy for the non-stationary case introduces a novel, sophisticated selective demand reduction method, which is far more efficient than the classical scaling approach based on Markov’s inequality. Several interesting directions for future research emerge from our work. First, while we provide the first constant-factor guarantees for the joint problem under MNL, improving these constants remains an important direction. Particularly, one can try enhancing advanced assort-ment and fulfillment policy or introducing a completely new approach without artificial demand reduction. Second, a significant open question is whether a constant-factor approximation exists for a general choice model under assortment oracle assumption, bridging the gap between our asymptotic results and the MNL case. Third, one can study upper bounds on possible poly-nomial approximation ratio conditioned on P ̸ = NP. Fourth, one could work on extending the results to a setting when products are reusable, for example when products return to the firm in their original state after a random duration (see, for example, Huang et al. (2024)). Finally, our model assumes customer types are known upon arrival. Another interesting direction would be to develop robust algorithms that can handle uncertainty or misidentification of customer types, which is a practical challenge for online platforms. 38 References 
+
+Jason Acimovic and Stephen C. Graves. Making better fulfillment decisions on the fly in an online retail environment. Manufacturing & Service Operations Management , 17(1):34–51, 2015. doi: 10.1287/msom.2014.0505. 6 Yicheng Bai, Omar El Housni, Paat Rusmevichientong, and Huseyin Topaloglu. Coordinated inventory stocking and assortment customization. Operations Research , 73(6):2953–2971, 2025a. doi: 10.1287/opre.2022.0651. 3, 4, 5, 6, 16, 28, 38 Yicheng Bai, Paat Rusmevichientong, and Huseyin Topaloglu. Joint placement, delivery promise, and fulfillment in online retail. Management Science , 71(11):9171–9192, 2025b. doi: 10.1287/mnsc.2023.01726. 6 An Bian, Kfir Y. Levy, Andreas Krause, and Joachim M. Buhmann. Continuous DR-submodular maximization: Structure and algorithms. In Advances in Neural Information Processing Systems 30 , pages 486–496, 2017. 51 Niv Buchbinder and Moran Feldman. Deterministic algorithm and faster algorithm for sub-modular maximization subject to a matroid constraint. SIAM Journal on Computing , pages FOCS24–85–FOCS24–114, 2025. doi: 10.1137/24M1698122. 30 Gruia C˘ alinescu, Chandra Chekuri, Martin P´ al, and Jan Vondr´ ak. Maximizing a monotone submodular function subject to a matroid constraint. SIAM Journal on Computing , 40(6): 1740–1766, 2011. 30 Omar El Housni and Huseyin Topaloglu. Joint assortment optimization and customization under a mixture of multinomial logit models: On the value of personalized assortments. Operations Research , 71(4):1197–1215, 2023. doi: 10.1287/opre.2022.2384. 5 Boris Epstein and Will Ma. Optimizing inventory placement for a downstream online matching problem, 2024. arXiv preprint arXiv:2403.04598. 6 Yiding Feng, Rad Niazadeh, and Amin Saberi. Technical note—near-optimal Bayesian online assortment of reusable resources. Operations Research , 72(5):1861–1873, 2024. doi: 10.1287/ opre.2020.0687. 30, 31 Doroth´ ee Honhon, Vishal Gaur, and Sridhar Seshadri. Assortment planning and inventory decisions under stockout-based substitution. Operations Research , 58(5):1364–1379, 2010. 5 Yukai Huang, Jacob Feldman, and Heng Zhang. Joint inventory and assortment optimization with reusable resources, 2024. Available at https://ssrn.com/abstract=5015696 . 6, 38 Stefanus Jasin and Amitabh Sinha. An LP-based correlated rounding scheme for multi-item ecommerce order fulfillment. Operations Research , 63(6):1336–1351, 2015. doi: 10.1287/opre .2015.1441. 6 39 Jon Lee, Maxim Sviridenko, and Jan Vondr´ ak. Submodular maximization over multiple ma-troids via generalized exchange properties. Mathematics of Operations Research , 35(4):795– 806, 2010. doi: 10.1287/moor.1100.0463. 30 Yanzhe (Murray) Lei, Stefanus Jasin, Joline Uichanco, and Andrew Vakhutinsky. Joint product framing (display, ranking, pricing) and order fulfillment under the multinomial logit model for e-commerce retailers. Manufacturing & Service Operations Management , 24(3):1529–1546, 2022. doi: 10.1287/msom.2021.1012. 6 Omar Mouchtaki, Omar El Housni, Guillermo Gallego, Vineet Goyal, Salal Humair, Sangjo Kim, Ali Sadighian, and Jingchen Wu. Joint assortment and inventory planning under the Markov chain choice model. Management Science , 2026. doi: 10.1287/mnsc.2023.01322. Articles in Advance. Available at https://ssrn.com/abstract=3832909 . 5 Shuo Sun, Rajan Udwani, and Zuo-Jun Max Shen. A unified algorithmic framework for dynamic assortment optimization under MNL choice. In Proceedings of the 26th ACM Conference on Economics and Computation , page 789, 2025. doi: 10.1145/3736252.3742628. 3, 6, 16 Huseyin Topaloglu. Joint stocking and product offer decisions under the multinomial logit model. Production and Operations Management , 22(5):1182–1199, 2013. 5, 49 Pengyu Zuo, Guillermo Gallego, Anran Li, and Chenhao Wang. Joint inventory allocation and dynamic assortment optimization in retail networks, 2026. Available at https://ssrn.com /abstract=7155318 . 7 
+
+Appendix A: Proof of Lemma 3.3 
+
+Consider any feasible assortment and fulfillment policy. Let Y ℓij denote the number of type-
+
+j customers who purchase product i from warehouse ℓ, and let ˆ yℓij = E[Y ℓij ]. Similarly, let 
+
+Wj (S) denote the number of times assortment S is shown to type-j customers, and let ˆ wj (S) = 
+
+E[Wj (S)]. We show that ( ˆ w, ˆy) is feasible for (1) and its objective value equals the policy’s expected profit. 
+
+Verifying the first constraint of (1) : Since a policy cannot sell more than the available inventory, we have P 
+
+> j∈M
+
+Y ℓij ≤ cℓi (almost surely) for all i ∈ N , ℓ ∈ L . Taking expectations yields 
+
+P 
+
+> j∈M
+
+ˆyℓij ≤ cℓi .
+
+Verifying the second constraint of (1) : Let Yij = P 
+
+> ℓ∈L +
+
+Y ℓij be the total sales of product i to type-j customers. Let Iijt be the indicator that a type-j customer arrives at time period t and chooses product i. Also, let Wjt (S) be the indicator that a type-j customer arrives at time period t and is offered assortment S. The expected sales of product i to type-j customers can be written as 
+
+X
+
+> ℓ∈L +
+
+ˆyℓij = E[Yij ] = X
+
+> t∈T
+
+E[Iijt ]40 = X
+
+> t∈T
+
+X
+
+> S⊆N
+
+P(Iijt = 1 | Wjt (S) = 1) P(Wjt (S) = 1) = X
+
+> t∈T
+
+X
+
+> S⊆N
+
+ϕij (S)E[Wjt (S)] = X
+
+> S⊆N
+
+ϕij (S) ˆ wj (S).
+
+Verifying the third constraint of (1) : Since some assortment is shown to every arriving customer, 
+
+P 
+
+> S⊆N
+
+Wj (S) equals the total number of type-j arrivals. Taking expectations and using τj =
+
+P 
+
+> t∈T
+
+λjt yields P 
+
+> S⊆N
+
+ˆwj (S) = τj .Since Wj (S) ≥ 0 and Y ℓij ≥ 0, we have ˆwj (S) ≥ 0 and ˆ yℓij ≥ 0. Thus, ( ˆ w, ˆy) is feasible for (1). The policy’s expected profit is E
+
+hP
+
+> i∈N
+
+P
+
+> j∈M
+
+P 
+
+> ℓ∈L +
+
+rℓij Y ℓij 
+
+i
+
+= P
+
+> i∈N
+
+P
+
+> j∈M
+
+P 
+
+> ℓ∈L +
+
+rℓij ˆyℓij ,
+
+which is the objective value of (1) at this solution. 
+
+Appendix B: Proof of Lemma 3.4 
+
+The expected demand E[Zℓij ] is the sum over all time periods of the probability of a type-j
+
+customer arriving, being offered an assortment S, choosing product i, and having that choice assigned to warehouse ℓ. Therefore, we have 
+
+E[Zℓij ] = X
+
+> t∈T
+
+λjt 
+
+X
+
+> S⊆N
+
+ ˆwj (S)
+
+τj
+
+
+
+ϕij (S) ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+.
+
+Factoring out terms that do not depend on t and using the definition τj = P 
+
+> t∈T
+
+λjt , the expression simplifies to 
+
+E[Zℓij ] = τj
+
+τj
+
+ X
+
+> S⊆N
+
+ˆwj (S)ϕij (S)
+
+ ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+.
+
+From the flow conservation constraint in the fluid approximation (1), we know that 
+
+P 
+
+> S⊆N
+
+ˆwj (S)ϕij (S) = P 
+
+> ℓ′∈L +
+
+ˆyℓ′ 
+
+> ij
+
+. Substituting this into the equation above yields 
+
+E[Zℓij ] = 
+
+ X
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+ ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+= ˆ yℓij .
+
+The second statement in the lemma follows directly by summing over j ∈ M .
+
+Appendix C: Proof of Technical Lemmas from Section 3.3.1 
+
+In this appendix, we treat product i and a warehouse ℓ as fixed and, for notational convenience, whenever we say “demand”,“sale(s)”, or “profit”, we only consider demand/sale(s) for product 
+
+i from warehouse ℓ.41 Appendix C.1: Proof of Claim 3.6 
+
+We first compute joint probability of a type-j arrival and a demand at a given time period t.
+
+P(Djt = 1 , I ℓit = 1) = λj
+
+X
+
+> S⊆N
+
+ ˆwj (S)
+
+τj
+
+
+
+ϕij (S) ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+= λj
+
+τj
+
+ X
+
+> S⊆N
+
+ˆwj (S)ϕij (S)
+
+ ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+.
+
+From stationarity it follows that τj = T λ j , so λj /τ j = 1 /T . Furthermore, by the flow constraint in (1), P 
+
+> S⊆N
+
+ˆwj (S)ϕij (S) = P 
+
+> ℓ′∈L +
+
+ˆyℓ′ 
+
+> ij
+
+. Substituting these gives 
+
+P(Djt = 1 , I ℓit = 1) = 1
+
+T
+
+ X
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+ ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+= ˆyℓij 
+
+T .
+
+Next, we find the marginal probability of a demand at time period t by summing over all customer types: 
+
+P(Iℓit = 1) = X
+
+> j′∈M
+
+P(Dj′t = 1 , I ℓit = 1) = 1
+
+T
+
+X
+
+> j′∈M
+
+ˆyℓij ′ .
+
+The conditional probability is the ratio of the joint and marginal probabilities, which yields the desired result. 
+
+Appendix C.2: Proof of Lemma 3.8 
+
+Let pℓit = P(demand for ( i, ℓ ) at time period t). The expected total demand is E[Zℓi ] = P 
+
+> t∈T
+
+pℓit .To lower-bound the expected sales, we compare our policy to a more constrained process. Consider a system with cℓi distinct bins, each holding one unit of product i. When a demand occurs at time period t, we select one of the cℓi bins uniformly at random to fulfill it. A sale is made only if the chosen bin is not empty. By a coupling argument on a common demand sequence, this “randomized bin” policy has expected sales less or equal than those of our original policy: it fails to sell to an incoming demand whenever the randomly chosen bin is already empty, even if other units of product i remain in stock at warehouse ℓ, whereas our original policy sells as long as any unit remains. The probability that a specific bin is not chosen at time period t is 1 −pℓit /c ℓi . The probability it is never chosen over the horizon is Q 
+
+> t∈T
+
+(1 − pℓit /c ℓi ). Thus, the probability it is chosen at least once is 1 − Q 
+
+> t∈T
+
+(1 − pℓit /c ℓi ). The total expected sales for the bin policy is cℓi times this probability. Since our policy sells at least as much as the bin policy by the coupling argument, its expected sales satisfy the following chain of inequalities: 
+
+E[ ¯Zℓi ] ≥ cℓi 1 − Y
+
+> t∈T
+
+
+
+1 − pℓit 
+
+cℓi
+
+!
+
+≥ cℓi
+
+1 − 1
+
+T
+
+X
+
+> t∈T
+
+
+
+1 − pℓit 
+
+cℓi
+
+!T 
+
+42 = cℓi
+
+1 − 1 −
+
+P 
+
+> t∈T
+
+pℓit 
+
+T c ℓi
+
+!T 
+
+≥ cℓi
+
+
+
+1 − e− P 
+
+> t∈T pℓit /c ℓi
+
+
+
+= cℓi
+
+
+
+1 − e−E[Zℓi ]/c ℓi
+
+
+
+.
+
+Here, the second inequality is the AM-GM inequality applied to the T nonnegative factors 1 − pℓit /c ℓi , and the final inequality follows from the fact that (1 − x/n )n ≤ e−x for x ≥ 0, n ∈ N.
+
+Appendix C.3: Proof of Lemma 3.9 
+
+From Lemma 3.8, we have E[ ¯Zℓi ] ≥ cℓi (1 − e−E[Zℓi ]/c ℓi ). Let x = E[Zℓi ]/c ℓi . Since we assume 
+
+cℓi ≥ E[Zℓi ], we have 0 ≤ x ≤ 1. The function f (x) = 1 − e−x is concave on [0 , 1], so it lies above the chord connecting (0 , 0) and (1 , 1 − 1/e ). Therefore, 1 − e−x ≥ (1 − 1/e )x for x ∈ [0 , 1]. Applying this, we get: 
+
+E[ ¯Zℓi ] ≥ cℓi
+
+
+
+(1 − 1/e ) E[Zℓi ]
+
+cℓi
+
+
+
+= (1 − 1/e )E[Zℓi ].
+
+By definition, E[ ¯Zℓi ] = E[Zℓi ]−E[( Zℓi −cℓi )+]. Substituting this into the inequality and rearranging yields the desired result. 
+
+Appendix D: Technical results from Section 3.4 
+
+Appendix D.1: Proof of Claim 3.10 
+
+Suppose for contradiction that the sum is less than 12 β′y. The expected total profit loss from the h-parameters can be decomposed and bounded using the definitions of u′ and the case condition: 
+
+αr =
+
+> u′−1
+
+X
+
+> s=1
+
+rℓij s hℓij s ˆyℓij s +
+
+> u
+
+X
+
+> s=u′
+
+rℓij s hℓij s ˆyℓij s
+
+< (1 − ϵ(β′)) αr β′y
+
+> u′−1
+
+X
+
+> s=1
+
+hℓij s ˆyℓij s + (1 + ϵ(β′)) αr β′y
+
+> u
+
+X
+
+> s=u′
+
+hℓij s ˆyℓij s .
+
+Note that Pu′−1 
+
+> s=1
+
+hℓij s ˆyℓij s = β′y − Pus=u′ hℓij s ˆyℓij s > β ′y/ 2 by the assumption, and we know (1 − ϵ(β′)) < (1 + ϵ(β′)). Because the two sums total β′y and the larger coefficient (1 + ϵ(β′)) multiplies the smaller sum Pus=u′ hℓij s ˆyℓij s , replacing each sum by β′y/ 2 can only increase the right-hand side, so we have 
+
+αr < (1 − ϵ(β′)) αr β′y (β′y/ 2) + (1 + ϵ(β′)) αr β′y (β′y/ 2) = αr 
+
+2 (1 − ϵ(β′) + 1 + ϵ(β′)) = αr. 
+
+This is a contradiction, so the claim holds. 43 Appendix D.2: Proof of Lemma 3.11 
+
+The proof consists of two steps. First, we establish an inequality for random variables, then we take expectations. The quadratic function f (x) = ( x − E[Z]) 2 − 4( x − c)( c − E[Z]) has its minimum at x = 2 c − E[Z]. At this point, f (x) = 0, which implies f (x) ≥ 0 for all x. For any realization of Z, the term ( Z − c)+ is non-zero only if Z > c . For this case, rearranging 
+
+f (Z) ≥ 0 gives the pointwise inequality: (Z − c)+ ≤ (Z − E[Z]) 2
+
+4( c − E[Z]) .
+
+Here we use the assumption c > E[Z], which keeps the denominator 4( c − E[Z]) positive so that dividing by it preserves the inequality. Now we take expectations of both sides. Let 
+
+Z = Pnk=1 Zk, where Zk are independent [0 , 1]-valued random variables. 
+
+E[( Z − c)+] ≤ E[( Z − E[Z]) 2]4( c − E[Z]) = Var( Z)4( c − E[Z]) =
+
+Pnk=1 Var( Zk)4( c − E[Z]) 
+
+≤
+
+Pnk=1 E[Z2 
+
+> k
+
+]4( c − E[Z]) ≤
+
+Pnk=1 E[Zk]4( c − E[Z]) = E[Z]4( c − E[Z]) .
+
+The last inequality holds because Zk ∈ [0 , 1] implies Z2 
+
+> k
+
+≤ Zk. Dividing by E[Z] yields the result. 
+
+Appendix E: Performance of Policy 1 in the Non-Stationary Case 
+
+To further motivate the need for the advanced policy, we analyze the performance of Policy 1 when applied to the non-stationary case with a uniform scaling parameter α. The following lemma shows that this simpler approach has a significantly weaker performance guarantee. 
+
+Lemma E.1 (Performance of Policy 1). Let Alg 1(c, α ) be the expected profit of Policy 1 using a fluid solution scaled by α ∈ (0 , 1] . The performance is bounded by E[Alg 1(c, α )] ≥
+
+α(1 − α)J∗ 
+
+> 1
+
+(c). This bound is tight. Proof. The proof consists of two parts: establishing the lower bound and then showing its tightness with a worst-case example. 
+
+Proof of the Lower Bound. The expected ( i, ℓ )-sales to customer type j are given by 
+
+E[ ¯Zℓij ] = X
+
+> t∈T
+
+λjt 
+
+X
+
+> S⊆N
+
+ˆwj (S)
+
+τj
+
+ϕij (S) ˆyℓij 
+
+P 
+
+> h∈L +
+
+ˆyhij 
+
+E[Aℓit ],
+
+where Aℓit is the indicator that stock of product i is available at the beginning of time period t
+
+on warehouse ℓ. The factor P 
+
+> t∈T
+
+λjt 
+
+P  
+
+> S⊆N
+> ˆwj(S)
+> τj
+
+ϕij (S) ˆyℓij  
+
+> P
+> h∈L +ˆyhij
+
+appearing here equals E[Zℓij ]by Lemma 3.4, so a lower bound on E[Aℓit ] directly lower-bounds E[ ¯Zℓij ]. The probability of having stock at the beginning of time period t is at least the probability of not stocking out 44 over the entire horizon: E[Aℓit ] ≥ P(Zℓi < c ℓi ). By Markov’s inequality: 
+
+P(Zℓi ≥ cℓi ) ≤ E[Zℓi ]
+
+cℓi
+
+=
+
+P 
+
+> j∈M
+
+ˆyℓij 
+
+cℓi
+
+≤ α P 
+
+> j∈M
+
+y∗ℓij 
+
+cℓi
+
+≤ αc ℓi
+
+cℓi
+
+= α. 
+
+Thus, P(Zℓi < c ℓi ) ≥ 1 − α. This provides a lower bound on expected sales: 
+
+E[ ¯Zℓij ] ≥ E[Zℓij ] · (1 − α) = (1 − α)ˆ yℓij .
+
+The total expected profit is therefore bounded by: 
+
+X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij E[ ¯Zℓij ] ≥ (1 − α) X
+
+> i∈N
+
+X
+
+> j∈M
+
+X
+
+> ℓ∈L
+
+rℓij ˆyℓij = (1 − α)α · LP( c) ≥ α(1 − α)J∗ 
+
+> 1
+
+(c).
+
+The quadratic α(1 − α) is maximized at α = 1 /2, yielding a best-possible guarantee of 0 .25 for this simple policy. 
+
+Proof of Tightness. We show the α(1 − α) bound is tight by constructing a worst-case instance. Consider an instance with a single product ( n = 1), two customer types ( m = 2), a single warehouse ( L = 1), and a time horizon of two periods ( T = 2), with an initial capacity of c11 = 1. The arrivals are non-stationary: 
+
+• At t = 1: A type 1 customer arrives with probability λ11 = 1 − 1/k .
+
+• At t = 2: A type 2 customer arrives with probability λ22 = 1 /k .All other arrival probabilities are zero. The profits are highly skewed, with r111 = 1 and r112 = k2
+
+for some large k. The choice probabilities are ϕ11 ({1}) = ϕ12 ({1}) = 1. 
+
+Fluid and True Optimal Solutions. The optimal fluid solution does not account for the sequential nature of inventory depletion. Its optimal solution is to set w1({1}) = 1 − 1/k , w2({1}) = 1 /k ,
+
+y111 = 1 − 1/k , and y112 = 1 /k , with zero sales from the virtual warehouse ( y211 = y212 = 0). The corresponding objective value is LP( c) = 1 · (1 − 1/k ) + k2 · (1 /k ) = k + 1 − 1/k . The true optimal policy, however, must decide at t = 1 whether to sell to the low profit customer or wait. The optimal strategy is to always wait for the type-2 customer, which yields an expected profit of J∗ 
+
+> 1
+
+(c) = P(arrival at t = 2) · r112 = (1 /k ) · k2 = k.
+
+Policy 1 Performance. We now analyze the performance of Policy 1 with parameter α. Its expected total profit is the sum of the expected profits from each time period: 
+
+• Expected profit at t = 1 : A type 1 customer arrives with probability 1 − 1/k . The policy offers the product with probability α, yielding a profit of 1. The expected profit from this time period is (1 − 1/k ) · α · 1 = α(1 − 1/k ). 
+
+• Expected profit at t = 2 : A type 2 customer arrives with probability 1 /k . A sale is possible only if no sale occurred at t = 1 (which happens with probability 1 − α(1 − 1/k )). The policy offers the product with probability α, yielding a profit of r112 = k2. The expected profit from this time period is 1 
+
+> k
+
+· (1 − α(1 − 1/k )) · α · k2.45 Summing these two terms, the expected total profit for the policy is: 
+
+E[Alg 1(c, α )] = α(1 − 1/k ) + αk (1 − α(1 − 1/k )) = α(1 − α)k + α2 + α − αk .
+
+The ratio of the policy’s profit to the optimum, J∗ 
+
+> 1
+
+(c) = k, is therefore: 
+
+E[Alg 1(c, α )] 
+
+J∗ 
+
+> 1
+
+(c) = α(1 − α)k + α2 + α − αk
+
+k = α(1 − α) + α2 + αk − αk2 .
+
+As k → ∞ , this ratio approaches α(1 − α), proving the bound is tight. This result highlights the limitations of Policy 1 and motivates the need for the more sophisticated machinery of Policy 2 to achieve a better guarantee in the non-stationary case. 
+
+Appendix F: Tightness of the Fluid Bound (1) 
+
+In this section, we analyze tightness of the fluid approximation both under stationarity assump-tion and without it. 
+
+Appendix F.1: Tightness of the Fluid Bound under Stationarity. 
+
+We show that the 1 − 1 
+
+> e
+
+component of the approximation guarantee is tight with respect to the fluid benchmark LP( c). To do this, we construct an instance where the ratio of the optimal expected profit, J∗ 
+
+> 1
+
+(c), to the value of the fluid solution approaches 1 − 1 
+
+> e
+
+. This implies two important consequences: (1) no policy can achieve a constant factor better than 1 − 1 
+
+> e
+
+when its performance is measured against the specific upper bound provided by LP( c), and, consequently, (2) any attempt to prove a better guarantee would require a different, stronger benchmark. 
+
+Instance Construction. Consider an instance with a single product, customer type, and ware-house ( n = m = L = 1), with capacity c11 = 1 and profit r111 = 1. Arrivals are stationary with 
+
+λ1t = 1 /T for all t ∈ T , so the total expected arrivals are τ1 = 1. The customer always chooses the product if it is offered, i.e., ϕ11 ({1}) = 1. The optimal solution to the fluid LP (1) for this instance is to set w1({1}) = 1, y111 = 1, and 
+
+y211 = 0 (where warehouse 2 is the virtual one), which yields an objective value of LP( c) = 1. However, the true optimal dynamic policy is to offer the product in every period until it is sold. A sale occurs if at least one customer arrives during the T periods. The probability of this event is 1 − (1 − 1/T )T . The optimal expected profit is therefore: 
+
+J∗ 
+
+> 1
+
+(c) = 1 · 1 −
+
+
+
+1 − 1
+
+T
+
+T !
+
+.
+
+As the time horizon T → ∞ , the optimal expected profit J∗ 
+
+> 1
+
+(c) approaches 1 − 1 
+
+> e
+
+. Thus, the ratio J∗ 
+
+> 1
+
+(c)/LP( c) can be arbitrarily close to 1 − 1 
+
+> e
+
+, demonstrating the tightness of the analysis with respect to the fluid bound. 46 Appendix F.2: Tightness of the Fluid Bound under Non-Stationarity 
+
+We show that for the non-stationary case, there is a larger gap between the fluid approximation and the optimal expected profit. We construct an instance where the ratio J∗ 
+
+> 1
+
+(c)/LP( c) can be arbitrarily close to 1 /2. 
+
+Instance. Consider an instance with one product ( n = 1), one physical warehouse ( L = 1), a capacity of c11 = 1, and two customer types ( m = 2) arriving over two periods ( T = 2). The arrivals are non-stationary: At t = 1: A type 1 customer arrives with probability λ11 = 1 − 1/k . No type 2 customer arrives ( λ21 = 0). At t = 2: A type 2 customer arrives with probability λ22 = 1 /k . No type 1 customer arrives (λ12 = 0). The profits are skewed: selling to a type 1 customer yields r111 = 1, while selling to a type 2 customer yields r112 = k for a large k. Customers always purchase if the product is offered: 
+
+ϕ11 ({1}) = ϕ12 ({1}) = 1. 
+
+Fluid Solution Value. The fluid LP (1) does not account for the sequential nature of the problem and the fact that a sale at t = 1 depletes inventory for t = 2. Its optimal solution serves both expected customer arrivals. Thus, the optimal fluid expected sales are y111 = 1 − 1/k 
+
+and y112 = 1 /k . The complete solution specifies w1({1}) = 1 − 1/k , w2({1}) = 1 /k , and zero expected sales from the virtual warehouse ( y211 = y212 = 0). The optimal value of the fluid solution is therefore: LP( c) = 1 · y111 + k · y112 = 1 · (1 − 1/k ) + k · (1 /k ) = 2 − 1/k. 
+
+True Optimal Expected Profit. The true optimal policy faces a crucial decision at t = 1: sell to the arriving type 1 customer or save the single unit of inventory for the potentially more profitable type 2 customer. We compare the expected profits of these two actions: 
+
+Strategy 1: Sell at t = 1 . If the type 1 customer arrives (probability 1 − 1/k ), the retailer sells and gets a profit of 1. The inventory is then depleted. The total expected profit from this strategy is 1 · (1 − 1/k ) + k · (1 /k )2 = 1. 
+
+Strategy 2: Wait for t = 2 . The retailer forgoes the sale to the type 1 customer. At t = 2, a type 2 customer arrives with probability 1 /k , yielding a profit of k. The total expected profit from this strategy is k · (1 /k ) = 1. Thus, the two strategies tie, each yielding expected profit 1, and the optimal expected profit is J∗ 
+
+> 1
+
+(c) = 1. The ratio of the optimal expected profit to the fluid bound is equal to 12−1/k . As k → ∞ , this ratio approaches 1 /2. 47 Appendix G: Technical Results For Section 4 
+
+Appendix G.1: Verifying Feasibility of the Stocking Plan in Theorem 4.1 
+
+We show that ˆ c satisfies the supply and capacity constraints. For any product i ∈ N :
+
+X
+
+> ℓ∈L
+
+ˆcℓi ≤ X
+
+> ℓ∈L
+
+(αc ∗ℓi + γ) = α X
+
+> ℓ∈L
+
+c∗ℓi + Lγ 
+
+≤ αC i + L min 
+
+r Kmin 
+
+n ,
+
+r Cmin 
+
+L
+
+!
+
+≤ 1 −
+
+r LCmin 
+
+!
+
+Ci + L
+
+r Cmin 
+
+L
+
+≤ Ci − pLC min + pLC min = Ci.
+
+Similarly, for any warehouse ℓ ∈ L :
+
+X
+
+> i∈N
+
+ˆcℓi ≤ X
+
+> i∈N
+
+(αc ∗ℓi + γ) = α X
+
+> i∈N
+
+c∗ℓi + nγ 
+
+≤ αK ℓ + n min 
+
+r Kmin 
+
+n ,
+
+r Cmin 
+
+L
+
+!
+
+≤
+
+
+
+1 −
+
+r nKmin 
+
+
+
+Kℓ + n
+
+r Kmin 
+
+n
+
+≤ Kℓ − √nK min + √nK min ≤ Kℓ.
+
+Thus, the stocking plan ˆ c is feasible. 
+
+Appendix G.2: Verifying Feasibility of the Stocking Plan in Theorem 4.2 
+
+We first show that the aggregate stocking plan ˆ c satisfies the physical capacity and supply constraints. For any product i ∈ N :
+
+X
+
+> ℓ∈L
+
+ˆcℓi ≤ X
+
+> ℓ∈L
+
+(αc ∗ℓi + mγ ) = α X
+
+> ℓ∈L
+
+c∗ℓi + Lmγ 
+
+≤ αC i + Lm min 
+
+r Kmin 
+
+mn ,
+
+r Cmin 
+
+mL 
+
+!
+
+≤ 1 −
+
+r Lm Cmin 
+
+!
+
+Ci + Lm 
+
+r Cmin 
+
+Lm ≤ Ci.
+
+Similarly, for any warehouse ℓ ∈ L , the capacity constraint is met: 
+
+X
+
+> i∈N
+
+ˆcℓi ≤ X
+
+> i∈N
+
+(αc ∗ℓi + mγ ) = α X
+
+> i∈N
+
+c∗ℓi + nmγ 
+
+≤ αK ℓ + nm min 
+
+r Kmin 
+
+mn ,
+
+r Cmin 
+
+mL 
+
+!
+
+≤
+
+
+
+1 −
+
+r nm Kmin 
+
+
+
+Kℓ + nm 
+
+r Kmin 
+
+nm ≤ Kℓ.
+
+Next, we show that the customer-specific capacities ˆ cℓij are consistent with the aggregate capac-ities ˆ cℓi . Using the property that P⌊xk⌋ ≤ ⌊ P xk⌋:
+
+X
+
+> j∈M
+
+ˆcℓij = X
+
+> j∈M
+
+⌊ˆyℓij + γ⌋ ≤ 
+
+ X
+
+> j∈M
+
+(ˆ yℓij + γ)
+
+ ≤ ⌊ αc ∗ℓi + mγ ⌋ = ˆ cℓi .
+
+Thus, the stocking plan is feasible at both the aggregate and customer-specific levels. 48 Appendix H: Proof of Lemma 5.2 
+
+The proof proceeds by a chain of duality arguments. We begin with the dual of (1), which is: min 
+
+> γ≥0,σ,β
+
+X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+cℓi γℓi + X
+
+> j∈M
+
+τj σj : γℓi − βij ≥ rℓij , ∀i ∈ N , j ∈ M , ℓ ∈ L ;
+
+σj ≥ max  
+
+> S⊆N
+
+− X
+
+> i∈N
+
+ϕij (S)βij 
+
+!
+
+, ∀j ∈ M 
+
+
+
+(6) For each j ∈ M , the value of the inner maximization over S is equal to the value of the standard LP relaxation for the single-customer MNL assortment optimization problem, similar to Topaloglu (2013): max 
+
+> z≥0
+
+(
+
+− X
+
+> i∈N
+
+βij zij : X
+
+> i∈N
+
+zij + z0j ≤ 1, zij ≤ vij z0j , ∀i ∈ N 
+
+)
+
+(7) By strong duality, we can replace the value of each such LP with the value of its dual: min 
+
+> w≥0
+
+(
+
+w0j : w0j − X
+
+> i∈N
+
+vij wij ≥ 0, w0j + wij ≥ − βij , ∀i ∈ N 
+
+)
+
+(8) Substituting this back into the main dual formulation (6) gives the equivalent dual problem: min 
+
+> γ≥0,w ≥0,σ,β
+
+X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+cℓi γℓi + X
+
+> j∈M
+
+τj σj : γℓi − βij ≥ rℓij , ∀i ∈ N , j ∈ M , ℓ ∈ L ;
+
+σj ≥ w0j , ∀j ∈ M ;
+
+w0j − X
+
+> i∈N
+
+vij wij ≥ 0, ∀j ∈ M ;
+
+w0j + wij ≥ − βij , ∀i ∈ N , j ∈ M 
+
+
+
+(9) Finally, taking the dual of (9) yields an LP that directly simplifies to (4). 
+
+Appendix I: Proof of Lemma 5.3 
+
+For the lower bound, let ( y∗, y ∗ 
+
+> 0
+
+) be an optimal solution to the LP (4) defining LP( c) (as our choice model is MNL). Consider the scaled solution ¯ y = 12 y∗. This solution is feasible for the LP (5); the first constraint is met by scaling, and the second and third constraints are met because 
+
+P  
+
+> i∈N ,ℓ ∈L +
+
+¯yℓij = 12
+
+P  
+
+> i∈N ,ℓ ∈L +
+
+y∗ℓij ≤ 12 τj and P 
+
+> ℓ∈L +
+
+¯yℓij = 12
+
+P 
+
+> ℓ∈L +
+
+y∗ℓij ≤ 12 vij y∗ 
+
+> 0j
+
+≤ 12 vij τj (last inequalities in both chains follow directly from constraints in (4)). The objective value of this feasible solution is 12 LP( c), which proves the lower bound. For the upper bound, let ¯ y be an optimal solution to the LP (5) defining fapp (c). We can construct a feasible solution for the LP (4) by setting y = ¯ y and y0j = τj /2 for all j ∈ M . This solution has an objective value of fapp (c). Since LP( c) is the optimal value of (4), we must have 
+
+fapp (c) ≤ LP( c). 49 Appendix J: Proof of Lemma 5.4 
+
+We begin our proof by analyzing the dual of the LP (5) that defines fapp (c). 
+
+Dual Formulation. Let μℓi ≥ 0, σj ≥ 0, and θij ≥ 0 be the dual variables for the three sets of constraints in (5), respectively. The dual LP is: min 
+
+> μ≥0,σ ≥0,θ ≥0
+
+X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+cℓi μℓi + X
+
+> j∈M
+
+τj
+
+2 σj + X
+
+> i∈N
+
+X
+
+> j∈M
+
+vij τj
+
+2 θij :
+
+μℓi + σj + θij ≥ rℓij , ∀i ∈ N , j ∈ M , ℓ ∈ L 
+
+ .
+
+For fixed μ, this problem can be decomposed by customer types. For notational convenience, let us first define the inner minimization problem for each customer type j ∈ M as a function of μ:
+
+Gj (μ) ≜ min   
+
+> σj≥0,θj≥0
+
+(
+
+σj + X
+
+> i∈N
+
+vij θij : σj + θij ≥
+
+
+
+rℓij − μℓi
+
++
+
+, ∀i ∈ N , ℓ ∈ L 
+
+)
+
+. (10) Using this definition, we can express fapp (c) more compactly. Let L(c, μ) = P
+
+> i∈N
+
+P 
+
+> ℓ∈L
+
+cℓi μℓi
+
+and define the auxiliary function F (c, μ) as: 
+
+F (c, μ) ≜ L(c, μ) + X
+
+> j∈M
+
+τj
+
+2 Gj (μ). (11) Then, the surrogate function is the minimization of F over μ: fapp (c) = min μ≥0 F (c, μ). 
+
+Appendix J.1: Main Proof Argument 
+
+The proof relies on showing the following property of F :
+
+Lemma J.1. For any real vectors c ≥ b ≥ 0 and μ, η ≥ 0, we have F (c, μ) + F (b, η) ≥
+
+F (c, μ ∧ η) + F (b, μ ∨ η).
+
+This lemma directly follows from the following properties of L and Gj , as F is a non-negative linear combination of these functions. 
+
+Lemma J.2. For any real vectors c ≥ b ≥ 0 and μ, η ≥ 0, we have L(c, μ) + L(b, η) ≥
+
+L(c, μ ∧ η) + L(b, μ ∨ η).
+
+Lemma J.3. The function Gj (μ) is weak-DR submodular i.e. for any real vectors μ, η ≥ 0, we have Gj (μ) + Gj (η) ≥ Gj (μ ∧ η) + Gj (μ ∨ η).
+
+These technical lemmas are proven in the next subsections. We now move to the final stage of proving DR-submodularity of fapp . For any vector x ≥ 0 we define ˜ μx = arg min μ≥0 F (x, μ)and ˜ μ+ 
+
+> x
+
+= arg min μ≥0 F (x + eℓi , μ). Consider any integer vectors c ≥ b ≥ 0 and a unit integer vector eℓi . The desired inequality is established by the following chain of relations: 
+
+fapp (c) + fapp (b + eℓi ) (a)
+
+= F (c, ˜μc) + F (b + eℓi , ˜μ+ 
+
+> b
+
+)50 (b)
+
+= F (c, ˜μc) + F (b, ˜μ+ 
+
+> b
+
+) + ( ˜ μ+ 
+
+> b
+
+)ℓi
+
+> (c)
+
+≥ F (c, ˜μc ∧ ˜μ+ 
+
+> b
+
+) + F (b, ˜μc ∨ ˜μ+ 
+
+> b
+
+) + ( ˜ μ+ 
+
+> b
+
+)ℓi
+
+> (d)
+
+≥ F (c, ˜μc ∧ ˜μ+ 
+
+> b
+
+) + F (b, ˜μc ∨ ˜μ+ 
+
+> b
+
+) + ( ˜ μc ∧ ˜μ+ 
+
+> b
+
+)ℓi
+
+> (e)
+
+= F (c + eℓi , ˜μc ∧ ˜μ+ 
+
+> b
+
+) + F (b, ˜μc ∨ ˜μ+ 
+
+> b
+
+) 
+
+> (f)
+
+≥ F (c + eℓi , ˜μ+ 
+
+> c
+
+) + F (b, ˜μb)
+
+> (g)
+
+= fapp (c + eℓi ) + fapp (b).
+
+Here, (a) and (g) follow from the definition of fapp and ˜ μ. Equalities (b) and (e) use the property that F (x+eℓi , μ) = F (x, μ)+ μℓi . Inequality (c) is a direct application of Lemma J.1. Inequality (d) holds because ( ˜ μ+ 
+
+> b
+
+)ℓi ≥ ( ˜ μc ∧ ˜μ+ 
+
+> b
+
+)ℓi . Finally, step (f) follows from the definition of ˜ μ as a minimizer. This completes the main proof. 
+
+Appendix J.2: Proof of Lemma J.2 
+
+The lemma follows from a simple identity: x+y = ( x∧y)+( x∨y). Indeed, let δℓi = μℓi −(μℓi ∧ηℓi ) = (μℓi ∨ ηℓi ) − ηℓi ≥ 0. We have: 
+
+L(c, μ) − L(c, μ ∧ η) = X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+cℓi (μℓi − (μℓi ∧ ηℓi )) = X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+cℓi δℓi
+
+≥ X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+bℓi δℓi = X
+
+> i∈N
+
+X
+
+> ℓ∈L
+
+bℓi (( μℓi ∨ ηℓi ) − ηℓi )= L(b, μ ∨ η) − L(b, η),
+
+where the inequality follows from c ≥ b and δℓi ≥ 0. Rearranging the terms gives the desired inequality. 
+
+Appendix J.3: Proof of Lemma J.3 
+
+To prove that Gj (μ) is weak-DR submodular, we use an equivalent definition from Bian et al. (2017): Gj is weak-DR submodular if and only if for any non-negative real vectors μ ≥ η and any single component ( i, ℓ ) where they are equal ( μℓi = ηℓi ), the following inequality holds for any h > 0: 
+
+Gj (μ + heℓi ) − Gj (μ) ≤ Gj (η + heℓi ) − Gj (η).
+
+Our strategy is to analyze the rate of change of the function Gj along the direction eℓi . To do this, let us fix a component ( i, ℓ ) and define two single-variable helper functions: gμ(t) = Gj (μ + teℓi )and gη(t) = Gj (η + teℓi ). As value functions of a linear program with bounded feasible region, these helper functions are continuous and piecewise-linear, which implies they are differentiable everywhere except for a finite number of points. Where the derivative exists, it is given by the negative of the optimal value of the dual variable corresponding to the ( i, ℓ )-constraint. The 51 dual of the linear program for Gj (μ) in (10) is the (modified) continuous knapsack problem :max  
+
+> zj≥0
+
+X
+
+> k∈N
+
+X
+
+> w∈L
+
+ rwkj − μwk
+
++ · zwkj : X 
+
+> k∈N ,w ∈L
+
+zwkj ≤ 1, X
+
+> w∈L
+
+zwkj ≤ vkj , ∀k ∈ N 
+
+ . (12) Let zℓ∗ 
+
+> ij
+
+(μ) be the maximal value that the variable zℓij takes across the set of all optimal solutions to this LP. The derivatives of our helper functions, where they exist, are given by g′
+
+> μ
+
+(t) = 
+
+−zℓ∗ 
+
+> ij
+
+(μ + teℓi ) 1[μℓi + t < r ℓij ] and g′
+
+> η
+
+(t) = −zℓ∗ 
+
+> ij
+
+(η + teℓi ) 1[ηℓi + t < r ℓij ]. The proof now hinges on the monotonicity of this optimal solution, which we establish in the following claim. 
+
+Claim J.4. If μ ≥ η and μℓi = ηℓi for some (i, ℓ ), then zℓ∗ 
+
+> ij
+
+(μ) ≥ zℓ∗ 
+
+> ij
+
+(η).Proof. Let the dual objective coefficient for a variable zwkj be πwkj (μ) = ( rwkj − μwk )+. Since 
+
+μℓi = ηℓi , the objective coefficient πℓij of ( i, ℓ ) is the same in both problems: πℓij (μ) = πℓij (η). For any other product-warehouse pair ( k, w ), the condition μ ≥ η implies πwkj (μ) ≤ πwkj (η). These two properties of π will be key in our proof. If the set of warehouses offering better value for product i than ℓ under μ, Bμ = {w ∈ L | 
+
+πwij (μ) > π ℓij (μ)}, is non-empty, same is true for the similarly defined Bη: for any w ∈ Bμ, the equality πℓij (μ) = πℓij (η) and the inequality πwij (η) ≥ πwij (μ) give πwij (η) ≥ πwij (μ) > π ℓij (μ) = 
+
+πℓij (η), so w ∈ Bη. Moreover, whenever either Bμ or Bη is non-empty, the corresponding optimal value zℓ∗ 
+
+> ij
+
+(μ) or zℓ∗ 
+
+> ij
+
+(η) equals zero: the constraint P 
+
+> w∈L
+
+zwij ≤ vij pools all warehouses serving product i under a single budget, and every warehouse in Bμ (respectively Bη) carries a strictly larger objective coefficient than ℓ, so any optimal solution directs the entire allocation for product i away from ℓ. Consequently, if Bη̸ = ∅ then zℓ∗ 
+
+> ij
+
+(η) = 0 ≤ zℓ∗ 
+
+> ij
+
+(μ) and the claim holds, while if Bη = ∅ then Bμ = ∅ as well; it therefore remains to treat the case Bμ = Bη = ∅.Suppose, then, that both sets are empty. Let Aμ = {k ∈ N | ∃ w ∈ L : πwkj (μ) > π ℓij (μ)} be the set of product-warehouse pairs that outperform ( i, ℓ ) under μ. Similarly, define Aη. Key properties of π imply that Aμ ⊆ Aη.Problem (12) is a continuous (fractional) knapsack with a single unit budget P  
+
+> k∈N ,w ∈L
+
+zwkj ≤ 1, so it is solved greedily: the products are sorted in decreasing order of their best coefficient max w∈L πwkj and each is allocated up to vkj until the budget is exhausted. The maximal alloca-tion to ( i, ℓ ) is therefore determined by the residual capacity left after filling the products with higher maximum value: 
+
+zℓ∗ 
+
+> ij
+
+(μ) = min 
+
+vij ,
+
+1 − X
+
+> k∈Aμ
+
+vkj 
+
+
+
+> +
+
+ and zℓ∗ 
+
+> ij
+
+(η) = min 
+
+vij ,
+
+1 − X
+
+> k∈Aη
+
+vkj 
+
+
+
+> +
+
+ .
+
+Since Aμ ⊆ Aη, the sum over Aμ is smaller, leaving more residual capacity. Thus, zℓ∗ 
+
+> ij
+
+(μ) ≥
+
+zℓ∗ 
+
+> ij
+
+(η). The claim implies that g′
+
+> μ
+
+(t) ≤ g′
+
+> η
+
+(t) for all t where both derivatives exist. Since this inequality holds almost everywhere on the interval [0 , h ] and the functions are continuous, we can integrate both sides of g′
+
+> μ
+
+(t) ≤ g′
+
+> η
+
+(t) over t ∈ [0 , h ] to obtain gμ(h) − gμ(0) ≤ gη(h) − gη(0). Substituting back the definitions of the helper functions, gμ(h) = Gj (μ+heℓi ) and gμ(0) = Gj (μ)52 (and similarly for η), yields the desired inequality: 
+
+Gj (μ + heℓi ) − Gj (μ) ≤ Gj (η + heℓi ) − Gj (η).
+
+This is precisely the condition we set out to prove, which completes the proof of the lemma. 
+
+Appendix K: Final Details of the Proof of Theorem 5.1 
+
+In this appendix we explicitly write out the factors in the performance guarantees of the algo-rithm. 
+
+Case 1: General Case (No special assumptions). The guarantee is the product of: (i) The (1 /2 − ϵ) factor for maximizing fapp over a two-matroid intersection. (ii) The 1 /2 factor from Lemma 5.3, relating fapp (c) to LP( c). (iii) The 0 .322 factor from Policy 2 for the general non-stationary case. The combined factor is β = (1 /2−ϵ)·1/2·0.322 . We therefore have a (0 .0805 −ϵ)-approximation. 
+
+Case 2: Unlimited Product Supplies ( Cmin = + ∞). The guarantee is the product of: (i) The (1 − 1/e ) factor for maximizing fapp over a single matroid. (ii) The 1 /2 factor from Lemma 5.3. (iii) The 0 .322 factor from Policy 2. The combined factor is β = (1 − 1/e ) · 1/2 · 0.322. This gives a 0 .161(1 − 1/e )-approximation. 
+
+Case 3: Stationary Arrivals. The guarantee is the product of: (i) The (1 /2 − ϵ) factor for maximizing fapp over a two-matroid intersection. (ii) The 1 /2 factor from Lemma 5.3. (iii) The (1 − 1/e ) factor from Policy 1 under stationarity. The combined factor is β = (1 /2 − ϵ) · 12 · (1 − 1/e ). This gives a ( 14 (1 − 1/e ) − ϵ)-approximation. 
+
+Case 4: Stationary Arrivals and Unlimited Supplies. The guarantee is the product of: (i) The (1 − 1/e ) factor for maximizing fapp over a single matroid. (ii) The 1 /2 factor from Lemma 5.3. (iii) The (1 − 1/e ) factor from Policy 1. The combined factor is β = (1 − 1/e ) · 12 · (1 − 1/e ) = 12 (1 − 1/e )2. This gives a 12 (1 − 1/e )2-approximation. 53 Appendix L: Proof of Theorem 6.2 
+
+We use a coupling argument and prove by induction on t that the distribution of the vector of total (non-virtual) sales up to time period t is identical for both policies. Let ¯Zt = ( ¯Zℓijt )i,j,ℓ be the sales vector for the inventory-agnostic policy and ˆZt = ( ˆZℓijt )i,j,ℓ be the sales vector for the inventory-aware policy. 
+
+Base Case (t = 0) : Both sales vectors are zero, so the property holds. 
+
+Inductive Step: Assume that the distributions of ¯Zt−1 and ˆZt−1 are identical. Fix a realizable value z = ( zℓik )i,k,ℓ of the cumulative sales through period t − 1, and condition each policy on its cumulative sales equalling z, that is, on the events { ¯Zt−1 = z} and { ˆZt−1 = z},respectively. We show that the conditional distribution of the period-t sales given this event is the same function of z under both policies; since ¯Zt−1 and ˆZt−1 have the same distribution, this yields that ¯Zt and ˆZt have the same distribution. Consider a sale of product i to a type-j customer from warehouse ℓ at time period t. Let ¯Aℓit and ˆAℓit be the stock availability indicators for the agnostic and aware policies, respectively. Given the cumulative sales z, both are the same deterministic function of z:¯Aℓit = ˆAℓit = Aℓit (z) := 1
+
+h P 
+
+> k∈M
+
+zℓik < c ℓi
+
+i
+
+,
+
+since product i is in stock at warehouse ℓ exactly when fewer than its stocked quantity cℓi units have been sold from ℓ.
+
+For the agnostic policy , a sale occurs if a demand for ( i, j, ℓ ) is generated and the item is in stock. The probability of demand for ( i, j, ℓ ) at time period t is: 
+
+λjt 
+
+X
+
+> S⊆N
+
+ˆwj (S)
+
+τj
+
+ϕij (S) ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+= λjt 
+
+τj
+
+ˆyℓij .
+
+Since this demand is generated independently of the history and, given ¯Zt−1 = z, product i is in stock at warehouse ℓ exactly when Aℓit (z) = 1, we obtain 
+
+P(sale under agnostic policy | ¯Zt−1 = z) = λjt 
+
+τj
+
+ˆyℓij · Aℓit (z).
+
+For the aware policy , a sale occurs if customer of type j arrives, warehouse ℓ is pre-selected for product i, the product is in stock there, and the customer chooses product i from the offered assortment. Warehouse ℓ is pre-selected for product i (for a type-j customer) with probability 
+
+ρij (ℓ). Given ˆZt−1 = z, product i is in stock on warehouse ℓ exactly when Aℓit (z) = 1. Finally, by construction and the law of total probability, the probability that the customer chooses product i given it is available (on the pre-selected warehouse ℓ) is precisely the target marginal probability, which is P 
+
+> ℓ′∈L +
+
+ˆyℓ′ 
+
+> ij
+
+/τ j , for every realization z. The conditional probability of a sale is therefore: 
+
+P(sale under aware policy | ˆZt−1 = z) = λjt · ρij (ℓ) · Aℓit (z) · P(i is chosen | i is available) 54 = λjt · ˆyℓij 
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+!
+
+· Aℓit (z) ·
+
+P 
+
+> ℓ′∈L +
+
+ˆyℓ′
+
+> ij
+
+τj
+
+!
+
+= λjt 
+
+τj
+
+ˆyℓij · Aℓit (z).
+
+Thus, for every realizable z, both policies assign the same probability to a sale of each fixed triple ( i, j, ℓ ) in period t; as at most one sale can occur in a period, these probabilities determine the entire conditional distribution of the period-t sales given that the cumulative sales through period t − 1 equal z, which is therefore the same function of z for both policies. This completes our induction step. Equality of distributions of ¯ZT and ˆZT directly implies equality of the total expected profits of the two policies. 55

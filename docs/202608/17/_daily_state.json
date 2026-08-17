@@ -1,0 +1,41 @@
+{
+  "date": "20260817",
+  "date_label": "",
+  "generated_at": "2026-08-17 20:10:19 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.14096v1",
+      "route": "202608/17/2608.14096v1-resource-adaptive-primal-dual-learning-for-one-warehouse-multi-store-systems-with-censored-demand",
+      "title": "Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "针对单仓多店库存分配提出基于删失需求的学习策略",
+      "first_seen_at": "2026-08-17 20:10:19 UTC",
+      "updated_at": "2026-08-17 20:10:19 UTC"
+    },
+    {
+      "paper_id": "2608.14275v1",
+      "route": "202608/17/2608.14275v1-joint-inventory-placement-assortment-personalization-and-order-fulfillment-for-substitutable-products",
+      "title": "Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "联合优化跨仓库库存配置与基于客户需求的动态品类个性化",
+      "first_seen_at": "2026-08-17 20:10:19 UTC",
+      "updated_at": "2026-08-17 20:10:19 UTC"
+    }
+  ]
+}
