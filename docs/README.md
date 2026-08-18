@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-17</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-18</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 2 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-17 20:10:19 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-18 21:01:19 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,8 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 2 篇推荐（精读 2 篇，速读 0 篇）</p>
-<p>精读：《Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand》（9.0/10）, 《Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products》（9.0/10）</p>
+<p>今日共生成 4 篇推荐（精读 1 篇，速读 3 篇）</p>
+<p>精读：《Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement》（8.0/10）</p>
+<p>速读：《Decision-Driven Regularization: A Blended Model for Learning and Optimization》（7.0/10）, 《Do You Have My Size In Stock? Assortment and Inventory Optimization Under the Consider-Fit-Then-Choose Choice Model》（7.0/10）, 《ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning》（6.0/10）</p>
 <p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
@@ -73,12 +74,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand">Resource-Adaptive Primal-Dual Learning for One-Warehouse Multi-Store Systems with Censored Demand</span></li><li><span class="dpr-home-dashboard-paper-title" title="Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products">Joint Inventory Placement, Assortment Personalization, and Order Fulfillment for Substitutable Products</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement">Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +87,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Decision-Driven Regularization: A Blended Model for Learning and Optimization">Decision-Driven Regularization: A Blended Model for Learning and Optimization</span></li><li><span class="dpr-home-dashboard-paper-title" title="Do You Have My Size In Stock? Assortment and Inventory Optimization Under the Consider-Fit-Then-Choose Choice Model">Do You Have My Size In Stock? Assortment and Inventory Optimization Under the Consider-Fit-Then-Choose Choice Model</span></li><li><span class="dpr-home-dashboard-paper-title" title="ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning">ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">wo <strong>3</strong></span></div>
 </section>
 </div>
 

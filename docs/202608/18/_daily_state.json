@@ -1,0 +1,73 @@
+{
+  "date": "20260818",
+  "date_label": "",
+  "generated_at": "2026-08-18 21:01:19 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.16741v1",
+      "route": "202608/18/2608.16741v1-semantic--and-density-aware-planning-for-accessibility-preserving-multi-object-placement",
+      "title": "Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "语义与密度感知的货架物品摆放规划，保持可访问性和空间效率，类似于考虑产品关系的存储位分配",
+      "first_seen_at": "2026-08-18 21:01:19 UTC",
+      "updated_at": "2026-08-18 21:01:19 UTC"
+    },
+    {
+      "paper_id": "2608.15124v1",
+      "route": "202608/18/2608.15124v1-decision-driven-regularization-a-blended-model-for-learning-and-optimization",
+      "title": "Decision-Driven Regularization: A Blended Model for Learning and Optimization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "提出一种学习与优化混合模型，应用于库存管理等情境决策",
+      "first_seen_at": "2026-08-18 21:01:19 UTC",
+      "updated_at": "2026-08-18 21:01:19 UTC"
+    },
+    {
+      "paper_id": "2608.15172v1",
+      "route": "202608/18/2608.15172v1-do-you-have-my-size-in-stock-assortment-and-inventory-optimization-under-the-consider-fit-then-choose-choice-model",
+      "title": "Do You Have My Size In Stock? Assortment and Inventory Optimization Under the Consider-Fit-Then-Choose Choice Model",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "考虑尺码替代与需求转移的库存优化",
+      "first_seen_at": "2026-08-18 21:01:19 UTC",
+      "updated_at": "2026-08-18 21:01:19 UTC"
+    },
+    {
+      "paper_id": "2608.15291v1",
+      "route": "202608/18/2608.15291v1-reasoncast-agentic-demand-forecasting-with-selective-semantic-reasoning",
+      "title": "ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "wo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "改进需求预测以支持库存管理",
+      "first_seen_at": "2026-08-18 21:01:19 UTC",
+      "updated_at": "2026-08-18 21:01:19 UTC"
+    }
+  ]
+}

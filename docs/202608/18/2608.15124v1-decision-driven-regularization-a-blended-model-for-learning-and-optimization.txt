@@ -1,0 +1,3736 @@
+Title: Decision-Driven Regularization: A Blended Model for Learning and Optimization
+
+URL Source: https://arxiv.org/pdf/2608.15124v1
+
+Published Time: Tue, 18 Aug 2026 00:31:45 GMT
+
+Number of Pages: 42
+
+Markdown Content:
+Manuscript 
+
+# Decision-Driven Regularization 
+
+# A Blended Model for Learning and Optimization 
+
+Gar Goei Loke 
+
+Department of Management and Marketing, Durham University Business School, Waterside, Durham DH1 1SL, United Kingdom, gar.g.loke@durham.ac.uk 
+
+Qinshen Tang* 
+
+Nanyang Business School, Nanyang Technological University, Singapore, qinshen.tang@gmail.com 
+
+Yangge Xiao 
+
+Faculty of Business and Economics, The University of Melbourne, yangge.xiao@unimelb.edu.au 
+
+Xun Zhang 
+
+International Institute of Finance, School of Management, University of Science and Technology of China, Hefei 230036, China. xunzhang2023@outlook.com 
+
+In contextual optimization, the decision-maker seeks optimal decisions to minimize a cost function, that varies based on observed features. This context is common in many business applications ranging from on-demand delivery and retail operations to portfolio optimization and inventory management. In this paper, we study the learning and optimization approach, which first learns how outcomes result from the features, and then selects optimal decisions based on these outcomes. We focus on the integrated learning and optimization literature, and identify that a lack of control for prediction accuracy can lead to overfitting and a loss of decision effectiveness against simple separate learning and optimization models. Instead, we propose a bi-objective formulation that balances prediction accuracy and cost minimization, termed decision-driven regularization . It also addresses ambiguity in the definition of the cost function via a surrogate that depends on a new hyperparameter. We additionally show that alternative perspectives for formulating the problem, namely robust optimization and regret minimization, lead to models that are closely related to our proposed model. As a consequence, our framework generalizes models such as SPO+ in Elmachtoub and Grigas (2022). Our model is shown to be numerically superior to other benchmarks, such as OLS, Random Forest, XGBoost, SPO+, Perturbation Gradient, and Learning and Rank, in our synthetic studies. 
+
+Key words : learning and optimization, robust optimization, worst-case regret minimization, regularization, contextual optimization 
+
+## 1. Introduction 
+
+In this paper, we consider the decision-making under uncertainty setting, where a decision-maker solves a cost minimization problem min  
+
+> y∈Y
+
+Ez [c(y; z)] , for some decisions y in a feasibility set Y ⊆ Rd and some unobserved outcomes z ∈ Z ⊆ Rd. In most practical settings, the distribu-tion of z is unknown and the focus is on using a collection of, say N , data points {˜z1, . . . , ˜zN }
+
+to make good decisions y, cognizant that this is a sample that may not fully represent the true distribution. such as Ben-Tal et al. (2013), Delage and Ye (2010), Mohajerin Esfahani and Kuhn (2018), Bertsimas and Kallus (2020). 
+
+* Corresponding author. The authors are listed in alphabetical order with implied equal authorship. 
+
+1arXiv:2608.15124v1 [cs.LG] 15 Aug 2026 2 Loke et al.: Decision-Driven Regularization 
+
+Efforts to improve the inference of the distribution of z has led to the contextual setting, where features (also called side information or covariates), denoted as x ∈ X ⊆ Rp, are related to unobserved outcomes z via z = g(x) + ϵ for some map g : X → Z and some noise ϵ ∈ Rd. The presence of features x allows the decision-maker not just to improve the estimation of uncertain outcomes z, but also to allow decisions y to adapt to features x (den Hertog and Postek 2016). Specifically, the decision-maker usually solves the following problem: 
+
+y(x) ∈ arg min 
+
+> y∈Y
+
+Ez|x
+
+c(y; z) | x, ∀x ∈ X (1) where z|x are the conditional random outcomes. This setting is often referred to as contextual stochastic optimization (or sometimes, decision-aware learning, or joint prediction and optimization). It is increasingly common and can be seen in various contexts ranging from on-demand delivery (Liu et al. 2021) to retail operations (Perakis et al. 2023), and from portfolio optimization (Ban et al. 2018) to inventory management (Siegel and Wagner 2021, Qi et al. 2023), among many others. A substantial and growing body of work proposes different approaches to solve the contextual stochastic optimization problem (see, for example, Mandi et al. 2024, Sadana et al. 2024). In what follows, we organize our discussion on related works according to the classification framework of Sadana et al. (2024). In particular, we focus on the learning and optimization framework. The learning and optimization framework (1), which includes sequential learning and opti-mization (SLO) and integrated learning and optimization (ILO), proceeds in two stages. First, it fits a predictive model to approximate the conditional distribution of z|x in (1); second, it solves an optimization problem that minimizes the expected cost under this predicted distri-bution. 
+
+Sequential learning and optimization. The SLO approach decouples the process of learn-ing from the subsequent optimization step. In other words, in no part is any information about the cost minimization problem used in the estimation of the relationship of z|x. It is broadly divided into the predict-then-optimize (PTO) and estimate-then-optimize (ETO) streams (Qi et al. 2021). In the former, ‘point predictions’ E[z|x] are estimated from the learning model to solve for the optimal decision under min y c(y; E[z|x]). Examples of this literature include, for example, Ferreira et al. (2016) and Liu et al. (2021). PTO is increasingly less popular as it interchanges the cost function c and the expectation operator E, as compared to the original stochastic problem (1). When c is affine in z, this is equivalent to (1). In more general settings, others have tried to explore how to estimate the distribution z|x. This is termed as ETO. A notable stream of work focuses on constructing a distribution from machine learning predictions (Hannah et al. 2010, Bertsimas and Kallus 2020, Srivastava et al. 2021, Lin et al. 2022, Notz and Pibernik 2022), or equivalently from the regression residuals (Deng and Sen 2018, Ban et al. 2019, Kannan et al. 2025). To better Loke et al.: Decision-Driven Regularization 3
+
+account for uncertainty in the estimation of the conditional distribution, distributionally robust optimization techniques have been applied (Bertsimas and Van Parys 2022, Esteban-P´ erez and Morales 2022, Perakis et al. 2023, Kannan et al. 2024). A growing body of literature highlights the potential suboptimality of separating the learning and optimization stages (see e.g. , Liyanage and Shanthikumar 2005, Mundru 2019, and the ILO literature that we discuss later). The core issue is that high prediction accuracy in the learning stage does not necessarily translate into good performance in the subsequent decision-making step. To illustrate this, consider the widely adopted parametric setting for problem (1), which posits that the true map g : X → Z lies in a parametric family H = {f (x; w) : w ∈ W} .Given a dataset of observed feature-outcome pairs {(˜xn, ˜zn)}Nn=1 , the decision-maker estimate parameters ˆw ∈ arg min w L(w), where L(w) denotes an accuracy-based loss function. For SLO, as explained in Elmachtoub and Grigas (2022), the direction in the parameter space of w
+
+that minimizes loss function L(w) does not necessarily align with the direction that minimizes the cost function c(y; f (x; w)). To further illustrate this misalignment, we present a knapsack example in Appendix B. 
+
+Integrated learning and optimization. Most initially, ILO departs from SLO by embed-ding the subsequent optimization problem directly into the training objective, so that model parameters are chosen to minimize empirical decision cost rather than the conventional accuracy loss. This paradigm dates back to Bengio (1997), who, in the context of portfolio management, first advocated tuning predictive models to maximize realized returns rather than to accurately predict prices. In recent years, this concept has gained significant attention. One major stream of work focuses on adapting the prediction models in SLO methods so that it takes into consideration the subsequent cost minimization problem. When PTO methods are adapted to the ILO context, this is sometimes termed the expected value-based model ( e.g. , Amos and Kolter 2017). ETO methods have also been adapted to factor in cost minimization ( e.g. , Donti et al. 2017, Qi et al. 2021, Kallus and Mao 2023). This also includes robust models that consider uncertainty in the estimation ( e.g. , Sim et al. 2024, Wang et al. 2024). A separate stream of work focuses on minimizing regret, which measures the gap between the decision cost under the learned model and the oracle’s “hindsight” decision ( e.g. , Elmachtoub and Grigas 2022, Jeong et al. 2022, Estes and Richard 2023). However, the regret minimization problem is often non-convex, leading to a focus on algorithms for optimizing the surrogate loss ( e.g. , Athey et al. 2019, El Balghiti et al. 2019, Vlastelica et al. 2019, Wilder et al. 2019, Mandi et al. 2020, Chung et al. 2022, Ho-Nguyen and Kılın¸ c-Karzan 2022, Hu et al. 2022, Lawless and Zhou 2022, Mu˜ noz et al. 2022, Estes and Richard 2023). Recent studies have also developed differentiable or solver-efficient approaches for decision-focused learning, including differentiating through regularized integer linear programs (McKenzie et al. 2024), designing 4 Loke et al.: Decision-Driven Regularization 
+
+surrogate losses for differentiable optimization layers (Mandi et al. 2025), and constructing solver-free losses for linear optimization problems (Berden et al. 2026). A final stream assumes that the optimizer is exposed to an oracle who is able to generate 
+
+y⋆(x) given x, and seeks a function that best imitates the optimal solution y⋆. This is referred to as imitation learning ( e.g. , Kong et al. 2022). When the model assumed by the optimizer explicitly models the learning through an assumed learner, we sometimes see the application of inverse optimization techniques, see Chan et al. (2025) for a comprehensive review. In relation to our work, we find that the first two streams, namely, extending SLO to ILO and regret minimization to be most closely related. The setting we consider is linear, thus both adaptations of PTO and ETO to the ILO setting are relevant. Additionally, we later theoretically illustrate deep connections between the regret minimization problem and the cost minimization approach (Theorem 2), drawing our link to the regret minimization stream. A commonality observed in the numerical results of works of these two streams is that ILO only begins to outperform the SLO model with ordinary least squares (OLS) estimator when the misspecification is raised to a high degree. This is sometimes justified as being due to the “inherent robustness properties of the least squares loss” (Elmachtoub and Grigas 2022). Additionally, these works note that their models consistently perform similarly or better than other SLO models that employ state-of-the-art machine learning techniques to form predictions, to further justify the outlying behavior of OLS. We, however, beg to differ. There is growing evidence in the consistent superiority of OLS across multiple applications and cost functions against ILO models (Hu et al. 2022), culminating in the work Elmachtoub et al. (2023) which proves the superiority of SLO under the non-misspecified regime. In our work, we take a different approach—we view OLS as the most basic benchmark that any ILO model should defeat, and aspire to craft a general ILO framework that can do so in the low misspecification regime and by extension, outperform other ILO models. We believe the missing ingredient thus far in the ILO literature is the lack of careful control for prediction accuracy when undertaking cost or regret minimization, which we discuss in depth in §2.2. 
+
+1.1. Approach and contributions 
+
+In this paper, we propose a model within the ILO setting that balances prediction accuracy and cost minimization. This is done by incorporating a decision-driven regularization in the learning process that captures the optimal value of the decisions that can be obtained if a particular choice of weights w was chosen in the predictive stage. In particular, we make the following contributions: a. We explain the importance of prediction accuracy in ILO to motivate our blended bi-objec-tive framework, termed ‘DDR’. Because in ILO, the decision-maker can alter the weights of the estimation model to one that artificially depresses the cost function so that an extreme decision becomes attainable where it would not be optimal or feasible under the true cost Loke et al.: Decision-Driven Regularization 5
+
+function. This will lead to overfitting, which we exhibit in Illustration 1. Hence, we propose a bi-objective formulation that balances prediction accuracy and cost minimization. b. We propose a combination of the empirical and estimated cost to define a surrogate for the cost function. To balance prediction accuracy and cost minimization, we have to first define the cost function, which is ambiguous. We illustrate that the most accurate depiction of the cost function is not the estimated cost, but rather one with a slight bias in the estimate, as a result of bias-variance trade-off (Proposition 1). In particular, we propose a surrogate of the cost function by minimizing the predicted cost while controlling its difference from the empirical cost. c. We prove that the robust optimization and regret minimization starting points can lead to DDR, under specific circumstances. Specifically, we construct model formulations from the perspectives of robust optimization and regret minimization, and prove their relations to our model in Theorems 1 and 2 respectively. Thus, we show that multiple models in the literature are special cases of DDR, including SPO+; d. We provide comprehensive synthetic numerical evidence to illustrate the superiority of DDR against the benchmarks tested, including popular prediction models for SLO and multiple ILO models. DDR outperforms all these benchmarks under low misspecification. Only SPO+ manages to outperform DDR under large sample sizes and high misspecifica-tion, but loses out to DDR when small-order polynomial terms are added to both learners. 
+
+## 2. Decision-Driven Regularization 
+
+In this work, we restrict our attention to the simple but widely used bilinear cost function 
+
+c(y; z) := y⊤z. We also assume a parametric model for the map g : X → Z , namely, g(x) = 
+
+f (x; w) for some w ∈ W ⊆ Rq . Under no misspecification, there exist some true but unobserved weights ˇw such that g(x) = f (x; ˇw). In practice, however, the decision-maker observes only finite, noisy samples ˜zn = g(˜xn) + ˜ϵn for n ∈ [N ], where each ˜ϵn is the realized error and [N ] = {1, 2, · · · , N } is the set of indices up to N . We collect these into the training data set 
+
+DN = (˜xn, ˜zn)n∈[N ] . Under the SLO and ILO frameworks, the decision process occurs in two stages: 1. (Prediction) Estimate the weights ˆw from training data set DN through optimizing a loss function L(w), i.e. ,
+
+ˆw ∈ arg min 
+
+> w
+
+L(w),
+
+yielding the predictor ˆz(x) = f (x; ˆw) for any new features x.2. (Optimization) Decisions are then made by solving the approximate problem min  
+
+> y∈Y
+
+y⊤ ˆz(ˆx).6 Loke et al.: Decision-Driven Regularization 
+
+Hereinafter, we denote true values with the accent ˇ, empirical values with the accent ˜, and estimated or inferred values with the accentˆ. In SLO, the decision-maker estimates weights ˆw by minimizing some accuracy-based loss function L(w) that is chosen independently of the cost function. The loss can be based on a mea-sure of prediction error, such as L(w) = Ex,z [ℓ(f (x; w), z)], where ℓ : Z × Z 7 → R measures the closeness between predicted and observed outcomes. A common example is the mean squared error (MSE), where ℓ(ˆz; ˜z) = ∥ˆz − ˜z∥22. This loss is typically estimated in-sample using the dataset DN as L(w) = 1
+
+> N
+
+P  
+
+> n∈[N]
+
+ℓ f (˜xn; w); ˜zn
+
+. In many cases, the loss function is augmented with a regularization term to prevent overfitting, for instance Lasso regression with L(w) = 
+
+> 1
+> N
+
+P 
+
+> n∈[N]
+
+ℓ f (˜xn; w); ˜zn
+
+ + θ∥w∥1 or Ridge regression with L(w) = 1
+
+> N
+
+P 
+
+> n∈[N]
+
+ℓ f (˜xn; w); ˜zn
+
+ +
+
+θ∥w∥22.
+
+2.1. The peril of forgoing prediction accuracy 
+
+As discussed in the introduction, when the loss function L(w) does not factor in the cost function—as in SLO—the direction of optimal ˆw might not align with the one leading to lower cost. ILO addresses this limitation by involving the cost function c(y; z) in the prediction stage. Let y⋆(z) = arg min y∈Y y⊤z. Many ILO approaches adopt a decision-focused loss function 
+
+L(w)1, which is explicitly related to expected cost or regret, such as, 
+
+L(w) = Ex,z
+
+y⋆(f (x, w)) ⊤z (2a) or L(w) = Ex,z
+
+
+
+y⋆(f (x, w)) ⊤z − min  
+
+> y∈Y
+
+y⊤z
+
+
+
+. (2b) Before proceeding, we remark here that in (2b), since z in the oracle term min y⊤z is unaffected by w (such as when one uses SAA to approximate (2b)), the ˆw’s obtained from minimizing (2a) and (2b) coincide. One representative ILO approach is the SPO loss, proposed by Elmachtoub and Grigas (2022). They study a model to find the weights for the prediction problem that minimizes the regret: 
+
+ˆwSPO := arg min 
+
+> w
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+max 
+
+> y∈Y ∗(ˆz)
+
+{y⊤ ˜zn} − min 
+
+> yn∈Y
+
+{y⊤ 
+
+> n
+
+˜zn}
+
+i
+
+, (SPO )where Y∗(ˆz) = arg min y∈Y y⊤ ˆz. This is a sample average approximation of (2b). The SPO for-mulation can potentially be nonconvex. Instead, the following surrogate, which is convex and Fisher consistent to SPO , is proposed. This is named “SPO+”: 
+
+ˆwSPO+ = arg min 
+
+> w
+
+2 1
+
+N
+
+X 
+
+> n∈[N]
+
+y⋆(˜zn)⊤f (˜xn; w) + 1
+
+N
+
+X 
+
+> n∈[N]
+
+max 
+
+> yn∈Y
+
+y⊤ 
+
+> n
+
+˜zn − 2y⊤ 
+
+> n
+
+f (˜xn; w) . (SPO+ )
+
+SPO+ and many ILO literature are cost-driven, in the sense that the criteria for selecting ˆw is the cost function (or its regret) and does not take into account prediction accuracy. While these     
+
+> 1For simplicity, we use the same notation L(w) to denote both accuracy-based and decision-focused loss functions. Loke et al.: Decision-Driven Regularization 7
+
+works argue that it is possible to obtain high-performing decisions without prediction accuracy, it is worthwhile to note that they do not in fact prove or argue that prediction accuracy is a 
+
+necessary sacrifice in the path to seeking high-performing solutions. Instead, there may be drawbacks to not accounting for prediction accuracy. We scrutinized the numerical results in SPO+ and note that under low mis-specification (lower than order 8), SPO+ is systematically outperformed by an approach that has a larger focus on predictive accuracy. We recover these findings in our numerical simulations (see §4.2 later). To better understand why forgoing prediction accuracy in (2a) or (2b) is not necessarily desirable, we examine the following illustration: 
+
+Illustration 1 We consider the knapsack problem, which involves two routes, and the decision maker must choose one to traverse. Each route j ∈ { a, b } incurs a cost zj , which depends on a two-dimensional feature x such as weather information and current congestion, modeled as 
+
+za
+
+zb
+
+ =
+
+ ˇw11 ˇw12 
+
+ˇw21 ˇw22 
+
+xa
+
+xb
+
+ +
+
+ϵa
+
+ϵb
+
+
+
+where ϵj for j ∈ { a, b } are independently sampled noise. Suppose the true coefficient matrix is given by ˇW =
+
+1 00 1 .5
+
+, and the decision-maker is availed N = 4 data points: 
+
+˜x1 = (1 , 1) ⊤, ˜z1 = (1 .6, 1.3) ⊤,
+
+˜x2 = (2 , 1) ⊤, ˜z2 = (1 .8, 1.7) ⊤,
+
+˜x3 = (1 , 2) ⊤, ˜z3 = (0 .8, 3.1) ⊤,
+
+˜x4 = (3 , 2) ⊤, ˜z3 = (3 .0, 2.9) ⊤.
+
+Claim: Using SLO with OLS estimator, route b is chosen if and only if 1.5ˆ x2 ≤ ˆx1, which is the ground truth; whereas using ILO under cost-driven rule (2a) leads to a degenerate solution where route b is chosen if and only if ˆx2 ≤ ωˆx1 for some 1 ≤ ω < 2 that corresponds to the chosen optimal coefficient matrix under ILO. (Please refer to Appendix A.1 for the proof.) We visualize the decision difference described in the Claim in Figure 1 below. The decision region for picking route b with OLS lies underneath the green Ground Truth line (see the green region in the left panel of Figure 1). Notice that by construction, OLS coincides with the ground truth, thus this decision also represents the oracle’s decision. As for ILO, if the ratio ω is chosen at the lowest extreme ω = 1 , then ILO’s choice of route b lies underneath the line ˆx1 = ˆ x2,which includes the correct decision region, plus the red region, see the right panel of Figure 1. If the ratio ω is chosen at the other extreme ω = 2 , then the decision region of choosing route b
+
+contains the correct decision region plus both yellow and red regions, see right panel of Figure 1. In either case, both yellow and red regions are sub-optimal under the truth: ILO will pick route 
+
+b when in fact it is optimal to pick route a.8 Loke et al.: Decision-Driven Regularization   
+
+> Figure 1 Visualization of decision for OLS (left) and ILO (right). The green line represents the Ground Truth ( ˆx1= 1 .5ˆ x2).
+
+To see why ILO arrives at the wrong decision region in the right pannel of Figure 1, we retrace what constrains ILO to require ω ≥ 1 that eliminated the true decision region ω = 2 /3. A closer scrutiny of the proof of Claim 1 reveals that this arises from the first data point. If we had the oracle cost for this data point, we would obtain f (˜x1; ˇw) = (1 , 1.5) ⊤ which implies that route a should be chosen, however, empirically the noisy outcomes ˜z1 = (1 .6, 1.3) ⊤ flipped the decision to choose route b. Choosing route b induces the constraint ω ≥ 1, whereas choosing route a results in ω ≤ 1 which would not eliminate the true decision region. We can liken the knapsack problem with learning in Illustration 1 to a binary classification problem of choosing route a or b as a function of covariates x, using a linear classifier. Unfortunately, the true labels are not available and ILO uses the empirical costs to label the data point as route a if ˜ za ≤ ˜zb
+
+and vice versa. But ˜z is noisy, thus ILO undertakes a binary classification with noisy labels in Illustration 1. More generally, any decision-focused learning scheme cannot avoid using ˜z to define its in-sample loss in some way or another, which introduces noise into the objective. 
+
+2.2. Cost function ambiguity 
+
+To involve the cost function in the prediction stage, each ILO model must define the cost func-tion. However, this definition differs across the ILO literature. For example, in SPO studied by Elmachtoub et al. (2023), the authors have defined the cost y⋆(f (˜x, w)) ⊤ ˜z, using the observed outcomes ˜z in the data; in Tulabandhula and Rudin (2013) and Zhu et al. (2022), they use 
+
+y⊤f (ˆx, w)—cost estimated on the testing data—in the prediction stage. In other words, these models have used different surrogates for the definition of the cost function y⊤z for a given set of decisions y. In reality, the true cost y⊤ ˇz will never be known at the point of prediction—we can have a sample or model estimates. In other words, there is ambiguity in the cost function. Loke et al.: Decision-Driven Regularization 9
+
+In this work, we are not considering the use of testing data in the estimation of the cost function as in Tulabandhula and Rudin (2013) and Zhu et al. (2022) since there is no ground truth established by the model. Instead, we utilize the estimated or predicted outcomes ˆz =
+
+f (˜x, w), which leads to what we term as the estimated cost— y⊤f (˜x, w). Solely using estimated outcomes ˆz incurs a bias-variance trade-off in the estimation of the cost function y⊤ ˇz, as illustrated in the following proposition. 
+
+Proposition 1. Let x ∈ X be fixed. Define DN as a data set of N noisy observations z
+
+generated from z|x ∼ g(x) + ϵ for some noise ϵ with zero mean. Then using any estimator 
+
+f (x; ˆw) in place of the expectation Ez|x[z] incurs a bias-variance trade-off in the estimation of the true cost function y⊤Ez|x[z]. Specifically, for all decisions y ∈ Y , the expectation over the sampling distribution of size-N datasets DN decomposes as 
+
+EDN
+
+
+
+y⊤Ez|x[z] − y⊤f (x; ˆw)
+
+2
+
+=
+
+
+
+y⊤
+
+
+
+g(x) − EDN [f (x; ˆw)] 
+
+| {z }   
+
+> Bias of f(x;ˆw)
+
+2
+
++ EDN
+
+h y⊤f (x; ˆw)2i
+
+−  EDN
+
+y⊤f (x; ˆw) 2
+
+| {z }   
+
+> Variance of y⊤f(x;ˆw)
+
+. (3) The proposition, being reminiscent of the bias-variance trade-off in regularization, indicates that a sharper estimate of the cost function is possible under a biased estimator. Therefore, the most accurate predictor for the cost function does not necessarily occur on the predictor 
+
+f (x, ˆw) that maximizes prediction accuracy. Instead, by adding bias, we can further improve the precision of the estimate, such as adding the empirical cost generated over the training data— 
+
+y⊤ ˜z. Hence, we propose using a combination of the empirical outcomes ˜z and the estimated outcomes f (˜x, ˆw) to define the cost function, which is elaborated in the following subsection. 
+
+2.3. A bi-objective framework for ILO 
+
+To overcome the potential drawbacks in the ILO framework, we propose a blended bi-objective framework that balances prediction accuracy and cost minimization, and term it as decision-driven regularization (DDR). Unlike the SLO literature, it accounts for the cost structure in the prediction stage, and unlike the ILO literature, it retains a closeness to true outcomes: 
+
+ˆwDDR = arg min 
+
+> w
+
+n
+
+L(w) − λEx,z
+
+h
+
+min 
+
+> y∈Y
+
+μ y⊤z + (1 − μ) y⊤f (x, w)
+
+io 
+
+, (DDR )for some parameter μ < 1, regularization parameter λ ≥ 0, and a loss function L(w) that is typically accuracy-based but may also take a decision-focused form. Balancing prediction accuracy and cost minimization: To simultaneously consider prediction loss and cost, we include two terms in the objective of DDR —one that is specified by the loss function L(w), which typically controls prediction accuracy, and one that is a surrogate for the cost function. This balance is moderated by the parameter λ. An important consideration here is the negative sign that precedes the regularization parameter λ. We mentioned that it 10 Loke et al.: Decision-Driven Regularization 
+
+is important for prediction accuracy to limit the flexibility of the weights in defining the cost function. With the negative sign, we ensure that the relationship between loss and cost remains antagonistic (or ‘pessimistic’ in Tulabandhula and Rudin 2013). This interpretation is rooted in robust optimization. Later in §3, we prove that DDR is equivalent to a robust optimization problem with an uncertainty set characterizing the uncertainty arising from the learning of weights. There, it is clear that an antagonistic relationship between cost and loss is required for the equivalence to hold. While this does lead to the impression that DDR seeks higher costs, this is controlled by L(w), since while costs can be unbounded if w → ∞ , so does L(w) → ∞ .Balancing between empirical and estimated cost definitions: To ensure greater consistency in the cost function, we can anchor it using the observed outcomes ˜z in the data set. We propose the following surrogate for some constant γ > 0, min  
+
+> y∈Y
+
+y⊤f (˜x, w) (4) s.t. y⊤ ˜z − y⊤f (˜x, w) ≤ γ. 
+
+The constraint restricts the choice of w such that the estimated cost is close to the empirical cost that is observed from the data. 
+
+Proposition 2. The formulation (4) has the following Langragian relaxation: 
+
+νμ(w) := min 
+
+> y∈Y
+
+μ y⊤ ˜z + (1 − μ) y⊤f (˜x, w) ,
+
+for some μ < 1.
+
+We term this the valuation function , νμ(·) : Rq → R, mapping weights w to the space of objec-tive values in the decision problem. Proposition 2 can be thought of as a convex combination of the empirical and estimated cost functions if μ ∈ [0 , 1]. This leans towards the estimated cost if μ is small and conversely towards the empirical cost if μ is close to 1. It is possible for μ < 0. However, μ needs to be less than 1 (see Remark 1 in the proof of Theorem 1). 
+
+2.4. Solving the DDR model 
+
+To solve DDR , consider its sample average approximation using training data. We abuse notations to still refer to this as DDR hereafter. 
+
+ˆwDDR = arg min 
+
+> w
+
+L(w) − λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> yn∈Y
+
+n
+
+μ y⊤ 
+
+> n
+
+˜zn + (1 − μ) y⊤ 
+
+> n
+
+f (˜xn; w)
+
+o
+
+. (DDR )The inner minimum is linear in yn and can be easily computed if the constraint set Y has good structure. For example, if it is a polyhedron, then we obtain the following result. 
+
+Proposition 3. If constraint set Y is a polyhedron represented by {Ay ≤ b, y ≥ 0}, DDR has the following reformulation: 
+
+arg min   
+
+> w;κn≥0∀n∈[N]
+
+L(w) + λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+κ⊤ 
+
+> n
+
+b
+
+s.t. A⊤κn ≥ − μ˜zn − (1 − μ)f (˜xn; w) ∀n ∈ [N ],
+
+(5) Loke et al.: Decision-Driven Regularization 11 
+
+When directly solving for DDR , it would be necessary to seek the best regularization parameter 
+
+λ. This can be achieved through cross-validation, where a portion of the data is set aside as a validation set, or by performing k-fold cross-validation. Additionally, we can first use the OLS solution to find the rough ratio between the loss function and the cost function, denoted as ˆλ.It is then possible to initiate the search for λ within the neighborhood of ˆλ. In particular, we can follow the procedure below: 1. Estimate the prediction cost by computing Cp = min  
+
+> w
+
+L(w), and let ˆw = arg min 
+
+> w
+
+L(w) be the estimated model parameters. 2. Given ˆw and μ, compute the optimization cost as follows: 
+
+Co = 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> y∈Y
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn, ˆw).
+
+3. Set the candidate value ˆλ = Cp 
+
+> Co
+
+, and then choose λ from a neighborhood around ˆλ.We remark here that the computational difficulty of Problem (5) is governed by the tractabil-ity of the predictor f (x; w) with respect to the weights w. If f (x; w) is concave (or affine) in 
+
+w, the right–hand side of the constraint is a convex function, so the feasible set remains convex, which can be solved by standard first- or second-order convex solvers. In many cases, such as with most multilayer neural networks, the resultant problem is non-convex. In this case, one may resort to ( i) gradient–based heuristics that differentiate through the DDR objective and apply stochastic optimizers such as ADAM (Kingma and Ba 2015); (ii ) implicit-layer differentiation methods that treat the inner maximization (or its dual) as a differentiable layer, e.g. , OptNet, cvxpylayers, Alt-Diff, and related schemes (Amos and Kolter 2017, Agrawal et al. 2019, Sun et al. 2023); or ( iii ) convex surrogates that replace the original network with a tractable convex approximation such as input-convex neural networks or certified outer-polytope relaxations (Amos et al. 2017, Wong and Kolter 2018). These approaches restore scalability at the cost of global optimality guarantees, yet have proved effective in large-scale decision-focused learning applications. In some special cases, as we illustrate in Appendix E for a tree-based learner, there are natural ways to adapt DDR for the learner. 
+
+## 3. Relationship between regularized learning, robust optimization and regret minimization 
+
+In this section, we establish connections between DDR , posed from the learning perspective with a cost-based regularization, and two alternative viewpoints: ( i) a robust optimization formulation and ( ii ) a worst-case regret minimization approach. In Xu et al. (2010), regularization on a prediction problem is shown to be dual to a robust decision problem with a defined uncertainty set controlling the level of robustness to variations in data. This is generalized and echoed in works such as Bertsimas and Copenhaver (2018) and Blanchet et al. (2019). Here, we propose a robust optimization formulation that leads to the same set of solutions as what would be obtained from DDR .12 Loke et al.: Decision-Driven Regularization 
+
+Definition 1. The Robust DDR model is defined as min  
+
+> yn∈Y , n ∈[N]
+
+max 
+
+> w∈U (ρ)
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μ y⊤ 
+
+> n
+
+˜zn + (1 − μ) y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+, (Robust-DDR )with U(ρ) := w : L(w) − L( ˜w) ≤ ρ and ˜w = arg min 
+
+> w
+
+L(w). In Robust-DDR , the decision-maker attempts to solve for the best decisions yn, by balancing prediction accuracy and cost minimization via an adversarial approach to worst-case weights under the uncertainty set U(ρ). The uncertainty set is crafted under the geometry of the loss function, which has specific statistical interpretations (see Illustration 2 in Appendix A.5). 
+
+Theorem 1 (Robustness) . Assume that Y is convex, closed and compact, and f (x; w) is concave in w for all x ∈ X . Given any λ > 0, there exists some ρ > 0 such that the worst-case weights w achieved for optimal decisions yn, n ∈ [N ] in Robust-DDR coincides with the solution of DDR , when μ ∈ [0 , 1) .
+
+Theorem 1 explains the robust motivation of the negative sign before λ in DDR . If the sign before λ were positive, this corresponds to assuming L(w) − L( ˜w) ≥ ρ in the uncertainty set, that is, the prediction accuracy must be poorer than a given level, which may run contrary to the spirit of learning. Also notice that, in the literature, the construction of the dual uncertainty set ( cis the regularization) does not often have an intuitive form ( e.g. , see Gao et al. 2017). In our construction, the uncertainty sets and the regularizers are both very intuitive, where the former relates to the loss function and the latter to the cost function. The dual form in Theorem 1 can also lead to a separate solution methodology, where the robust counterpart is taken over the loss function, as opposed to the cost function in Proposition 3. This can be useful if the robust counterpart of the loss function can be easily computed. The reader is referred to Appendix C for more details. The assumption that f (x; w) is concave in w for all x ∈ X holds for linear and affine predic-tors, which are widely studied in the literature ( e.g. , Tulabandhula and Rudin 2013, Liu et al. 2021, Elmachtoub and Grigas 2022, Ho-Nguyen and Kılın¸ c-Karzan 2022). Beyond these cases, concavity of f (x; w) in w is a structural property that is not generically satisfied by common nonlinear predictive models. However, the role of this assumption in our paper is limited to the theoretical development establishing the robust interpretation of DDR. The formulation, tractability, and practical applicability of DDR do not rely on this assumption. Two models in the literature are closely related to Robust-DDR . Tulabandhula and Rudin (2013) propose the simultaneous process (SP) model: 
+
+ˆwSP = arg min 
+
+> w
+
+L(w) − λ min  
+
+> y∈Y
+
+y⊤f (ˆx; w), (SP )where L(w) is the prediction loss over the training dataset, and λ ∈ R is the regularization parameter. When λ > 0, they term this ‘pessimistic’; and λ < 0 ‘optimistic’. This model is Loke et al.: Decision-Driven Regularization 13 
+
+related to Zhu et al. (2022)’s joint estimation and robustness optimization (JERO) model, which maximizes the robustness on the mis-estimation of the prediction loss L(w), while meeting a specified mean (estimated) cost target τ :max   
+
+> ρ> 0; y∈Y
+
+ρ
+
+s.t. y⊤f (ˆx; w) ≤ τ, ∀w ∈ U (ρ) := {w : L(w) − L( ˜w) ≤ ρ},
+
+(JERO )where ˜w ∈ arg min 
+
+> w
+
+L(w). These two models turn out to be dual to each other, in the sense that for every λ > 0 in SP , there exists a corresponding τ in JERO , such that the minimizer of 
+
+w in SP and the worst-case w in JERO coincide, with the same decision y up to degeneracy. Henceforth, for ease of reference, we use JERO to refer to both models. The key difference between JERO and the SLO and ILO literature is that JERO solves w as a function of ˆx, the new testing data. Hence, it does not lead to any single true relationship 
+
+g(x) ≈ f (x; w) for some w, which instead changes for each ˆx. We can obtain a model, termed JERO-Like, that is consistent with the SLO and ILO literature by changing ˆx to ˜x, the training data. max   
+
+> ρ> 0; y∈Y
+
+ρ
+
+s.t. 1
+
+N
+
+X 
+
+> n∈[N]
+
+y⊤ 
+
+> n
+
+f (˜xn; w) ≤ τ, ∀w ∈ U (ρ) := {w : L(w) − L( ˜w) ≤ ρ}; (JERO-Like )
+
+Proposition 4 (JERO-Like as a DDR ). Under the same assumptions as in Theorem 1, define 
+
+T := 
+
+τ ∈ R ∃yn ∈ Y , n ∈ [N ] : 1
+
+N
+
+X 
+
+> n∈[N]
+
+y⊤ 
+
+> n
+
+f (˜xn; ˜w) ≤ τ
+
+ .
+
+When μ = 0 , for all τ ∈ T , there exists some λ := λ(τ ) ≥ 0 for which the solutions of DDR and the worst-case weights attained under optimal uncertainty set size ρ⋆ in JERO-Like coincide. 
+
+3.1. Regret interpretation 
+
+In Elmachtoub and Grigas (2022), the authors motivate their model by deriving it from a regret-based formulation. Similarly, we relate DDR to a worst-case regret formulation. Traditionally, regret minimization and robust optimization are viewed as two different perspectives leading to two different model formulations, and papers have sought to analyze the differences between optimal policies obtained from the two models ( e.g. , Perakis and Roels 2008). In Poursoltani and Delage (2022), the authors describe a worst-case regret minimization formulation that can be cast as a two-stage robust optimization problem. Nonetheless, it is difficult to specifically understand the nature of this relationship due to the lifting technique. Our work here is inspired by theirs; and we attempt to relate regret minimization to robust optimization under the data-driven setting, in a manner that is instructive about their relationship. We consider the following sequence of events: 
+
+Step 1. The training dataset DN is availed to the decision-maker. 14 Loke et al.: Decision-Driven Regularization 
+
+Step 2. A particular choice of weights w is committed to, inducing decisions y⋆(ˆz).
+
+Step 3. The oracle then reveals what the true outcomes ˇz really were, and evaluates the quality of the decisions made by the decision-maker y⋆(ˆz)⊤ ˇz measured under these true outcomes, against the lowest possible cost that could be attained had the true outcomes been known a prior, termed the oracle costs, y⋆(ˇz)⊤ ˇz.
+
+Definition 2. The worst-case Regret-DDR problem is defined as arg min 
+
+> w
+
+max 
+
+> ˇz∈Z (w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⋆(ˆzn)⊤ ˇzn − min  
+
+> yn∈Y
+
+y⊤ 
+
+> n
+
+ˇzn
+
+i
+
+, (Regret-DDR )where Z(w) is defined as 
+
+Z(w) = 
+
+
+
+z := zn ∈ Rs 
+
+> n∈[N]
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ℓ(zn; ˜zn) − ℓ(zn; ˆzn)
+
+i
+
+≤ t
+
+∀ yn ∈ Y , n ∈ [N ] : 
+
+y⊤ 
+
+> n
+
+zn − y⊤ 
+
+> n
+
+˜zn ≤ ϕ
+
+y⊤ 
+
+> n
+
+zn − y⊤ 
+
+> n
+
+ˆzn ≤ ψ
+
+y⋆(zn)⊤ ˜zn − y⋆(˜zn)⊤ ˜zn ≤ η
+
+
+
+,
+
+for some known constants ϕ, ψ, η, t ∈ R+.Ambiguity set Z(w) guards against the fact that the true outcomes ˇzn are not known. The first condition in Z(w) ensures predictive error is small. The next two conditions require align-ment between the cost defined by empirical data, the estimated model, and the oracle for every data point. The final condition assumes the sample data ˜zn is a good proxy for decision-making, considering only oracle manifestations zn that lead to decisions y⋆(ˇzn) evaluated favorably under empirical costs. Hence, the size of Z(w) reflects the quality of the training data available for learning. In SPO , the authors simply define the regret under the empirical costs. In Regret-DDR , the decision-maker is cognizant that they do not know what are the costs that might emerge or be assigned by the oracle, and hence plans for the worst possible costs that might manifest at the end of the day, subject to some limitations as described in Z(w). Hence, Z(w) is the uncertainty set of all possible oracle outcomes that the decision-maker is willing to consider. In other words, as long as the true oracle outcomes lie within Z(w), then the solution of Regret-DDR provides an upper bound for the true regret. 
+
+Theorem 2 (Regret) . Denote V (w) as the objective value of DDR ,
+
+V (w) = L(w) − λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> yn∈Y
+
+n
+
+μ y⊤ 
+
+> n
+
+˜zn + (1 − μ) y⊤ 
+
+> n
+
+f (˜xn, w)) 
+
+o
+
+.
+
+Suppose that ℓ(u; v) satisfies the triangular inequality, i.e. , ℓ(u; v) ≤ ℓ(u; r) + ℓ(r; v) ∀u, v, r ∈
+
+Rs; Then for any dataset DN , there exists some constant a ∈ R, that may depend on DN but does not depend on w, such that, for every w ∈ Rq ,
+
+max 
+
+> ˇz∈Z (w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⋆(ˆzn)⊤ ˇzn − min  
+
+> yn∈Y
+
+y⊤ 
+
+> n
+
+ˇzn
+
+i
+
+≤ 1
+
+λ V (w) + a. Loke et al.: Decision-Driven Regularization 15 
+
+In particular, the worst-case regret for choosing the weights ˆwDDR is bounded and, 
+
+max  
+
+> ˇz∈Z (ˆwDDR )
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⋆(ˆzn)⊤ ˇzn − min  
+
+> yn∈Y
+
+y⊤ 
+
+> n
+
+ˇzn
+
+i
+
+≤ 1
+
+λ V ( ˆwDDR ) + a. 
+
+Requiring triangle inequality is reasonable— ℓ(·, ·) is a closeness measure, and would usually be at least a pseudo-metric. Theorem 2 connects regret minimization to the original regular-ized problem, implying that DDR is its canonical approximation for the cost-ambiguous regret-minimization problem under general fidelity measure. How DDR is obtained as an approximation of Regret-DDR is akin to how SPO+ was obtained from the regret minimization problem in Elmachtoub and Grigas (2022). In fact, the very next result states that under such a perspective, SPO+ is a special case of our model. 
+
+Proposition 5 (SPO+ as a DDR ). The solution of SPO+ coincides with that of DDR for λ = 1 ,
+
+μ = −1, and the loss function is chosen as L(w) = 2 1
+
+N
+
+X 
+
+> n∈[N]
+
+y⋆(˜zn)⊤f (˜xn; w).
+
+SPO+ is a very specific example of DDR , where not just the loss function L(w) is chosen to be decision-focused in a particular way, but the actual Lagrange multiplier λ is also specified. 
+
+## 4. A Numerical Illustration on the Shortest Path Problem 
+
+In this section, we follow the setting of Elmachtoub and Grigas (2022) to compare the per-formance of our decision-driven regularization approach against various benchmarks on the shortest path problem defined over an G × G grid network. Let V and E denote the sets of nodes and arcs, respectively. For each arc ( i, j ) ∈ E , let zij represent the cost associated with traversing that arc. Let s and t denote the designated source and sink nodes, respectively, which are located at the opposite corners of the grid. The shortest path problem can be formulated as the following optimization problem: min X
+
+> (i,j )∈E
+
+yij zij 
+
+s.t. X
+
+> j:( j,i )∈E
+
+yji − X
+
+> j:( i,j )∈E
+
+yij =
+
+
+
+−1 if i = s
+
+1 if i = t
+
+0 otherwise 
+
+∀i ∈ V 
+
+yij ∈ { 0, 1} ∀(i, j ) ∈ E .
+
+Data generation. In this study, we generate synthetic datasets that closely mirror the procedure in Elmachtoub and Grigas (2022). We assume that the true relationship is ˜zij =
+
+h 1
+
+√p
+
+ ˜x⊤ ˇwij + 3 β + 1 
+
+i
+
+· ˜ϵij ,
+
+where x ∈ Rp represents the features, ˇwij ∈ Rp are the true (but unknown) weights associated with arc ( i, j ), ˜ ϵij are multiplicative noise terms independently sampled from a uniform dis-tribution on the interval [1 − ¯ϵ, 1 + ¯ ϵ] for some noise level ¯ ϵ ≥ 0, and β is the misspecification 16 Loke et al.: Decision-Driven Regularization 
+
+parameter (when β = 1, there is no misspecification). Note that p in the root is the same p
+
+that denotes the dimension of features x. The features ˜x are drawn from a multivariate normal distribution with independent standard normal components, and each entry of ˇwij is inde-pendently sampled from a Bernoulli distribution with success probability 0 .5. Let W denote the collection of all weights ( wij )(i,j )∈V and training dataset is denoted DN = {(˜xn, ˜zn)}Nn=1 .Similarly, we simulate DM = {(˜xm, ˜zm)}Mm=1 as testing dataset. Benchmarks. We consider a range of SLO and ILO benchmarks. For SLO, we use the OLS, random forest (RF) and boosting (implemented by XGBoost) learners. We implement the RF model using the scikit-learn library and the boosting model using the XGBoost package. For the RF model, we set the number of trees to 100, chosen based on empirical performance metrics. For the XGBoost model, we calibrate the optimal number of boosting rounds to 2. For ILO, we consider SPO+ , Perturbation Gradient (PG) proposed by Huang and Gupta (2024), and Learning to Rank (LTR) introduced by Mandi et al. (2022). Optimization Models. Given the historical dataset DN , the OLS approach can be readily imple-mented to obtain parameter estimates. For SPO+ , PG and LTR, we utilize the publicly available and well-documented PyEPO package developed by Tang and Khalil (2024). The DDR model for the shortest path problem is formulated as follows: min  
+
+> W
+
+L(W) + λN
+
+X 
+
+> n∈[N]
+
+max   
+
+> yij :∀(i,j )∈E
+
+n X 
+
+> (i,j )∈E
+
+ynij 
+
+  − μ˜znij − (1 − μ)fij (˜xn, wij )o
+
+s.t. X
+
+> j:( j,i )∈E
+
+ynji − X
+
+> j:( i,j )∈E
+
+ynij =
+
+
+
+−1 if i = s
+
+1 if i = t
+
+0 otherwise 
+
+∀i ∈ V , n ∈ [N ]
+
+ynij ∈ { 0, 1} ∀(i, j ) ∈ E , n ∈ [N ]Here, we use the mean square error for the loss function L(W). The model is reformulated using Proposition 3, and solved by standard commercial optimization solvers such as Gurobi. Measuring performance. Given an estimate ( ˆw, ˆw0) of the weights, we compute the predicted costs for each observed features ˜xm in the test dataset as ˆzm = ˆw⊤ ˜xm + ˆw0. Based on the predicted cost ˆzm, we obtain the optimal solutions ˆym by solving the shortest path problem. Next, we evaluate the true cost incurred by adopting the solutions ˆym, using the oracle costs defined as ˇzm =   1 
+
+> √p
+
+(˜x⊤ 
+
+> m
+
+ˇwij + 3 β + 1. Finally, the average cost over the test dataset is given by 
+
+P ( ˆw, ˆw0) = 1
+
+M
+
+X 
+
+> m∈[M]
+
+ˆy⊤ 
+
+> m
+
+ˇzm.
+
+Similarly, the oracle’s decisions ˇym can be obtained by solving the shortest path problem based on true average cost ˇzm. We denote oracle’s performance as P ⋆ = 1
+
+> M
+
+P 
+
+> m∈[M]
+
+ˇy⊤ 
+
+> m
+
+ˇzm. By definition, Loke et al.: Decision-Driven Regularization 17 
+
+the oracle’s decisions achieve the lowest possible costs. Therefore, the regret associated with the estimate ( ˆw, ˆw0) is denoted as 
+
+R( ˆw, ˆw0) := P ( ˆw, ˆw0) − P ⋆.
+
+When comparing any two models   ˆwA, ˆwA
+
+> 0
+
+ and   ˆwB , ˆwB
+
+> 0
+
+, we use the following metrics: 1. Regret reduction: The regret reduction of Model A over Model B is defined as how much lesser regret (and thus improvement) Model A incurs, as a proportion of the regret incurred by Model B, ∆R(A, B ) := R   ˆwB , ˆwB
+
+> 0
+
+ − R   ˆwA, ˆwA
+
+> 0
+
+
+
+R   ˆwB , ˆwB
+
+> 0
+
+ × 100% .
+
+Equivalently, ∆ R(A, B ) := P   ˆwB , ˆwB
+
+> 0
+
+ − P   ˆwA, ˆwA
+
+> 0
+
+ .
+
+(P   ˆwB , ˆwB
+
+> 0
+
+ − P ⋆) × 100%. Note that if ∆ R(A, B ) > 0, then Model A incurs smaller regret than Model B. 2. Head-to-head: Let the proportion of test data points ˆxm where the optimal decisions ˆym
+
+disagree across the two models, be the discordance D(A, B ) = 
+
+h P 
+
+> m∈[M]
+
+1 ˆyAm̸ = ˆyBm
+
+i. 
+
+M .We define the head-to-head ratio between two models as the proportion of test data points ˆxm where the first model achieves a lower cost, H(A, B ) = 1
+
+D(A, B )
+
+h P 
+
+> m∈[M]
+
+1 ˇz⊤ 
+
+> m
+
+ˆyAm < ˇz⊤ 
+
+> m
+
+ˆyBm
+
+i
+
+, out of all data points where the models disagree. We define H(A, B ) = 0 .5 if D(A, B ) = 0. 
+
+4.1. Baseline Setting—No misspecification 
+
+We first consider a 3 × 3 grid network with a training dataset of size N = 100, a testing dataset of size M = 1000, and a feature dimension of p = 5. We also assume no model misspecification by setting β = 1 .0, and the noise level is fixed at ¯ ϵ = 0 .5. Further results demonstrating the robustness of our findings to different parameters ( i.e. , N, p, β , and ¯ ϵ) and different network sizes are presented in Appendix D. Computational efficiency. We first evaluate the computational efficiency of the proposed DDR approach by varying the grid size G ∈ { 2, 3, 4, 5} across five different hyperparameter configu-rations for ( μ, λ ). Table 1 presents details on the average computational time required to solve each model instance. The results demonstrate that the DDR model is computationally efficient. While the solution time increases monotonically with the grid size, the model is insensitive to variations in μ and λ, as these hyperparameters have negligible impact on computational performance. Calibration of DDR parameters λ and μ. In order to select a suitable set of hyperparameters 
+
+λ and μ for DDR, we examine their influence on DDR’s performance. Specifically, we consider values of μ from the set {0.6, 0.65 , . . . , 0.85 } and vary λ over the range {0.0, 0.1, . . . , 12 .0}. Note that when λ = 0, DDR simplifies to OLS. Hence, we compare the regret reduction of DDR relative to OLS in Figure 2 below. 18 Loke et al.: Decision-Driven Regularization  
+
+> Table 1 Average solution time (in seconds) required to compute DDR model.
+
+Grid Size (μ, λ )(0.5,0.25) (0.5,0.5) (0.5,0.75) (0.25,0.5) (0.75,0.5) (2,2) 0.02 0.02 0.02 0.02 0.02 (3,3) 0.11 0.11 0.12 0.12 0.11 (4,4) 0.18 0.17 0.18 0.18 0.17 (5,5) 0.31 0.30 0.30 0.31 0.32 0 2 4 6 8 10 12     
+
+> 350
+> 300
+> 250
+> 200
+> 150
+> 100
+> 50
+> 050 Regret reduction (%)
+> =0.6
+> =0.65
+> =0.7
+> =0.75
+> =0.8
+> =0.85
+> Figure 2 Performance of DDR against OLS for different parameters of μand λ
+
+As expected, when λ = 0, DDR coincides with OLS and there is no regret reduction as they obtain the same solution. When λ is relatively small ( i.e. , λ ≤ 5), DDR consistently outperforms OLS across these values of μ considered. Indeed, λ is the parameter that shifts the focus between prediction accuracy and cost minimization. Thus, it is expected that at small λ, it will behave like a regularizer exhibiting bias-variance trade-off. At large values of λ, prediction accuracy is de-prioritized to the point that the cost function can no longer be trusted to be close to the true cost function. It is poignant to also note that the fall off in performance from large λ
+
+occurs earlier for smaller values of μ. Indeed, when μ is small, there is a larger dependence on the estimated cost and so there is a higher chance that the cost function would depart from the true cost. Based on these observations, we fix μ = 0 .75 and λ = 0 .8, as a more conservative choice of the regularization parameters, in the subsequent numerical experiments. Hereon, we will no longer mention the values of the hyperparameters unless they are varied. Comparison with SLO benchmarks. We first examine the performance of DDR against SLO models (OLS, RF, and XGBoost). Figure 3 illustrates the performance comparison. Each point in the plot represents a new testing data set generated under the same true distribution. From the Figure 3, we can see that DDR outperforms all of the SLO models tested. OLS is the closest in performance to DDR; 63% of the time, DDR obtains a better regret over OLS. On Loke et al.: Decision-Driven Regularization 19 0 20 40 60 80 100 Head-to-head (%) 10              
+
+> 5
+> 0510 15 Regret reduction (%)
+> 0.37 0.63 0.46 0.54 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> 0.0 1.0 0.0 1.0 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> 0.0 1.0 0.0 1.0
+
+Figure 3 Performance of DDR against SLO models: OLS (left), RF (middle), and XGBoost (right) 
+
+the other hand, RF and XGBoost models do not perform well, with DDR outperforming them in every instance. This runs contrary to expectations as RF and XGBoost come across as more ‘advanced’ machine learning models, and thus may be expected to have stronger performance. To understand this, we zoom in to the in- and out-of-sample prediction accuracy of the SLO benchmarks in Table 2 below. Here, as the experiment is repeated over multiple data sets, we present the means and extreme percentiles. 
+
+Table 2 Prediction accuracy of SLO models in terms of root mean square error (RMSE) across multiple datasets 
+
+Models In-sample RMSE Out-of-sample RMSE 
+
+5th %-tile Mean 95 th %-tile 5th %-tile Mean 95 th %-tile OLS 3.8393 3.9416 4.0682 4.1279 4.1846 4.2395 RF 1.5872 1.6531 1.7039 4.3479 4.4255 4.5155 XGBoost 2.9835 3.1140 3.2322 4.4822 4.5833 4.6913 DDR 3.8418 3.9440 4.0705 4.1286 4.1830 4.2352 The in-sample accuracies of RF and XGBoost are better than OLS, but they possess a higher out-of-sample error, indicating over-fitting. The impact of this over-fitting results in a large degradation in the decision quality. To further confirm that this behavior is not an artifact of a specific hyperparameter choice, we report in Appendix D.1 (Table D.2) a finer-grained breakdown in which the maximum tree depth of RF and XGBoost is swept across multiple values. The in-sample vs. out-of-sample gap persists across all tested depths, indicating that the deterioration in decision quality is driven by over-fitting of the predictive model rather than by a single hyperparameter setting. For more discussion on this from the perspective of regularization, please refer to Appendix B. In contrast, DDR does not differ very much from OLS in terms of prediction accuracy, while making gains in terms of performance. Comparison with ILO benchmarks. We next examine the performance of DDR against ILO models (SPO+, PG, and LTR). Figure 4 illustrates the performance comparison. 20 Loke et al.: Decision-Driven Regularization 0 20 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)              
+
+> 0.0 1.0 0.0 1.0 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> 0.0 1.0 0.0 1.0 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> 0.0 1.0 0.0 1.0
+
+Figure 4 Performance of DDR against ILO models: SPO+ (left), PG (centre) and LTR (right) 
+
+Under no misspecification, as is the case here, ILO benchmarks do not perform well. DDR makes better decisions on every single data point in the testing data set compared to ILO benchmarks. Since SPO+ and these two decision-focused learning models (PG and LTR) utilize the empirical expected regret as their objective, they ( i) do not benefit from the improvement in precision in the regret function afforded by learning, and ( ii ) are exposed to the possibility that their regret function departs from the true regret as there is no control over prediction accuracy. In the no (or low) misspecification regime, the error in the empirical outcomes ˜z
+
+is dominated by the error term ˜ϵ, resulting in over-fitting. We will see later that in the high misspecification regime, the error is dominated by misspecification error, and ILO benchmarks, in particular SPO+, will consequently regain better performance. Impact of Network Structures. We also conduct numerical experiments to assess the perfor-mance of the DDR model across various network structures. Specifically, we examine four grid networks, ranging from a 2 × 2 grid up to a 5 × 5 grid. The data generation process and param-eter settings follow those described in §4.1. Our simulation study explores multiple combinations of the DDR hyperparameters ( μ, λ ), where both μ and λ are selected from the set {0.2, 0.25 , . . . , 0.95 }. For each combination, we com-pute the regret reduction based on 100 experimental runs. The DDR models achieving optimal regret performance for each network configuration are illustrated in the left panel of Figure 5. We observe that the advantage of the DDR model tends to decrease as the network size grows, with a modest improvement noted from the 4 × 4 to the 5 × 5 grid. Nonetheless, the DDR model consistently outperforms the OLS approach in terms of regret performance across all examined network sizes. We also compare the performance of DDR against SPO+ for a 5 × 5 grid, and the results are plotted in the right panel of Figure 5. We observe that our DDR approach continues to outperform the SPO+ approaches under larger network structures. 
+
+4.2. The misspecified setting 
+
+Here, we compare the performance of DDR against ILO benchmarks in the misspecified setting, varying β ∈ { 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 4.0, 8.0}. To better differentiate the performance among Loke et al.: Decision-Driven Regularization 21 2 3 4 5Grid Size 56 58 60 62 64 Regret reduction (%)        
+
+> (0.5, 0.2) (0.8, 0.7) (0.9, 0.3) (0.3, 0.3) 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> 0.0 1.0 0.0 1.0
+
+Figure 5 Regret reduction of the DDR against OLS under different network structures (left panel) and comparison of DDR against SPO+ for a 5 × 5 grid network (right panel) 0 20 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)           
+
+> Baseline =0.4,0.6
+> =0.8
+> =1.5
+> =2.0
+> =4.0
+> =8.0 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> Baseline =0.4,0.6,0.8,1.5,2.0,4.0,8.0 020 40 60 80 100 Head-to-head (%) 020 40 60 80 100 Regret reduction (%)
+> Baseline =0.4,0.6,0.8,1.5,2.0,4.0,8.0
+
+Figure 6 Performance of DDR against ILO models: SPO+ (left), PG (centre) and LTR (right) in the misspecified setting 
+
+different misspecified settings, we set N = 500; at the previous training dataset size of N = 100, none of the ILO benchmarks have a stronger performance than DDR for any values of β ≤ 8.0. We can see that when misspecification rises to around β = 8 .0, the performance of SPO+ eventually catches up to DDR; PG and LTR never do. Note that, for convenience of compar-ison, we have fixed a choice of λ and μ and it would still be possible to further improve the performance of DDR by calibrating for λ and μ. Because empirical outcomes ˜z are heavily used in SPO+, this greatly reduces their susceptibility to misspecification as observed data 
+
+˜z = g(˜x) + ϵ inherently includes information about the true relationship g(·) which captures the misspecification. Instead, reliance on estimated ˆz = f (x; ˆw) leads to a large misspecification error. Nonetheless, we stress that such levels of misspecification are high—large enough that a sim-ple plot of the data points would easily detect it, notwithstanding the range of statistical tools and tests, such as residual analysis, that could easily point to the existence of misspecification. We aim to prove our point here, by zooming in to SPO+ as it is the only ILO model tested that beats DDR at misspecification level β = 8 .0. Their relative performance is plotted in Figure 22 Loke et al.: Decision-Driven Regularization 
+
+7 (left). Suppose now, that the decision-maker is cognizant of misspecification and introduces quadratic terms as features into the learner. Specifically, given the original feature set x1, . . . , x p,we augmented the feature space by introducing quadratic interaction terms xixj for all i, j ∈ [p]. Note that the true misspecification level is β = 8 .0, so incorporating quadratic terms does not lead to no misspecification, but simply just reduces the degree of misspecification. In Figure 7 (right), we examine the effect of doing so, when quadratic terms have been supplied to both DDR and the SPO+ benchmark. 0 20 40 60 80 100 Head-to-head (%) 250        
+
+> 200
+> 150
+> 100
+> 50
+> 050 100 Regret reduction (%)
+> 0.55 0.45 0.77 0.23 020 40 60 80 100 Head-to-head (%) 40
+> 20
+> 020 40 60 80 100 Regret reduction (%)
+> 0.03 0.97 0.38 0.62
+
+Figure 7 Performance of DDR against SPO+ in the misspecified setting β = 8 .0 and N = 500 without (left) and with (right) quadratic terms 
+
+Immediately, we notice that DDR rapidly regains superior performance against the SPO+ model. There are always natural ways to improve a model that is misspecified by better cap-turing the relationships and expanding the generality of the learner. However, the converse cannot be done—there are no natural ways to take a model that only performs well under high misspecification and somehow compel it to do better at low misspecification. We would like to stress that it is the low misspecification regime that is important, ( i) in light of current trends towards highly expressive models such as neural networks that would be misspecified with low probability, and ( ii ) because it would otherwise be difficult to justify why the particular chosen learner is reasonable should the model only out-perform under high misspecification. 
+
+## 5. Conclusion 
+
+We propose a blended bi-objective framework, termed decision-driven regularization, for the contextual stochastic optimization problem. A key focus of our work is on the role that pre-dictive accuracy plays in ILO, and how a lack of control for it can lead to over-fitting. We also illustrate the importance of applying bias-variance trade-off to improve the estimation of the cost function. We believe both of these discussions add important perspectives to the ILO literature when constructing ILO models. Because of these specific design elements in our Loke et al.: Decision-Driven Regularization 23 
+
+model, we believe it explains DDR’s superior numerical performance over benchmark models. We also illustrate the relationship between DDR and models crafted from the robust and regret perspectives, and as such generalizes SPO+. While we present our numerical evidence using a linear learner for DDR, we explained that DDR is compatible with any general learner, such as a tree-based learner that we illustrate in Appendix E. Nonetheless, there is much work ahead to examine the specialization of DDR to other learners popular in the machine learning literature, such as neural networks. 
+
+## References 
+
+Agrawal A, Amos B, Barratt S, Boyd S, Diamond S, Kolter JZ (2019) Differentiable convex optimization layers. Advances in Neural Information Processing Systems 32. Amos B, Kolter JZ (2017) Optnet: Differentiable optimization as a layer in neural networks. International Conference on Machine Learning , 136–145 (PMLR). Amos B, Xu L, Kolter JZ (2017) Input convex neural networks. International Conference on Machine Learning , 146–155 (PMLR). Athey S, Tibshirani J, Wager S (2019) Generalized random forests. Annals of Statistics 47(2):1148–78. Ban G, Gallien J, Mersereau AJ (2019) Dynamic procurement of new products with covariate informa-tion: The residual tree method. Manufacturing & Service Operations Management 21(4):798–815. Ban GY, El Karoui N, Lim AE (2018) Machine learning and portfolio optimization. Management Science 
+
+64(3):1136–1154. Ben-Tal A, Den Hertog D, De Waegenaere A, Melenberg B, Rennen G (2013) Robust solutions of optimization problems affected by uncertain probabilities. Management Science 59(2):341–357. Bengio Y (1997) Using a financial training criterion rather than a prediction criterion. International Journal of Neural Systems 8(04):433–443. Berden S, Mahmuto˘ gulları A ˙I, Tsouros D, Guns T (2026) Solver-free decision-focused learning for linear optimization problems. The Thirty-ninth Annual Conference on Neural Information Processing Systems , URL https://openreview.net/forum?id=xMcKyUGTt1 .Bertsimas D, Copenhaver M (2018) Characterization of the equivalence of robustification and regular-ization in linear and matrix regression. European Journal of Operational Research 270(3):931–942. Bertsimas D, Dunn J (2017) Optimal classification trees. Machine Learning 106(7):1039–82. Bertsimas D, Kallus N (2020) From predictive to prescriptive analytics. Management Science 66(3):1025– 1044. Bertsimas D, Van Parys B (2022) Bootstrap robust prescriptive analytics. Mathematical Programming 
+
+195(1):39–78. Blanchet J, Kang Y, Murthy K (2019) Robust Wasserstein profile inference and applications to machine learning. Journal of Applied Probability 56(3):830–857. 24 Loke et al.: Decision-Driven Regularization 
+
+Chan TC, Mahmood R, Zhu IY (2025) Inverse optimization: Theory and applications. Operations Research 73(2):1046–1074. Chung TH, Rostami V, Bastani H, Bastani O (2022) Decision-aware learning for optimizing health supply chains. Available at arXiv:2211.08507 .Delage E, Ye Y (2010) Distributionally robust optimization under moment uncertainty with application to data-driven problems. Operations Research 58(3):595–612. den Hertog D, Postek K (2016) Bridging the gap between predictive and prescriptive analytics-new optimization methodology needed. Available at Optimization Online .Deng Y, Sen S (2018) Learning enabled optimization: Towards a fusion of statistical learning and stochas-tic programming. Available at Optimization Online .Donti P, Amos B, Kolter J (2017) Task-based end-to-end model learning in stochastic optimization. 
+
+Advances in Neural Information Processing Systems 30:5484–5494. El Balghiti O, Elmachtoub A, Grigas P, Tewari A (2019) Generalization bounds in the predict-then-optimize framework. Advances in Neural Information Processing Systems , 14412–14421. Elmachtoub A, Grigas P (2022) Smart “predict, then optimize”. Management Science 68(1):9–26. Elmachtoub AN, Lam H, Zhang H, Zhao Y (2023) Estimate-then-optimize versus integrated-estimation-optimization versus sample average approximation: a stochastic dominance perspective. Available at arXiv: 2304.06833 .Esteban-P´ erez A, Morales JM (2022) Distributionally robust stochastic programs with side information based on trimmings. Mathematical Programming 195(1):1069–1105. Estes AS, Richard JPP (2023) Smart predict-then-optimize for two-stage linear programs with side information. INFORMS Journal on Optimization 5(3):295–320. Ferreira K, Lee B, Simchi-Levi D (2016) Analytics for an online retailer: Demand forecasting and price optimization. Manufacturing & Service Operations Management 18(1):69–88. Gao R, Chen X, Kleywegt AJ (2017) Wasserstein distributional robustness and regularization in statis-tical learning. Available at arXiv:1712.06050 2(4). Hannah L, Powell W, Blei D (2010) Nonparametric density estimation for stochastic optimization with an observable state variable. Advances in Neural Information Processing Systems 23. Ho-Nguyen N, Kılın¸ c-Karzan F (2022) Risk guarantees for end-to-end prediction and optimization pro-cesses. Management Science 68(12):8680–8698. Hu Y, Kallus N, Mao X (2022) Fast rates for contextual linear optimization. Management Science 
+
+68(6):4236–4245. Huang M, Gupta V (2024) Decision-focused learning with directional gradients. Advances in Neural Information Processing Systems 37:79194–79220. Jeong J, Jaggi P, Butler A, Sanner S (2022) An exact symbolic reduction of linear smart predict+ optimize to mixed integer linear programming. International Conference on Machine Learning ,10053–10067 (PMLR). Loke et al.: Decision-Driven Regularization 25 Kallus N, Mao X (2023) Stochastic optimization forests. Management Science 69(4):1975–1994. Kannan R, Bayraksan G, Luedtke JR (2024) Residuals-based distributionally robust optimization with covariate information. Mathematical Programming 207(1):369–425. Kannan R, Bayraksan G, Luedtke JR (2025) Data-driven sample average approximation with covariate information. Operations Research .Kingma DP, Ba J (2015) Adam: A method for stochastic optimization. International Conference on Learning Representations .Kong L, Cui J, Zhuang Y, Feng R, Prakash BA, Zhang C (2022) End-to-end stochastic optimization with energy-based model. Advances in Neural Information Processing Systems 35:11341–11354. Lawless C, Zhou A (2022) A note on task-aware loss via reweighing prediction loss by decision-regret. 
+
+Available at arXiv:2211.05116 .Lin S, Chen Y, Li Y, Shen ZJM (2022) Data-driven newsvendor problems regularized by a profit risk constraint. Production and Operations Management 31(4):1630–1644. Liu S, He L, Shen Z (2021) On-time last mile delivery: Order assignment with travel time predictors. 
+
+Management Science. 67(7):4095–4119. Liyanage L, Shanthikumar G (2005) A practical inventory control policy using operational statistics. 
+
+Operations Research Letters 33(4):341–348. Mandi J, Bucarey V, Tchomba MMK, Guns T (2022) Decision-focused learning: Through the lens of learning to rank. International Conference on Machine Learning , 14935–14947 (PMLR). Mandi J, Kotary J, Berden S, Mulamba M, Bucarey V, Guns T, Fioretto F (2024) Decision-focused learning: Foundations, state of the art, benchmark and future opportunities. Journal of Artificial Intelligence Research 80:1623–1701. Mandi J, Mahmutogullari I, Guns T, et al. (2025) Minimizing surrogate losses for decision-focused learn-ing using differentiable optimization. 28th European Conference on Artificial Intelligence, Including 14th Conference on Prestigious Applications of Intelligent Systems (PAIS 2025) , volume 413, 3888– 3895 (IOS Press). Mandi J, Stuckey P, Guns T (2020) Smart predict-and-optimize for hard combinatorial optimization problems. Proceedings of the AAAI Conference on Artificial Intelligence , volume 34, 1603–1610. McKenzie D, Wu Fung S, Heaton H (2024) Differentiating through integer linear programs with quadratic regularization and davis-yin splitting. Transactions on machine learning research .Mohajerin Esfahani P, Kuhn D (2018) Data-driven distributionally robust optimization using the Wasser-stein metric: Performance guarantees and tractable reformulations. Mathematical Programming 
+
+171(1):115–166. Mundru N (2019) Predictive and prescriptive methods in operations research and machine learning: an optimization approach . Ph.D. thesis, Massachusetts Institute of Technology. Mu˜ noz MA, Pineda S, Morales JM (2022) A bilevel framework for decision-making under uncertainty with contextual information. Omega 108:102575. 26 Loke et al.: Decision-Driven Regularization 
+
+Notz PM, Pibernik R (2022) Prescriptive analytics for flexible capacity management. Management Sci-ence 68(3):1756–1775. Perakis G, Roels G (2008) Regret in the newsvendor model with partial information. Operations Research 
+
+56(1):188–203. Perakis G, Sim M, Tang Q, Xiong P (2023) Robust pricing and production with information partitioning and adaptation. Management Science 69(3):1398–1419. Poursoltani M, Delage E (2022) Adjustable robust optimization reformulations of two-stage worst-case regret minimization problems. Operations Research 70(5):2906–2930. Qi M, Grigas P, Shen ZJM (2021) Integrated conditional estimation-optimization. Available at arXiv:2110.12351 .Qi M, Shi Y, Qi Y, Ma C, Yuan R, Wu D, Shen ZM (2023) A practical end-to-end inventory management model with deep learning. Management Science 69(2):759–773. Sadana U, Chenreddy A, Delage E, Forel A, Frejinger E, Vidal T (2024) A survey of contextual optimiza-tion methods for decision-making under uncertainty. European Journal of Operational Research 
+
+320(2):271–289. Siegel AF, Wagner MR (2021) Profit estimation error in the newsvendor model under a parametric demand distribution. Management Science. 67(8):4863–4879. Sim M, Tang Q, Zhou M, Zhu T (2024) The analytics of robust satisficing: predict, optimize, satisfice, then fortify Operations Research .Srivastava PR, Wang Y, Hanasusanto GA, Ho CP (2021) On data-driven prescriptive analytics with side information: A regularized Nadaraya-Watson approach. Available at arXiv:2110.04855 .Sun C, Liu S, Li X (2023) Maximum optimality margin: A unified approach for contextual linear program-ming and inverse linear programming. International Conference on Machine Learning , 32886–32912 (PMLR). Tang B, Khalil EB (2024) Pyepo: A pytorch-based end-to-end predict-then-optimize library for linear and integer programming. Mathematical Programming Computation 16(3):297–335. Tulabandhula T, Rudin C (2013) Machine learning with operational costs. Journal of Machine Learning Research 14(25):1989–2028. Vlastelica M, Paulus A, Musil V, Martius G, Rol´ ınek M (2019) Differentiation of blackbox combinatorial solvers. Available at arXiv:1912.02175 .Wang T, Chen N, Wang C (2024) Contextual optimization under covariate shift: A robust approach by intersecting Wasserstein balls Available at arXiv: 2406.02426 .Wilder B, Ewing E, Dilkina B, Tambe M (2019) End to end learning and optimization on graphs. 
+
+Advances in Neural Information Processing Systems 32. Wong E, Kolter Z (2018) Provable defenses against adversarial examples via the convex outer adversarial polytope. International Conference on Machine Learning , 5286–5295 (PMLR). Loke et al.: Decision-Driven Regularization 27 Xu H, Caramanis C, Mannor S (2010) Robust regression and LASSO. IEEE Transactions on Information Theory 56(7):3561–74. Zhu T, Xie J, Sim M (2022) Joint estimation and robustness optimization. Management Science 
+
+68(3):1659–1677. Loke et al.: Decision-Driven Regularization 1
+
+# E-Companion of “Decision-Driven Regularization: A Blended Model for Predict-then-Optimize” 
+
+Online Appendix A: Omitted Proofs 
+
+In this segment, we present all deferred proofs from the main text. 
+
+A.1. Proof of Claim 1 in Illustration 1 
+
+The least squares minimization problem for OLS has the solution: W =(X⊤X)−1(X⊤Z), where X =
+
+h
+
+˜x⊤ 
+
+> 1
+
+˜x⊤ 
+
+> 2
+
+˜x⊤ 
+
+> 3
+
+˜x⊤
+
+> 4
+
+i⊤
+
+and Z = ( ˜z⊤ 
+
+> 1
+
+, ˜z⊤ 
+
+> 2
+
+, ˜z⊤ 
+
+> 3
+
+, ˜z⊤ 
+
+> 4
+
+)⊤. It is easy to verify that these equations return ˆW SLO 
+
+=
+
+ˇW =
+
+1 00 1 .5
+
+. Hence, SLO picks route b if and only if 1 .5ˆ x2 ≤ ˆx1.To verify the conclusion for ILO, note that for any given feature vector ˆx and coefficient matrix W ,route b is chosen if and only if ( W ˆx)1 − (W ˆx)2 = w11 ˆx1 + w12 ˆx2 − w21 ˆx1 − w22 ˆx2 ≥ 0. For convenience, let ¯ w := w11 − w21 and w := w22 − w12 . Hence, the optimal decision y⋆ will pick route b if and only if 
+
+wˆx2 ≤ ¯wˆx1.For ILO, in order to get the minimum objective, ILO chooses ˆW ILO 
+
+such that the smaller of the two components of ˜zn is chosen. Specifically, to minimize ILO loss, we need to pick route b for data points 1, 3 and 4, but pick route a for data point 2. Hence, optimal ˆW ILO 
+
+is attained when ¯w − w ≥ 0,
+
+2 ¯ w − w ≥ 0,
+
+¯w − 2w ≤ 0,
+
+3 ¯ w − 2w ≥ 0.
+
+Subtracting the LHS of the first inequality from the third one, we have ¯ w − w − ( ¯ w − 2w) ≥ 0, i.e., w ≥ 0. Then the above four inequalities are equivalent to the condition 1 ≤ ¯w/w ≤ 2. In other words, any matrix 
+
+ˆW ILO 
+
+satisfying 1 ≤ ¯w/w ≤ 2, w ≥ 0 is optimal for the ILO loss function. Thus, ILO chooses route b if and only if ˆ x2 ≤ ( ¯ w/w )ˆ x1 for some 1 ≤ ¯w/w ≤ 2 that is degenerate and indifferentiable in-sample under the ILO loss. □
+
+A.2. Proof of Proposition 1 
+
+EDN
+
+  y⊤Ez|x[z] − y⊤f (x; ˆ w)2
+
+=EDN
+
+  y⊤g(x) − y⊤f (x; ˆ w)2
+
+=EDN
+
+y⊤g(x)2 − 2EDN
+
+y⊤g(x)y⊤f (x; ˆ w) + EDN
+
+(y⊤f (x; ˆ w)) 2
+
+=[ y⊤g(x)] 2 − 2y⊤g(x)EDN [y⊤f (x; ˆ w)] + EDN
+
+(y⊤f (x; ˆ w)) 2 − (EDN
+
+y⊤f (x; ˆ w))2 + ( EDN
+
+y⊤f (x; ˆ w))2
+
+=y⊤g(x) − EDN y⊤f (x; ˆ w)2 + EDN
+
+(y⊤f (x; ˆ w)) 2 − (EDN
+
+y⊤f (x; ˆ w))2.
+
+where the first equality holds due to Ez|x[z] = g(x), the third equality holds because y and x are deterministic with respect to the data DN and the last equality comes from rearranging terms. 2 Loke et al.: Decision-Driven Regularization 
+
+A.3. Proof of Proposition 2 
+
+Let ( α1, α 2) be the dual variables, then the Lagrangian relaxation of Problem (4) is given by: min 
+
+> y∈Y
+
+n
+
+y⊤f (˜x, w) + α1
+
+
+
+y⊤ ˜z − y⊤f (˜x, w) − γ
+
+
+
++ α2
+
+
+
+− y⊤ ˜z + y⊤f (˜x, w) − γ
+
+o 
+
+= min 
+
+> y∈Y
+
+n
+
+(α1 − α2)y⊤ ˜z + (1 − α1 + α2)y⊤f (˜x, w) − γ(α1 + α2)
+
+o
+
+.
+
+Setting μ = α1 − α2, we recover the statement of the Proposition 2, where the term associated with γ is dropped as it do not influence the choice of decisions y.
+
+A.4. Proof of Proposition 3 
+
+When c(y; z) = y⊤z and Y = {Ay ≤ b, y ≥ 0}, the inner supreme problem of the DDR becomes max  
+
+> yn≥0
+
+y⊤
+
+> n
+
+  − μ˜zn − (1 − μ)f (˜xn; w)
+
+s.t. Ay n ≤ b,
+
+which is a linear programming problem and the dual of it is min  
+
+> κn≥0
+
+κ⊤ 
+
+> n
+
+b
+
+s.t. A⊤κn ≥ − μ˜zn − (1 − μ)f (˜xn; w).
+
+□
+
+A.5. Motivation for the loss function uncertainty set 
+
+The following illustration gives some explanation about why this geometry for the uncertainty set makes sense. 
+
+Illustration 2 [as seen in Zhu et al. (2022)] . Suppose L(w) = −2 log 
+
+ Q 
+
+> n
+
+pz|x(zn; xn, w)
+
+
+
+was chosen as the log-likelihood function, where pz|x is the density of z|x. Then the uncertainty set U(ρ) := 
+
+{w : L(w) − L( ˜w) ≤ ρ} reduces to the set of all weights w, which likelihood ratio against ˜w is no greater than some bound: 
+
+U(ρ) := 
+
+w : LR ( ˜w; w) := 
+
+Q
+
+> n
+
+pz|x(zn; xn, ˜w)
+
+Q
+
+> n
+
+pz|x(zn; xn, w) ≤ eρ/ 2
+
+ . (A.1) 
+
+Suppose we interpret the null hypothesis as H0 : ˇw = ˜w and the alternative hypothesis as H1 : ˇw =
+
+w̸ = ˜w. Then Neyman-Pearson Lemma gives that there is some confidence level α(ρ), corresponding to 
+
+eρ/ 2, under which, the likelihood ratio test grants the highest power, that is, probability of rejecting H0.In other words, this uncertainty set is equivalent to considering the maximal set of all weights w that, if true, have any chance at all of rejecting ˜w under the significance level corresponding to eρ/ 2, given the existing dataset. 
+
+A.6. Proof of Theorem 1 
+
+Before proving Theorem 1, we first prove the following lemma. 
+
+Lemma 1. The valuation function vμ(w) is concave in w.Loke et al.: Decision-Driven Regularization 3
+
+Proof . Under the assumption that f (x; w) is concave in w for all x ∈ X , we see that y⊤f (x, w) is convex in y and concave in w for all x. It follows that y⊤ ˜z is convex in y. Now for any μ ∈ [0 , 1], it is easy to see that the objective function μy⊤ ˜z + (1 − μ)y⊤f (x; w) is convex in y and concave in w. The concavity of 
+
+vμ(w) over w arises from the infimum operator over y. □
+
+Now we are ready to prove Theorem 1. For DDR , we have min 
+
+> w
+
+n
+
+L(w) − λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> yn∈Y
+
+n
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+oo 
+
+(A.2) = min 
+
+> w
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+max 
+
+> yn∈Y
+
+n
+
+ℓ ˜zn; f (˜xn; w) − λ
+
+
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+o 
+
+.
+
+In what follows, we denote σ = L( ˜w), which is a known constant given the data. For Robust-DDR , we can write the Lagrangian of it as max  
+
+> yn∈Y , n ∈[N],α ≥0
+
+min  
+
+> w
+
+α
+
+
+
+L(w) − σ − ρ
+
+
+
+− 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+= min 
+
+> w
+
+max  
+
+> yn∈Y , n ∈[N],α ≥0
+
+α
+
+
+
+L(w) − σ − ρ
+
+
+
+− 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+(A.3) = min 
+
+> w
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+max 
+
+> yn∈Y ,α ≥0
+
+n
+
+αℓ  ˜zn; f (˜xn; w) − μy⊤ 
+
+> n
+
+˜zn − (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+o
+
+− α(σ + ρ).
+
+Notice that w = ˜w is always a feasible solution by assumption. Moreover, ρ > 0, hence w = ˜w is an interior point in the feasibility region. Additionally, the objective function of the inner maximization problem permits convexity in w and concavity in ( yn, α ). This achieves Slater’s condition, and therefore strong duality holds. It is easy to see that the solution of Problem (A.2) coincides with that of Problem (A.3) when letting α⋆ = 1 /λ .
+
+Remark 1. Here, we make a quick comment about the limiting case μ = 1. Notice that if μ = 1, the regularization term does not involve the weights w in any form, hence the argmin obtained would coincide with arg min 
+
+> w
+
+L(w), which is just ˆw. However, it is not clear, that given a fixed λ bounded away from 0, that as μ ↗ 1, it is necessary for w(μ) → ˆw uniformly. This is because the behaviour of μ is asymptotic at μ = 1; beyond μ = 1, there are no consistent ways for ensuring that Lemma 1 holds. Indeed, we see from our numerical simulations that as μ gets closer to 1, we do not recover ˆw, as long as λ does not also uniformly decrease to 0. □
+
+A.7. Proof of Proposition 4 and Corollary 1 
+
+We prove both the proposition and the corollary simultaneously. 
+
+Definition 3 (Robustness DDR). The Robustness Decision-driven Regularization (RDDR, for short) model is defined as the following problem for μ ∈ [0 , 1): max ρ
+
+s.t. 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+≤ τ ∀w ∈ U (ρ) (RDDR )
+
+ρ > 0; yn ∈ Y ∀n ∈ [N ],
+
+Note that when μ = 0, it recovers the JERO-Like model. Once again, denote σ = L( ˜w). Now for the robust counterpart of the first constraint, it can be written as: max 
+
+> w
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+s.t. L(w) ≤ σ + ρ, 4 Loke et al.: Decision-Driven Regularization 
+
+the dual of which is min  
+
+> α≥0
+
+max 
+
+> w
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ α
+
+
+
+σ + ρ − L(w)
+
+
+
+.
+
+Note that w = ˜w is feasible by definition. Moreover, since ρ > 0, w = ˜w is an interior point. Hence, Slater’s condition is achieved, and strong duality holds. Further, ρ > 0 suffices to consider only α > 0. Hence, using α = 1 /β where β > 0, min  
+
+> α> 0
+
+max 
+
+> w
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ α(σ + ρ − L(w)) ≤ τ
+
+⇔ min 
+
+> 1
+> β
+
+max 
+
+> w
+
+β 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ σ + ρ − L(w) − βτ ≤ 0it follows that 
+
+ρ ≤ max 
+
+> 1
+> β
+
+min 
+
+> w
+
+−β 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+− σ + L(w) + βτ . 
+
+This allows us to reformulate the 3 problem as: max   
+
+> yn∈Y , n ∈[N],1
+> β
+
+min  
+
+> w
+
+−β 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+− σ + L(w) + βτ . 
+
+On the other hand, by Theorem 1, DDR can be reformulated as: max  
+
+> yn∈Y , n ∈[N]
+
+min 
+
+> w
+
+n
+
+L(w) + λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+τ − μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+io 
+
+.
+
+It follows that by setting λ = β⋆—the optimal β attained under the reformulated RDDR —the solution of RDDR coincides with that of DDR . □
+
+Remark 2. Theorem 1 guarantees that, out-of-sample, if the optimal objective value of Robust-DDR is Γ ⋆, then vμ( ˇw) ≤ Γ⋆, with probability P[ ˇw ∈ U (ρ)], is related to the power of the learning model if L
+
+is the log-likelihood function. This is almost as good as saying that the out-of-sample costs are upper bounded with high probability, until we recall that the valuation function is only a surrogate for the true cost function. 
+
+A.8. Proof of Theorem 2 
+
+Define 
+
+Z⋆(w) = 
+
+
+
+ˇz := ˇzn ∈ Rs 
+
+> n∈[N]
+
+∃ yn̸ = y⋆(ˇzn), n ∈ [N ] : 
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ℓ(ˇzn; ˜zn) − ℓ(ˇzn; f (˜xn; w)) 
+
+i
+
+≤ t
+
+y⊤ 
+
+> n
+
+ˇzn − y⊤ 
+
+> n
+
+˜zn ≤ ϕ ∀n ∈ [N ]
+
+y⊤ 
+
+> n
+
+ˇzn − y⊤ 
+
+> n
+
+f (˜xn; w) ≤ ψ ∀n ∈ [N ]
+
+y⋆(ˇzn)⊤ ˇzn − y⋆(ˇzn)⊤ ˜zn ≤ ϕ ∀n ∈ [N ]
+
+y⋆(ˇzn)⊤ ˇzn − y⋆(ˇzn)⊤f (˜xn; w) ≤ ψ ∀n ∈ [N ]
+
+y⋆(ˇzn)⊤ ˜zn − y⋆(˜zn)⊤ ˜zn ≤ η ∀n ∈ [N ]
+
+
+
+.
+
+Notice that Z⋆(w) is just Z(w), where we preserve the global condition and then demand that good estimates of the cost function are satisfied on two decision points, y⋆(zn) and yn, which will be the optimal recourse solution obtained for the optimization problem at the end. As such, Z⋆(w) relaxes Loke et al.: Decision-Driven Regularization 5the conditions for zn, thus Z⋆(w) ⊇ Z (w), and the supremum over the latter is bounded above by the supremum of the former. Henceforth, we are interested in bounding the supremum over Z⋆(w). For ease of notations, hereinafter in this proof, we let ˆyn ∈ arg min 
+
+> y∈Y
+
+y⊤f (˜xn; w), ˇyn ∈ arg min 
+
+> y∈Y
+
+y⊤ ˇzn, and 
+
+˜yn ∈ arg min 
+
+> y∈Y
+
+y⊤ ˜zn for n ∈ [N ]. In what ensues, we shall bound the supremum by decomposing Z⋆(w)into two steps. Denote 
+
+Z0(w) = 
+
+
+
+ˇz := ˇzn ∈ Rs 
+
+> n∈[N]
+
+ˇy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+˜zn ≤ ϕ ∀n ∈ [N ]
+
+ˇy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+f (˜xn; w) ≤ ψ ∀n ∈ [N ]
+
+ˇy⊤ 
+
+> n
+
+˜zn − ˜y⊤ 
+
+> n
+
+˜zn ≤ η ∀n ∈ [N ]
+
+
+
+,
+
+and 
+
+Z1(w) = 
+
+
+
+ˇz := ˇzn ∈ Rs 
+
+> n∈[N]
+
+∃ yn̸ = ˇyn, n ∈ [N ] : 
+
+y⊤ 
+
+> n
+
+ˇzn − y⊤ 
+
+> n
+
+˜zn ≤ ϕ ∀n ∈ [N ]
+
+y⊤ 
+
+> n
+
+ˇzn − y⊤ 
+
+> n
+
+f (˜xn; w) ≤ ψ ∀n ∈ [N ]
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ℓ(ˇzn; ˜zn) − ℓ(ˇzn; f (˜xn; w)) 
+
+i
+
+≤ t
+
+
+
+,
+
+such that Z⋆(w) = Z0(w) ∩ Z 1(w). In other words, the worst case regret is: max 
+
+> ˇzn∈Z (w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+ˇzn
+
+i
+
+≤ max 
+
+> ˇzn∈Z ⋆(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+ˇzn
+
+i
+
+= max 
+
+> ˇzn∈Z 0(w)∩Z 1(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+ˇzn
+
+i
+
+= max 
+
+> ˇzn∈Z 1(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+ˇzn
+
+i
+
+(A.4) s.t. ˇy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+˜zn ≤ ϕ ∀n ∈ [N ]; 
+
+ˇy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+f (˜xn; w) ≤ ψ ∀n ∈ [N ]; 
+
+ˇy⊤ 
+
+> n
+
+˜zn − ˜y⊤ 
+
+> n
+
+˜zn ≤ η ∀n ∈ [N ].
+
+Here, we consider the Lagrangian relaxation of (A.4). Let α = ( α1, α2), β = ( β1, β2), γ = ( γ1
+
+> n
+
+, γ2
+
+> n
+
+) be the Lagrange multipliers. Then, max 
+
+> ˇz∈Z ⋆(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+ˇzn
+
+i
+
+≤ min 
+
+> α,β,γ≥0
+
+max 
+
+> ˇz∈Z 1(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+ˇzn (A.5) + α1
+
+> n
+
+
+
+ϕ − ˇy⊤ 
+
+> n
+
+ˇzn + ˇy⊤ 
+
+> n
+
+˜zn
+
+
+
++ α2
+
+> n
+
+
+
+ϕ + ˇy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+˜zn
+
+
+
++ β1
+
+> n
+
+
+
+ψ − ˇy⊤ 
+
+> n
+
+ˇzn + ˇy⊤ 
+
+> n
+
+f (˜xn; w)
+
+
+
++ β2
+
+> n
+
+
+
+ψ + ˇy⊤ 
+
+> n
+
+ˇzn − ˇy⊤ 
+
+> n
+
+f (˜xn; w)
+
+
+
++ γ1
+
+> n
+
+
+
+η − ˇy⊤ 
+
+> n
+
+˜zn + ˜y⊤ 
+
+> n
+
+˜zn
+
+
+
++ γ2
+
+> n
+
+
+
+η + ˇy⊤ 
+
+> n
+
+˜zn − ˜y⊤ 
+
+> n
+
+˜zn
+
+i 
+
+= min 
+
+> α,β,γ≥0
+
+max 
+
+> ˇz∈Z 1(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn + ( α2 
+
+> n
+
+− α1 
+
+> n
+
++ β2 
+
+> n
+
+− β1 
+
+> n
+
+− 1) ˇy⊤ 
+
+> n
+
+ˇzn
+
++ ( α1 
+
+> n
+
+− α2 
+
+> n
+
+− γ1 
+
+> n
+
++ γ2
+
+> n
+
+)ˇy⊤ 
+
+> n
+
+˜zn + ( β2 
+
+> n
+
+− β1
+
+> n
+
+)
+
+
+
+ˆy⊤ 
+
+> n
+
+f (˜xn; w) − ˇy⊤ 
+
+> n
+
+f (˜xn; w)
+
+6 Loke et al.: Decision-Driven Regularization 
+
+− (β2 
+
+> n
+
+− β1
+
+> n
+
+)ˆy⊤ 
+
+> n
+
+f (˜xn; w) + ( γ1 
+
+> n
+
+− γ2
+
+> n
+
+)˜y⊤ 
+
+> n
+
+˜zn + ( α1 
+
+> n
+
++ α2
+
+> n
+
+)ϕ + ( β1 
+
+> n
+
++ β2
+
+> n
+
+)ψ + ( γ1 
+
+> n
+
++ γ2
+
+> n
+
+)η
+
+i
+
+≤ max 
+
+> ˇz∈Z 1(w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+ˆy⊤ 
+
+> n
+
+ˇzn − 2ˆy⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ a0
+
+
+
+(A.6) 
+
+≤ max   
+
+> ˇz∈Z 1(w); yn∈Y ,n ∈[N]
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⊤ 
+
+> n
+
+ˇzn − 2y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ a0, (A.7) where a0 = ϕ + 2 ψ + η + 1
+
+N
+
+X 
+
+> n∈[N]
+
+˜y⊤ 
+
+> n
+
+˜zn. Here, inequality (A.5) follows from weak duality. Inequality (A.6) follows from two facts. First, we make the following choice of dual variables 
+
+ α1
+
+> n
+
+, α 2
+
+> n
+
+, β 1
+
+> n
+
+, β 2
+
+> n
+
+, γ 1
+
+> n
+
+, γ 2
+
+> n
+
+ =
+
+
+
+1, 0, 0, 2, 1, 0
+
+
+
+n ∈ [N ].
+
+Second, note that ˆy⊤ 
+
+> n
+
+f (˜xn; w) − ˇy⊤ 
+
+> n
+
+f (˜xn; w) ≤ 0, as ˆyn ∈ arg min yn y⊤ 
+
+> n
+
+f (˜xn; w) by definition. Finally, inequality (A.7) follows trivially from the fact that ˆyn ∈ Y for all n ∈ [N ]. Having relaxed ˆyn to yn, we once again perform another Lagrangian relaxation, this time on Z1(w). Let ¯α = ( ¯α1, ¯α2), ¯β = ( ¯β1, ¯β2), ¯γ = (¯ γ1, ¯γ2) be the Lagrange multipliers. It follows that: max   
+
+> ˇz∈Z 1(w); yn∈Y ,n ∈[N]
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⊤ 
+
+> n
+
+ˇzn − 2y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+≤ min  
+
+> ¯α,¯β,¯γ≥0
+
+max   
+
+> ˇzn;yn∈Y ,n ∈[N]
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+n
+
+y⊤ 
+
+> n
+
+ˇzn − 2y⊤ 
+
+> n
+
+f (˜xn; w) (A.8) + ¯ α1
+
+> n
+
+
+
+ϕ − y⊤ 
+
+> n
+
+ˇzn + y⊤ 
+
+> n
+
+˜zn
+
+
+
++ ¯ α2
+
+> n
+
+
+
+ϕ + y⊤ 
+
+> n
+
+ˇzn − y⊤ 
+
+> n
+
+˜zn
+
+
+
++ ¯β1
+
+> n
+
+
+
+ψ − y⊤ 
+
+> n
+
+ˇzn + y⊤ 
+
+> n
+
+f (˜xn; w)
+
+
+
++ ¯β2
+
+> n
+
+
+
+ψ + y⊤ 
+
+> n
+
+ˇzn − y⊤ 
+
+> n
+
+f (˜xn; w)
+
+o 
+
++ ¯ γ1
+
+
+
+t − 1
+
+N
+
+X 
+
+> n∈[N]
+
+ℓ(˜zn; ˇzn) − ℓ f (˜xn; w); ˇz 
+
++ ¯ γ2
+
+
+
+t + 1
+
+N
+
+X 
+
+> n∈[N]
+
+ℓ(˜zn; ˇzn) − ℓ f (˜xn; w); ˇz 
+
+= min  
+
+> ¯α,¯β,¯γ≥0
+
+max   
+
+> ˇzn;yn∈Y ,n ∈[N]
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+(1 − ¯α1 
+
+> n
+
++ ¯ α2 
+
+> n
+
+− ¯β1 
+
+> n
+
++ ¯β2
+
+> n
+
+)y⊤ 
+
+> n
+
+ˇzn + (¯ α1 
+
+> n
+
+− ¯α2
+
+> n
+
+)y⊤ 
+
+> n
+
+˜zn
+
++ ( ¯β1 
+
+> n
+
+− ¯β2 
+
+> n
+
+− 2) y⊤ 
+
+> n
+
+f (˜xn; w) + (¯ γ1 − ¯γ2) ℓ f (˜xn; w); ˇzn
+
+ − ℓ(˜zn; ˇzn)i
+
++ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+(¯ α1 
+
+> n
+
++ ¯ α2
+
+> n
+
+)ϕ + ( ¯β1 
+
+> n
+
++ ¯β2
+
+> n
+
+)ψ
+
+i
+
++ (¯ γ1 + ¯ γ2)t
+
+≤ ¯λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+ℓ f (˜xn; w); ˜zn
+
+ + 1
+
+N
+
+X 
+
+> n∈[N]
+
+max 
+
+> yn∈Y
+
+h
+
+− μy⊤ 
+
+> n
+
+˜zn − (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ a1, (A.9) where a1 = ϕ + 2 ψ + t. The inequality (A.8) is once again due to the weak duality, and inequality (A.9) is because of the triangle inequality assumption on ℓ(u; v) and the following choice of dual variables, 
+
+ ¯α1
+
+> n
+
+, ¯α2
+
+> n
+
+, ¯β1
+
+> n
+
+, ¯β2
+
+> n
+
+, ¯γ1, ¯γ2 =
+
+ 1 − μ
+
+2 , 1 + μ
+
+2 , 3 + μ
+
+2 , 1 − μ
+
+2 , 1 + ¯λ
+
+2 , 1 − ¯λ
+
+2
+
+
+
+n ∈ [N ]for some μ ∈ [−1, 1) and ¯λ ∈ (0 , 1]. Therefore, we have max 
+
+> ˇz∈Z (w)
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⋆(ˆzn)⊤ ˇzn − min 
+
+> yn∈Y
+
+ˇy⊤ 
+
+> n
+
+ˇzn
+
+i
+
+≤ max   
+
+> ˇz∈Z 1(w); yn∈Y ,n ∈[N]
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+y⊤ 
+
+> n
+
+ˇzn − 2y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ a0
+
+
+
+≤¯λ 1
+
+N
+
+X 
+
+> n∈[N]
+
+ℓ f (˜xn; w); ˜zn
+
+ − 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> yn∈Y
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
++ a0 + a1 = 1
+
+λ V (w) + a, Loke et al.: Decision-Driven Regularization 7with λ = 1 /¯λ and a := a0 +a1 = 2 ϕ+4 ψ +η +t+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+˜y⊤ 
+
+> n
+
+˜zn. Notice here that 1
+
+N
+
+X 
+
+> n∈[N]
+
+˜y⊤ 
+
+> n
+
+˜zn is evaluated only over the training data ˜zn and hence is a constant given the training dataset. Hence, in particular, if we choose w = ˆwDDR , we have max 
+
+> ˇz∈Z (wDDR )
+
+ 1
+
+N
+
+X
+
+> n∈N
+
+h
+
+y⋆(ˆzn)⊤ ˇzn − min  
+
+> yn∈Y
+
+y⊤ 
+
+> n
+
+ˇzn
+
+i
+
+≤ 1
+
+λ V ( ˆwDDR ) + a. 
+
+This completes the proof. □
+
+A.9. Proof of Proposition 5 
+
+When L(w) = (1 − μ) 1
+
+N
+
+X 
+
+> n∈[N]
+
+y⋆(˜zn)⊤f (˜xn; w), λ = 1, and μ = −1, DDR becomes min  
+
+> w
+
+(1 − μ) 1
+
+N
+
+X 
+
+> n∈[N]
+
+y⋆(˜zn)⊤f (˜xn; w) − 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> yn∈Y
+
+n
+
+− y⊤ 
+
+> n
+
+˜zn + 2 y⊤ 
+
+> n
+
+f (˜xn; w)
+
+o
+
+,
+
+which is exactly the SPO+ model. □
+
+Remark 3. SPO+ occurs when μ = −1. In this case, DDR reduces to, for some λ ≥ 0: min  
+
+> w
+
+L(w) − λ
+
+ 1
+
+N
+
+X 
+
+> n∈[N]
+
+min 
+
+> yn∈Y
+
+n
+
+2y⊤f (˜xn, w) − y⊤ ˜zn
+
+o
+
+. (A.10) One way to understand the motivation of such a model, is to notice that the expression within the infimum has the following decomposition into the estimated cost and its estimation error when compared against the empirical cost: 
+
+y⊤f (˜xn, w) − y⊤ ˜z
+
+| {z }
+
+> estimation error
+
++ y⊤f (˜xn, w)
+
+| {z }
+
+> best estimate
+
+. (A.11) We remark here that if we let ϕ = 0 , η = 0 and t, ψ to be sufficiently large such that the first and the third conditions in Z(w) no longer exist, i.e. ,
+
+Z(w) = 
+
+
+
+z := zn ∈ Rs 
+
+> n∈[N]
+
+∀ yn ∈ Y , n ∈ [N ] : 
+
+y⊤ 
+
+> n
+
+zn − y⊤ 
+
+> n
+
+˜zn = 0 ∀n ∈ [N ]
+
+y⋆(zn)⊤ ˜zn − y⋆(˜zn)⊤ ˜zn = 0 ∀n ∈ [N ]
+
+
+
+,
+
+Regret-DDR is exactly SPO . Furthermore, if one follows the proof for Theorem 2 with these specifications of the parameters, then one will also recover the construction of SPO+ from SPO . This once again reinforces the notion that the construction of DDR as an approximation to Regret-DDR is as canonical as the construction of SPO+ as an approximation to SPO .
+
+Online Appendix B: Sub-optimality of the SLO approach and relationship of DDR to other regularizers 
+
+B.1. Sub-optimality of the SLO approach 
+
+To better understand why directly minimizing prediction error is sub-optimal, consider the toy knapsack problem of picking smallest cost z, where cost function is c(y; z) = y⊤z, the feasible set is Y = {y ∈
+
+[0 , 1] N , y⊤1 = 1 }, and z is generated from some true linear relationship z = ˇw⊤x + ϵ, with true parameter ˇw. Typically, prediction error is measured globally. Thus, the residuals ϵ of a model that minimizes global prediction error, will be smaller over less extreme-valued regions of x and vice versa, as illustrated by the dark blue shaded confidence interval in Figure B.1 below. However, in the knapsack problem, we are concerned about extreme values of z, which occur over the region of extreme values of x where the prediction error is currently largest. In other words, more generally, the cost minimization problem 8 Loke et al.: Decision-Driven Regularization 
+
+induces a region X ⊂ X over context x, corresponding to a region Z ⊂ Z of the uncertainty z, where optimal decisions to the cost minimization problem are more likely to occur than not. Moreover, this region X is often extreme in relation to the support X as optimization, by definition, seeks extreme results. If one is able to improve the predictive accuracy over this region Z, then the optimization model is better able to differentiate between alternative decisions y. Thus, a model with confidence interval indicated by the broken line in Figure B.1 is expected to have higher decision power than its shaded blue counterpart, as it incurs smaller prediction error over the region that matters—the small values of z.It may have a larger overall prediction error, but that results from sacrificing prediction accuracy over non-critical regions of X —that lead to large values of z—in favour of X .0.5 1.0 1.5 2.0 2.5 3.0 x5678910 11 z
+
+> 95% prediction interval 95% confidence interval
+
+Figure B.1 One-dimensional illustrative of centred (dark blue shaded area) and non-centred (broken orange line) confidence intervals 
+
+B.2. Relationship to other regularizers 
+
+In the DDR model, the regularizer Rμ(w) := − 1
+
+> N
+
+P 
+
+> n
+
+νnμ (w) is chosen as the sample average approximation of the valuation function νμ(w). Here, we shorthand νnμ (w) to mean the valuation function evaluated on the single data point indexed by n, ( ˜x, ˜z) = ( ˜xn, ˜zn). In both Lasso and Ridge regressions, the regularizer is chosen as some norm: R(w) = || w|| q . Nonetheless, recall that each norm can be represented as the optimizer of some optimization problem. By the definition of dual norm, we have 
+
+R(w) = || w|| q = max 
+
+> ξ
+
+X
+
+> i∈[p]
+
+X
+
+> j∈[d]
+
+wij ξi,j , (B.12) s.t. ξ ∈ Ξ := ξ ∈ Rp×d : || ξ|| q∗ ≤ 1
+
+where || · || q∗ represents the dual norm of || · || q , and 1 
+
+> q
+
++ 1 
+
+> q∗
+
+= 1. Consider the case where the learner is linear, i.e. , ˜z := f (x; w) = w⊤x. In the case where μ = 0, the decision-driven regularizer is 
+
+R0(w) = 1
+
+N
+
+X
+
+> n
+
+νn 
+
+> 0
+
+(w) = max 
+
+> yn∈Y
+
+− 1
+
+N
+
+X
+
+> n
+
+y⊤ 
+
+> n
+
+w⊤xn
+
+= max 
+
+> yn∈Y
+
+X
+
+> i∈[p]
+
+X
+
+> j∈[d]
+
+wij − 1
+
+N
+
+X
+
+> n
+
+xn,i yn,j 
+
+!
+
+.Loke et al.: Decision-Driven Regularization 9Thus, we may express R0(w) as the following: 
+
+R0(w) = max 
+
+> ξ
+
+X
+
+> i∈[p]
+
+X
+
+> j∈[d]
+
+wij ξi,j , (B.13) s.t. ξ ∈ ΞN 
+
+> 0
+
+:= 
+
+(
+
+ξ ∈ Rp×d : ∃yn ∈ Y , n ∈ [N ], ξ i,j = − 1
+
+N
+
+X
+
+> n
+
+xn,i yn,j 
+
+)
+
+that depends on the dataset DN . Denote XN as the p × N matrix that collects all p-dimensional feature vectors in the dataset of N points, and denote YN := Y × · · · × Y as the product space of Y. Then, we can notice that Ξ N 
+
+> 0
+
+= 1 
+
+> N
+
+XN ⊤YN := { 1 
+
+> N
+
+XN ⊤y : y ∈ Y N }, which is the linear transformation of the feasibility space by the data matrix XN .The forms of (B.12) and (B.13) allow us to draw the connection between decision-driven regularization and norm-based regularizers like Lasso and Ridge regressions. We wish to analyze this relationship by assuming that we are currently at the OLS solution, i.e. , w = ˆ wOLS , and investigating what impact adding either of the regularizers has on the performance of the solution – specifically, how the base solution ˆ wOLS , results in different weights, such as ˆ wLasso in the case of Lasso. Here, we examine locally around the neighbourhood of OLS weights, ˆ wOLS , the directions of improving (decreasing) L(w)+ λR (w)for different regularizers R(·). As ˆwOLS is the minimizer of L(w) (hence gradient of L at w = ˆ wOLS is 0), the action of adding R(w) is to draw the solution in the direction of the gradient of R(w). Closer examination of problems (B.12) and (B.13) reveals that these directions are approximated by the optimal solutions of ξ at w = ˆ wOLS . This is because ξ are the dual variables in the convex conjugate forms of 
+
+R(w). In other words, around the neighborhood of base solution ˆ wOLS , the base solution is pushed along the optimal ξ’s to problems (B.12) and (B.13) at w = ˆ wOLS towards the norm-based regularizer and DDR 
+
+weights, respectively. However, problems (B.12) and (B.13) have the same objective, and hence the same optimizing direction, but with different feasibility sets Ξ and Ξ N 
+
+> 0
+
+. Thus, the eventual optimal solution of 
+
+ξ depends on how different these feasibility sets are. Our goal is to examine the impact on the performance of the eventual decisions, of pulling the OLS weights in the directions of the solutions to (B.12) and (B.13). If the solution ξ to problem (B.13) is a local improving direction for the performance, i.e. , that DDR improves on the performance of OLS on the eventual cost function, and if the angle between the two solutions ξ to problem (B.12) and (B.13) is fairly large, then we can conclude that the direction in which norm-based regularizers pull the OLS weights towards, i.e. , the solution to problem (B.12), may very likely be a local worsening direction for the performance of the eventual cost function. This actually turns out to be the case in our simulations. We see that DDR improves over OLS, and that the angles of the local directions from DDR to Lasso and Ridge regressions are around 60 ◦. In Table B.1, we present the summary statistics of these angles amongst 100 simulations. These angles are significantly large—in other words, the regularizers in Lasso and Ridge regressions are pulling the OLS weights away in very different directions from the decision-driven regularizer. As a consequence, we discover, ironically, that while Lasso and Ridge regressions both improve the prediction accuracy over OLS, they both lead to significantly poorer performance on the cost function. 10 Loke et al.: Decision-Driven Regularization 
+
+Table B.1 Angles of local directions of Lasso and Ridge to DDR in 100 simulations 
+
+Angles to DDR Lasso Ridge 
+
+Mean 82 ◦ 72 ◦
+
+10th Percentile 80 ◦ 72 ◦
+
+90th Percentile 85 ◦ 73 ◦
+
+In conclusion, what we have explained here is that blindly adopting regularizers, even if for the purposes of improving prediction accuracy, might not lead to better performance. In fact, we can potentially see the opposite, where they lead to poorer performance, pulling the optimal solution away from the direction of improving performance. 
+
+Online Appendix C: Pseudo-code for Solving RDDR 
+
+Corollary 1. Under the same assumptions as in Theorem 1, then for all μ ∈ [0 , 1) and τ for which 
+
+∃yn ∈ Y , n ∈ [N ] such that the target is attained 1
+
+> N
+
+P 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)c yn; f (˜xn, ˜w)i
+
+≤ τ , under learning optimal weights ˜w = arg min L(w), there exists some λ := λ(τ ) ≥ 0 for which the solutions of 
+
+DDR and the worst-case weights attained under optimal uncertainty set size ρ⋆ from RDDR coincide. 
+
+In short, we seek the best radius of the uncertainty set ρ, via bisection search, wherein we solve a feasibility sub-problem in each iteration. Here, we present the pseudo-code for the algorithm, however, for more details, the reader can be directed to Zhu et al. (2022), as the procedure for solving the model follows identically. 
+
+Algorithm 1 RDDR 
+
+Input τ and ˜z.
+
+Initialization : ρ1 = 0 , ρ 2 = ¯ ρ, where ¯ ρ is a sufficiently large number. 
+
+while ρ2 − ρ1 > ϵ do 
+
+ρ := ( ρ1 + r2)/2Solve the subproblem Sub-RDDR , obtain optimal value δ⋆ and optimal decisions y⋆n.
+
+if δ⋆ > 0 then 
+
+ρ2 = ρ
+
+else 
+
+ρ1 = ρ
+
+end if end while Output : Optimal ρ⋆ = ( ρ1 + ρ2)/2 and optimal decision yRDDR  
+
+> n
+
+= y⋆n.
+
+Input Optimal ρ = ρ⋆ and optimal decision y = y⋆n
+
+Do Solve the Problem ( ROBUSTW ), and obtain w⋆
+
+Output Worst scenario ˆwRDDR = w⋆
+
+In this algorithm, the sub-problem is described as: min 
+
+> t
+
+t − τ (Sub-RDDR )Loke et al.: Decision-Driven Regularization 11 s.t. 1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μy⊤ 
+
+> n
+
+˜zn + (1 − μ)y⊤ 
+
+> n
+
+f (˜xn; w)
+
+i
+
+≤ t, ∀w ∈ U (ρ)where U(ρ) := {w : L(w) − L( ¯w) ≤ ρ}.
+
+We finally utilize ρ⋆ and y⋆ derived from the overarching problem to solve for the worst case ˆwRDDR .This is done via, arg max 
+
+> w∈U (ρ⋆)
+
+1
+
+N
+
+X 
+
+> n∈[N]
+
+h
+
+μ c (y⋆n; ˜zn) + (1 − μ) c y⋆n; f (˜xn; w)i
+
+(ROBUSTW )
+
+Online Appendix D: Additional Simulation Results 
+
+In this Appendix, we present further results from the numerical illustration that were omitted from the main text for brevity. This includes the robustness of our findings to different parameters and a short study into the case when the network size is varied. 
+
+D.1. A Closer Look at Over-fitting in the Tree-based SLO Benchmarks 
+
+In §4.1 of the main text, Table 2 reports the in- and out-of-sample prediction accuracy of the SLO benchmarks (OLS, RF, XGBoost) and DDR under their default settings, which points to potential over-fitting in the two tree-based learners. To further elucidate the extent to which such over-fitting depends on model complexity, Table D.2 refines the entries for RF and XGBoost by sweeping the maximum tree depth across {2, 4, 6, 8, Default }, while keeping OLS and DDR unchanged as references. We can see that changing the hyperparameters might not resolve over-fitting, but is rather an inherent feature of the learner.  
+
+> Table D.2 Prediction accuracy of SLO models in terms of root mean square error (RMSE) across multiple datasets
+
+Models In-sample RMSE Out-of-sample RMSE 
+
+5th %-tile Mean 95 th %-tile 5th %-tile Mean 95 th %-tile OLS 3.8393 3.9416 4.0682 4.1279 4.1846 4.2395 DDR 3.8418 3.9440 4.0705 4.1286 4.1830 4.2352 RF(Maximum depth = 2) 4.0068 4.1499 4.2974 4.3693 4.4779 4.5875 RF(Maximum depth = 4) 3.36 3.4682 3.5785 4.3047 4.3904 4.4816 RF(Maximum depth = 6) 2.4572 2.6123 2.782 4.3191 4.3939 4.4766 RF(Maximum depth = 8) 1.8514 1.9727 2.1223 4.338 4.4143 4.504 RF(Default) 1.5872 1.6531 1.7039 4.3479 4.4255 4.5155 XGBoost(Maximum depth = 2) 3.924 4.0634 4.221 4.3788 4.4943 4.6057 XGBoost(Maximum depth = 4) 3.38 3.5202 3.6778 4.4097 4.517 4.6255 XGBoost(Maximum depth = 6) 2.9835 3.114 3.2322 4.4822 4.5833 4.6913 XGBoost(Maximum depth = 8) 2.8146 2.9393 3.0729 4.5155 4.6173 4.7142 XGBoost(Default) 2.9835 3.1140 3.2322 4.4822 4.5833 4.6913 12 Loke et al.: Decision-Driven Regularization 
+
+D.2. Robustness of Our Model Across Various Settings 
+
+This section presents a series of numerical experiments designed to evaluate the robustness of the pro-posed DDR model under varying conditions. Specifically, we investigate the influence of training data size, feature dimensionality, noise level, and model misspecification. To assess the impact of training data size, the sample size N is varied across the set {50 , 100 , 200 , 500 , 1000 }, while all other param-eters are held constant at their baseline values. Likewise, the number of features p is selected from 
+
+{1, 3, 5, 7, 10 , 15 }. To evaluate the effect of model misspecification, the parameter β is varied over the set {0.4, 0.8, 1.0, 1.4, 1.6, 2.0, 3.0, 4.0}. Finally, the noise level ¯ ϵ is examined by selecting values from 
+
+{0.25 , 0.5, 0.75 , 1.0}. The comparison between DDR and OLS is summarized in Figure D.2. 40 50 60 70 80 90 100 Head-to-head (%) 010 20 30 40 50 60 70 Regret reduction (%)                    
+
+> Baseline N=50 N=200 N=500 N=1000 40 50 60 70 80 90 100 Head-to-head (%) 010 20 30 40 50 60 70 Regret reduction (%)
+> Baseline p=1 p=3 p=7 p=10 p=15 40 50 60 70 80 90 100 Head-to-head (%) 010 20 30 40 50 60 70 Regret reduction (%)
+> Baseline =0.4
+> =0.6
+> =0.8
+> =1.2 =1.4
+> =1.6
+> =2.0
+> =3.0
+> =4.0 40 50 60 70 80 90 100 Head-to-head (%) 010 20 30 40 50 60 70 Regret reduction (%)
+> Baseline =0.25
+> =0.75
+> =1.0
+
+Figure D.2 Performance of DDR against OLS under 3 × 3 grid and μ = 0 .75 and λ = 0 .8 under various settings 
+
+From Figure D.2, we first observe that the DDR model consistently attains superior regret perfor-mance, as indicated by positive regret reduction across all evaluated settings. This finding highlights the advantage of employing the DDR model. However, it is also apparent that in certain scenarios, the head-to-head performance of the DDR model does not surpass that of OLS. For instance, when assessing the impact of training data size, the DDR model exhibits improved head-to-head performance across all sample sizes except at N = 1000. This outcome is anticipated, as the OLS estimator’s accuracy improves with larger sample sizes, thereby reducing the performance gap between DDR and OLS in such cases. Nevertheless, Figure D.2 demonstrates that our DDR model outperforms in terms of both regret reduction and head-to-head metrics in the majority of cases. Loke et al.: Decision-Driven Regularization 13 Similarly, the comparison between the DDR and SPO+ approaches is presented in Figure D.3. The results indicate that the DDR model consistently outperforms SPO+ across all settings in terms of both regret reduction and head-to-head performance metrics, thereby demonstrating the superiority of the DDR model over the SPO+ baseline. 40 50 60 70 80 90 100 Head-to-head (%) 80 85 90 95 100 105 Regret reduction (%)                   
+
+> Baseline N=50 N=200 N=500 N=1000 40 50 60 70 80 90 100 Head-to-head (%) 90 92 94 96 98 100 102 104 Regret reduction (%)
+> Baseline p=1 p=3,7,10,15 40 50 60 70 80 90 100 Head-to-head (%) 90 92 94 96 98 100 102 104 Regret reduction (%)
+> Baseline =0.4
+> =0.6
+> =0.8,1.4,1.6,2.0,3.0,4.0 40 50 60 70 80 90 100 Head-to-head (%) 90 92 94 96 98 100 102 104 Regret reduction (%)
+> Baseline =0.25,0.75
+> =1.0
+
+Figure D.3 Performance of DDR against SPO+ under 3 × 3 grid and μ = 0 .75 and λ = 0 .8 under various settings 
+
+Online Appendix E: DDR Tree 
+
+While we have elected to use a linear learner in our numerical results, DDR can more generally be applied to other learners. To illustrate this, in this section, we consider a tree-based learner in DDR , and term it as DDR tree. Consider a decision tree with K leaf nodes, where the predictions ˆz are constrained to be equal if they fall into the same leaf node. We model this by defining Rk the set of samples assigned to leaf node k, and predictions ˆzk as being indexed by the leaf nodes k ∈ [K]. We write the DDR loss objective function as: 
+
+LDDR (Rk , ˆzk ) = X
+
+> k∈[K]
+
+X
+
+> n∈Rk
+
+∥˜zn − ˆzk ∥22 + λN
+
+X
+
+> k∈[K]
+
+X
+
+> n∈Rk
+
+max 
+
+> yn∈Y
+
+ − μy⊤ 
+
+> n
+
+˜zn − (1 − μ)y⊤ 
+
+> n
+
+ˆzk
+
+where the first term represents the prediction accuracy and the second term represents the decision cost. Here, sets Rk and predictions ˆzk are the parameters (“weights”) of the tree to be learnt and determined. Using Proposition 3, the DDR loss function can be further reformulated as: 
+
+LDDR (Rk , ˆzk ) = λN
+
+X
+
+> k∈[K]
+
+X
+
+> n∈Rk
+
+ Nλ ∥˜zn − ˆzk ∥22 + min 
+
+> A⊤κn≥− μ˜zn−(1 −μ)ˆzk
+
+κ⊤ 
+
+> n
+
+b
+
+
+
+.14 Loke et al.: Decision-Driven Regularization 
+
+Accordingly, the prediction cost vectors for the leaf nodes, given the partitioning of observations into leaf nodes, i.e. , the sets Rk , are determined by solving the following constrained optimization problem: 
+
+ˆzDDR = arg min   
+
+> ˆzk:∀k∈[K]
+
+
+
+λN
+
+X
+
+> k∈[K]
+
+X
+
+> n∈Rk
+
+ Nλ ∥˜zn − ˆzk ∥22 + κ⊤ 
+
+> n
+
+b
+
+
+
+A⊤κn ≥ − μ˜zn − (1 − μ)ˆzk , ∀n ∈ Rk , k ∈ [K]
+
+
+
+If the sets Rk are known, the above optimization problem is easy. Instead, we propose the following two methodologies to optimize for Rk .
+
+E.1. Recursive Partitioning Approach. 
+
+Emulating the CART algorithm, we construct the decision tree via a greedy recursive partitioning strat-egy. Let xnj denote the jth feature component of the nth observation in the training data. Starting from the entire training dataset, we consider binary splits defined by pairs ( j, s ), where j indicates the selected feature and s denotes the split threshold. This split partitions the data into two disjoint subsets: 
+
+R1(j, s ) = {n ∈ [N ] | xnj ≤ s} and R2(j, s ) = {n ∈ [N ] | xij > s }.
+
+The optimal first split of the decision tree is determined by selecting the pair ( j, s ) that minimizes the total LDDR loss over both subsets: min 
+
+> ˆz1,ˆz2
+
+λN
+
+" X
+
+> n∈R1
+
+ Nλ ∥˜zn − ˆz1∥22 + κ⊤ 
+
+> n
+
+b
+
+
+
++ X
+
+> n∈R2
+
+ Nλ ∥˜zn − ˆz2∥22 + κ⊤ 
+
+> n
+
+b
+
+#
+
+s.t. A⊤κn ≥ − μ˜zn − (1 − μ)ˆzk , ∀n ∈ Rk , k = 1 , 2Once the optimal split is selected, the procedure is then recursively applied greedily to obtain binary splits in the resulting leaves until the stopping criteria is met. The prediction cost vectors ˆzDDR for each leaf node are then optimized simultaneously, after the complete tree structure has been determined. 
+
+E.2. Integer Programming Approach. 
+
+Motivated by recent advances in decision tree construction through optimization techniques (Bertsimas and Dunn 2017), DDR tree can be solved as an integer programming model. Specifically, we aim to construct a decision tree based on a pre-specified tree depth H and a minimum number of training observations Nmin required in each leaf node. Note that not all leaf nodes are required to be active ( i.e. , contain training observations), and sim-ilarly, not all branch nodes need to be active splits ( i.e. , nodes that partition the data). Denote the index sets of leaf and branch nodes by TK = {1, . . . , K } and TB = {1, . . . , B }, respectively. Let gk =
+
+I{leaf k is not empty } and dt = I{branch node t is an active split } be binary variables that indicate the activation status of the corresponding nodes. Each node t is associated with a split defined by decision variables at ∈ { 0, 1}p and bt ∈ [0 , 1], where at
+
+indicates which feature component is involved with the split, and bt indicates the split point, assuming that all feature components have been normalized to the interval [0 , 1]. Note that at and bt are the decision variables. Let p(t) denote the parent node of t, and AL(t) the set of left ancestor nodes of node t, i.e. , the set of ancestors of t whose left branch has been followed on the path from the root to t. Similarly, we let AR(t)as the set of right ancestor nodes of t.Loke et al.: Decision-Driven Regularization 15 To ensure sufficient separation between data points in the splitting process, we define the minimum resolution for each feature dimension. Let εj = min {x(n+1)  
+
+> j
+
+− x(n) 
+
+> j
+
+x(n+1) 
+
+> j
+
+̸ = x(n) 
+
+> j
+
+, n ∈ [N − 1] } is the small-est nonzero difference between observed value of feature component j, where x(n) 
+
+> j
+
+is the n-th largest value in the j-th feature. In addition, we denote εmax = max j εj .The integer programming formulation of the DDR decision tree is given as follows: min λN
+
+X
+
+> k∈[K]
+
+X 
+
+> n∈[N]
+
+rnk 
+
+ Nλ ∥˜zn − ˆzk ∥22 + κ⊤ 
+
+> n
+
+b
+
+
+
+s.t A⊤κn ≥ − μ˜zn − (1 − μ)ˆzk + (1 − rnk )M, ∀n ∈ [N ], k ∈ [K]
+
+P
+
+> k∈[K]
+
+rnk = 1 , ∀n ∈ [N ]
+
+rnk ≤ gk , ∀n ∈ [N ], l ∈ T K
+
+P 
+
+> n∈[N]
+
+rnk ≥ Nmin gk , ∀l ∈ T K
+
+a⊤ 
+
+> m
+
+˜xn ≥ bm − (1 − rnk ), ∀l ∈ T K , n ∈ [N ], m ∈ AR(k)
+
+a⊤
+
+> m
+
+(˜xn + ε) ≤ bm + (1 + εmax )(1 − rnk ), ∀l ∈ T K , n ∈ [N ], m ∈ AL(k)
+
+P
+
+> j∈[p]
+
+ajt = dt, ∀t ∈ T B
+
+1 − dt ≤ bt ≤ 1, ∀t ∈ T B
+
+dt ≤ dp(t), ∀t ∈ T B \ { 1}
+
+ajt , d t ∈ { 0, 1}, ∀j ∈ [p], t ∈ T B
+
+rnk , g k ∈ { 0, 1}, ∀n ∈ [N ], l ∈ T K
+
+The objective function and the first four constraints form the DDR optimization problem, while the remaining constraints are adapted from the requirements of the optimal classification tree. For more details about the tree constraints, the reader can consult Bertsimas and Dunn (2017). The objective function λN
+
+P
+
+> k∈[K]
+
+P 
+
+> n∈[N]
+
+rnk 
+
+ Nλ ∥˜zn − ˆzk ∥22 + κ⊤ 
+
+> n
+
+b
+
+
+
+can be further reformulated as the fol-lowing inequalities: λN
+
+X
+
+> k∈[K]
+
+X 
+
+> n∈[N]
+
+rnk 
+
+ Nλ ϱnk + κ⊤ 
+
+> n
+
+b
+
+
+
+(ϱnk + 1) 2 ≥ (ϱnk − 1) 2 + 4 ϖ2
+
+ϖ2 ≥ ∥ ˜zn − ˆzk ∥22
+
+Moreover, the bilinear terms rnk ϱnk and rnk κn can be linearized by introducing additional variables and applying standard linearization techniques, such as McCormick envelopes.

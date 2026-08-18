@@ -1,0 +1,69 @@
+{
+  "label": "2026-08-18",
+  "date": "2026-08-18",
+  "generated_at": "2026-08-18T21:01:34",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202608/18/2608.16741v1-semantic--and-density-aware-planning-for-accessibility-preserving-multi-object-placement",
+      "section": "deep",
+      "title_en": "Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement",
+      "authors": "Benno Wingender, Nils Dengler, Nicolas Busch, Sicong Pan, Maren Bennewitz",
+      "date": "2026-08-17",
+      "pdf": "https://arxiv.org/pdf/2608.16741v1",
+      "score": "8.0",
+      "evidence": "语义与密度感知的货架物品摆放规划，保持可访问性和空间效率，类似于考虑产品关系的存储位分配",
+      "tldr": "针对家庭服务机器人在部分占用货架上执行多物体在线放置任务时，未来物体到达未知且需同时保障语义组织、空间密集利用与机械臂可达性的问题，提出语义-密度放置规划方法SDPP。该方法采用语义密度评分融合物体间语义相似性与空间邻近度，并利用可达性地图过滤可行性候选。仿真实验显示SDPP显著提升语义放置质量并取得最高平均货架密度，同时大幅缩短识别可行放置位姿的时间。该研究为仓储物流场景下机器人长期存取规划提供了兼顾效率与可达性的新途径。",
+      "tags": "query:wo",
+      "abstract_en": "Long-term manipulation planning requires robots to reason not only about immediate task success but also about how current decisions affect future interactions with the environment. In this context, household service robots may need to organize groceries in partially occupied shelves while using limited storage space efficiently and preserving access for subsequent placements. In this paper, we consider an online multi-object shelf-placement setting in which future objects arrivals are unknown. Existing approaches do not jointly address semantic organization, dense space utilization, and manipulator accessibility during sequential shelf filling. To address this gap, we propose Semantic-Dense Placement Planning (SDPP), an accessibility-preserving approach that ranks candidate poses using a semantic-density score combining inter-object semantic similarity with spatial proximity. An Accessibility Map (AM) further filters candidates unlikely to be reachable before motion planning and penalizes placements that reduce the remaining accessible workspace. Simulation experiments show that SDPP significantly improves semantic placement quality over state-of-the-art baselines and achieves the highest average shelf density, while the AM substantially reduces the time required to identify feasible placement poses. A qualitative real-world experiment demonstrates the applicability of our pipeline in a domestic shelf-storage scenario.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/18/2608.15124v1-decision-driven-regularization-a-blended-model-for-learning-and-optimization",
+      "section": "quick",
+      "title_en": "Decision-Driven Regularization: A Blended Model for Learning and Optimization",
+      "authors": "Gar Goei Loke, Qinshen Tang, Yangge Xiao, Xun Zhang",
+      "date": "2026-08-15",
+      "pdf": "https://arxiv.org/pdf/2608.15124v1",
+      "score": "7.0",
+      "evidence": "提出一种学习与优化混合模型，应用于库存管理等情境决策",
+      "tldr": "上下文优化中，决策者需基于观测特征选择最优行动以最小化成本，常见于按需配送、零售运营与库存管理等。传统分离学习与优化方法缺乏对预测精度的控制，易过拟合并降低决策效果。本文提出决策驱动正则化，采用双目标公式平衡预测准确性与成本最小化，并通过新超参数代理解决成本函数模糊性；该框架可泛化稳健优化与遗憾最小化视角。数值实验表明，其优于OLS、随机森林、XGBoost、SPO+、Perturbation Gradient等基准，可推广至交通物流决策场景。",
+      "tags": "query:wo",
+      "abstract_en": "In contextual optimization, the decision-maker seeks optimal decisions to minimize a cost function, that varies based on observed features. This context is common in many business applications ranging from on-demand delivery and retail operations to portfolio optimization and inventory management. In this paper, we study the learning and optimization approach, which first learns how outcomes result from the features, and then selects optimal decisions based on these outcomes. We focus on the integrated learning and optimization literature, and identify that a lack of control for prediction accuracy can lead to overfitting and a loss of decision effectiveness against simple separate learning and optimization models. Instead, we propose a bi-objective formulation that balances prediction accuracy and cost minimization, termed decision-driven regularization. It also addresses ambiguity in the definition of the cost function via a surrogate that depends on a new hyperparameter. We additionally show that alternative perspectives for formulating the problem, namely robust optimization and regret minimization, lead to models that are closely related to our proposed model. As a consequence, our framework generalizes models such as SPO+. Our model is shown to be numerically superior to other benchmarks, such as OLS, Random Forest, XGBoost, SPO+, Perturbation Gradient, and Learning and Rank, in our synthetic studies.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/18/2608.15172v1-do-you-have-my-size-in-stock-assortment-and-inventory-optimization-under-the-consider-fit-then-choose-choice-model",
+      "section": "quick",
+      "title_en": "Do You Have My Size In Stock? Assortment and Inventory Optimization Under the Consider-Fit-Then-Choose Choice Model",
+      "authors": "Yi-Chun Akchen, Kaan Cakiroglu, Felipe Caro, Jacob Feldman",
+      "date": "2026-08-15",
+      "pdf": "https://arxiv.org/pdf/2608.15172v1",
+      "score": "7.0",
+      "evidence": "考虑尺码替代与需求转移的库存优化",
+      "tldr": "在服装零售等应用中，顾客偏好的尺码缺货会向邻近尺码转移需求，使品类与库存决策深度耦合。本文提出考虑-合身-选择（CFTC）模型刻画该尺寸依赖选择行为，证明品类优化为NP-hard并开发PTAS。通过仅库存隔号尺寸解耦需求，将CFTC归约为混合MNL并证明凸链分解（CCD）性质。算法在流体和随机问题中分别取得(1/2-ε)和渐近1/2近似，鞋类数据数值实验显示最优性差距小。",
+      "tags": "query:wo",
+      "abstract_en": "In apparel retail and other applications, when a customer's preferred size is unavailable, demand may shift to nearby sizes. This substitution creates new assortment and inventory optimization challenges by coupling product availability and demand across sizes. We introduce the consider-fit-then-choose (CFTC) model to capture such size-dependent choice behavior. Products may be offered in multiple sizes, which affect customer preferences and consideration sets through fit, measured by distance from the customer's ideal size. We study assortment optimization and show-all inventory selection, in which the retailer chooses initial inventory and subsequently offers every in-stock product.   We show that assortment optimization under the CFTC model is NP-hard and develop a PTAS when customers deviate by at most $O(1)$ sizes from their ideal size. Combined with the recent black-box framework of Fu et al. (2026), this yields a nearly $0.272$-approximation for show-all inventory selection. We next exploit the specific choice dynamics of the CFTC model. By stocking only every other size, we decouple demand across stocked sizes and reduce CFTC to a special class of mixed multinomial logit models that we prove satisfies the convex chain decomposition (CCD) property of Goyal et al. (2023).   For the fluid problem, we develop a polynomial-time $(1/2-ε)$-approximation under adjacent-size substitution and a mild condition on preference weights. For the stochastic problem, we establish an asymptotic $1/2$-approximation using a new coupling argument connecting the stochastic inventory process to its fluid counterpart. Numerical experiments calibrated using footwear data show small optimality gaps across a broad range of substitution patterns and problem settings.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202608/18/2608.15291v1-reasoncast-agentic-demand-forecasting-with-selective-semantic-reasoning",
+      "section": "quick",
+      "title_en": "ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning",
+      "authors": "Ziyue Yang, Chaolin Xu, Yijing Wang, Tiankai Gu, Hui Yang, Yanhong Lin, Kaiyuan Liu, Fei Xiao",
+      "date": "2026-08-15",
+      "pdf": "https://arxiv.org/pdf/2608.15291v1",
+      "score": "6.0",
+      "evidence": "改进需求预测以支持库存管理",
+      "tldr": "需求预测需融合历史销售与未来促销、节假日、价格变化等事件语义。现有文本增强方法统一编码上下文，未区分语义效应及干预方式。ReasonCast利用智能体选择性语义推理，将事件知识转为结构化字段，通过加性与乘性路径修正时序基础模型。在节假日、大促敏感及M5事件窗口上WMAPE分别降低3.29、1.25、0.47个百分点；稳定期抑制不必要干预可避免1.68个百分点损失。",
+      "tags": "query:wo",
+      "abstract_en": "Demand forecasting increasingly requires combining two complementary sources of information: historical sales reveal recurring numerical dynamics, while future promotions, holidays, price changes, and platform interventions provide forward-looking knowledge. Existing text-enhanced forecasting methods often encode such context into generic representations and fuse it uniformly with time-series features, without explicitly distinguishing which semantic effects are forecast-relevant or how they should modify future dynamics.   We introduce ReasonCast, a structured semantic intervention framework that translates event knowledge into forecast-specific operations. An agent examines the event context, the no-text forecast, and its uncertainty to determine whether textual reasoning is needed. Rather than injecting free-form text, ReasonCast represents event knowledge through structured fields describing event relevance, demand direction, temporal shape, amplitude, and peak intensity. These fields interact selectively with temporal components of a time-series foundation model. An additive path corrects local trends and temporal shapes, while a multiplicative path captures event-driven level shifts.   ReasonCast introduces a forecast-grounded post-training curriculum. Schema SFT establishes semantic fields; semantic-field RL calibrates direction, shape, amplitude, and peak judgments; and forecast-utility RL evaluates semantic interventions through a frozen forecaster, aligning reasoning outputs with marginal forecast improvement. ReasonCast lowers WMAPE by 3.29, 1.25, and 0.47 percentage points on holiday-sensitive categories, mega-sale-sensitive categories, and M5 event windows, respectively. On stable-sales periods, indiscriminate semantic intervention increases WMAPE by 1.68 percentage points, whereas suppressing unnecessary intervention preserves the numerical backbone.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
