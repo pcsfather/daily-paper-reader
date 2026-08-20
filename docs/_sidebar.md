@@ -1,6 +1,9 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
 * Daily Papers
+  * 2026-08-20 <!--dpr-date:20260820-->
+    * 速读区
+      * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/20/2608.14388v1-global-bifurcation-and-symmetry-of-periodic-inventory-oscillations-in-ring-supply-chain-networks" data-sidebar-item="{&quot;title&quot;: &quot;Global Bifurcation and Symmetry of Periodic Inventory Oscillations in Ring Supply-Chain Networks&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.14388v1-global-bifurcation-and-symmetry-of-periodic-inventory-oscillations-in-ring-supply-chain-networks&quot;, &quot;score&quot;: &quot;7.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wo&quot;}], &quot;evidence&quot;: &quot;研究环形供应链网络中仓库的周期库存振荡&quot;}">Global Bifurcation and Symmetry of Periodic Inventory Oscillations in Ring Supply-Chain Networks</a>
   * 2026-08-18 <!--dpr-date:20260818-->
     * 精读区
       * <a class="dpr-sidebar-item-link dpr-sidebar-item-structured" href="#/202608/18/2608.16741v1-semantic--and-density-aware-planning-for-accessibility-preserving-multi-object-placement" data-sidebar-item="{&quot;title&quot;: &quot;Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement&quot;, &quot;link&quot;: &quot;https://arxiv.org/abs/2608.16741v1-semantic--and-density-aware-planning-for-accessibility-preserving-multi-object-placement&quot;, &quot;score&quot;: &quot;8.0&quot;, &quot;tags&quot;: [{&quot;kind&quot;: &quot;query&quot;, &quot;label&quot;: &quot;wo&quot;}], &quot;evidence&quot;: &quot;语义与密度感知的货架物品摆放规划，保持可访问性和空间效率，类似于考虑产品关系的存储位分配&quot;}">Semantic- and Density-Aware Planning for Accessibility-Preserving Multi-Object Placement</a>
