@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-24T22:23:04.914779+00:00",
-  "updated_date": "20260924",
+  "generated_at": "2026-09-25T22:12:10.835285+00:00",
+  "updated_date": "20260925",
   "carryover_days": 9,
   "tag_states": {
     "demand-inv": {
@@ -9,7 +9,7 @@
       "items": []
     },
     "wo": {
-      "updated_date": "20260924",
+      "updated_date": "20260925",
       "carryover_days": 9,
       "items": []
     }
